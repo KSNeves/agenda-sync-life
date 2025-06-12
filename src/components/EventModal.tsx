@@ -31,7 +31,10 @@ export default function EventModal() {
         type: selectedEvent.type,
         location: selectedEvent.location || '',
         professor: selectedEvent.professor || '',
-        recurrence: selectedEvent.recurrence || { type: 'none', weekdays: [] },
+        recurrence: {
+          type: selectedEvent.recurrence?.type || 'none',
+          weekdays: selectedEvent.recurrence?.weekdays || [],
+        },
       });
     } else {
       // New event - set default times
