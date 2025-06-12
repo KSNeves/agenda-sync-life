@@ -1,103 +1,392 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. */
-
+/* Sistema de design - Paleta de cores para tema escuro/moderno */
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-
-    --radius: 0.5rem;
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 220 13% 8%;
     --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
+    
+    --card: 220 13% 10%;
     --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
+    
+    --popover: 220 13% 10%;
     --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
+    
+    --primary: 217 91% 60%;
+    --primary-foreground: 220 13% 8%;
+    
+    --secondary: 220 13% 15%;
     --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
+    
+    --muted: 220 13% 15%;
+    --muted-foreground: 215 16% 47%;
+    
+    --accent: 142 76% 36%;
+    --accent-foreground: 220 13% 8%;
+    
+    --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    
+    --border: 220 13% 18%;
+    --input: 220 13% 18%;
+    --ring: 217 91% 60%;
+    
+    --radius: 0.5rem;
+    
+    /* Variáveis customizadas para o tema */
+    --bg-primary: 220 13% 8%;
+    --bg-secondary: 220 13% 10%;
+    --bg-tertiary: 220 13% 15%;
+    --text-primary: 210 40% 98%;
+    --text-secondary: 215 16% 47%;
+    --text-tertiary: 215 16% 35%;
+    --primary-color: 217 91% 60%;
+    --secondary-color: 142 76% 36%;
+    --accent-color: 45 93% 47%;
+    --accent-color-light: 45 93% 85%;
+    --warning-color: 38 92% 50%;
+    --success-color: 142 76% 36%;
+    --info-color: 199 89% 48%;
+    --shadow-color: 220 13% 3%;
+    --border-radius: 8px;
   }
-}
-
-@layer base {
+  
   * {
     @apply border-border;
   }
-
+  
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+  }
+}
+
+@layer components {
+  /* Dashboard Styles */
+  .dashboard-container {
+    @apply flex flex-col min-h-screen;
+  }
+  
+  .dashboard-header {
+    @apply flex justify-between items-center p-6 border-b;
+  }
+  
+  .date-display {
+    @apply text-xl font-semibold;
+  }
+  
+  .dashboard-content {
+    @apply flex-1 p-6 space-y-6;
+  }
+  
+  .dashboard-widget {
+    @apply bg-card p-6 rounded-lg shadow-lg border;
+  }
+  
+  /* Progress Styles */
+  .progress-container {
+    @apply relative mb-4;
+  }
+  
+  .progress-bar {
+    @apply w-full h-3 bg-muted rounded-full overflow-hidden;
+  }
+  
+  .progress-fill {
+    @apply h-full bg-primary rounded-full transition-all duration-500 ease-in-out min-w-[5px];
+  }
+  
+  .progress-stats {
+    @apply flex justify-between items-center mt-2 text-sm;
+  }
+  
+  .progress-value {
+    @apply font-bold;
+  }
+  
+  .progress-goal {
+    @apply text-muted-foreground;
+  }
+  
+  /* Weekly Progress Styles */
+  .weekly-progress-grid {
+    @apply space-y-3;
+  }
+  
+  .day-progress-row {
+    @apply flex items-center gap-3;
+  }
+  
+  .day-label {
+    @apply w-20 text-right text-sm font-medium;
+  }
+  
+  .day-stats {
+    @apply text-xs text-muted-foreground;
+  }
+  
+  /* Tasks Styles */
+  .tasks-list {
+    @apply space-y-3;
+  }
+  
+  .task-item {
+    @apply bg-secondary p-4 rounded-lg flex items-center justify-between gap-4 transition-all;
+  }
+  
+  .task-item.completed {
+    @apply opacity-70;
+  }
+  
+  .task-info {
+    @apply flex-1;
+  }
+  
+  .task-title {
+    @apply font-semibold;
+  }
+  
+  .task-duration {
+    @apply text-sm text-muted-foreground;
+  }
+  
+  .task-actions {
+    @apply flex gap-2 flex-shrink-0;
+  }
+  
+  .task-timer {
+    @apply flex items-center gap-2;
+  }
+  
+  .timer-display {
+    @apply font-mono bg-muted px-3 py-1 rounded text-sm;
+  }
+  
+  /* Buttons */
+  .timer-button, .action-button {
+    @apply px-3 py-1 rounded text-sm font-medium cursor-pointer border-0 transition-all;
+  }
+  
+  .timer-button.pause {
+    @apply bg-warning text-warning-foreground;
+  }
+  
+  .timer-button.resume {
+    @apply bg-success text-success-foreground;
+  }
+  
+  .action-button.start {
+    @apply bg-primary text-primary-foreground;
+  }
+  
+  .action-button.postpone {
+    @apply bg-info text-info-foreground;
+  }
+  
+  .action-button.complete {
+    @apply bg-success text-success-foreground;
+  }
+  
+  .action-button:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+  
+  .empty-message {
+    @apply text-center text-muted-foreground bg-secondary p-6 rounded-lg;
+  }
+  
+  /* Calendar Styles */
+  .calendar-container {
+    @apply flex flex-col min-h-screen bg-background;
+  }
+  
+  .calendar-header {
+    @apply flex justify-between items-center p-6 bg-background border-b;
+  }
+  
+  .calendar-view-container {
+    @apply flex-1 overflow-auto relative;
+  }
+  
+  .calendar-button {
+    @apply px-4 py-2 rounded font-medium cursor-pointer border-0 transition-all;
+  }
+  
+  .calendar-button.create-event {
+    @apply bg-accent text-accent-foreground;
+  }
+  
+  .calendar-button.today {
+    @apply bg-secondary text-secondary-foreground;
+  }
+  
+  .calendar-navigation {
+    @apply flex gap-2;
+  }
+  
+  .calendar-nav-button {
+    @apply w-10 h-10 rounded-full bg-secondary border-0 flex items-center justify-center cursor-pointer;
+  }
+  
+  .calendar-title {
+    @apply text-xl font-bold;
+  }
+  
+  .calendar-view-selector {
+    @apply flex border rounded-lg overflow-hidden;
+  }
+  
+  .view-button {
+    @apply px-4 py-2 border-0 cursor-pointer;
+  }
+  
+  .view-button.active {
+    @apply bg-accent-foreground text-accent;
+  }
+  
+  /* Event Styles */
+  .calendar-event {
+    @apply absolute rounded p-1 overflow-hidden cursor-pointer z-10 shadow-sm hover:shadow-md transition-shadow;
+  }
+  
+  .calendar-event-title {
+    @apply font-semibold text-xs truncate;
+  }
+  
+  .calendar-event-time {
+    @apply text-xs opacity-80;
+  }
+  
+  .current-time-indicator {
+    @apply absolute w-full h-0.5 bg-red-500 z-20;
+  }
+  
+  .current-time-indicator::before {
+    @apply content-[''] absolute -left-1 -top-1 w-2 h-2 bg-red-500 rounded-full;
+  }
+  
+  /* Event Modal Styles */
+  .event-modal-overlay {
+    @apply fixed inset-0 bg-black/50 flex items-center justify-center z-50;
+  }
+  
+  .event-modal {
+    @apply bg-background rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden mx-4;
+  }
+  
+  .event-modal-header {
+    @apply flex justify-between items-center p-6 border-b;
+  }
+  
+  .close-button {
+    @apply p-2 hover:bg-secondary rounded transition-colors border-0 bg-transparent;
+  }
+  
+  .event-modal-content {
+    @apply p-6 overflow-y-auto;
+  }
+  
+  .form-row {
+    @apply flex gap-4 mb-4;
+  }
+  
+  .form-group {
+    @apply flex-1;
+  }
+  
+  .form-group label {
+    @apply block mb-2 font-medium;
+  }
+  
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    @apply w-full p-3 bg-secondary border border-border rounded text-foreground;
+  }
+  
+  .form-group textarea {
+    @apply resize-y min-h-[100px];
+  }
+  
+  .checkbox-group {
+    @apply flex items-center gap-2;
+  }
+  
+  .recurrence-options {
+    @apply bg-secondary p-4 rounded;
+  }
+  
+  .weekday-selector {
+    @apply flex gap-2 flex-wrap;
+  }
+  
+  .weekday-button {
+    @apply w-10 h-10 rounded-full border border-border bg-background text-foreground cursor-pointer flex items-center justify-center;
+  }
+  
+  .weekday-button.selected {
+    @apply bg-accent text-accent-foreground;
+  }
+  
+  .event-modal-footer {
+    @apply flex justify-between items-center p-6 border-t;
+  }
+  
+  .save-button {
+    @apply px-6 py-2 bg-accent text-accent-foreground rounded font-medium cursor-pointer border-0;
+  }
+  
+  .cancel-button {
+    @apply px-6 py-2 bg-secondary text-secondary-foreground rounded font-medium cursor-pointer border-0;
+  }
+  
+  .delete-button {
+    @apply px-6 py-2 bg-destructive text-destructive-foreground rounded font-medium cursor-pointer border-0;
+  }
+  
+  /* Event Types */
+  .event-type-class { @apply bg-blue-500/20; }
+  .event-type-study { @apply bg-green-500/20; }
+  .event-type-exam { @apply bg-red-500/20; }
+  .event-type-personal { @apply bg-purple-500/20; }
+  .event-type-other { @apply bg-gray-500/20; }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .dashboard-header {
+      @apply flex-col items-start gap-4;
+    }
+    
+    .calendar-header {
+      @apply flex-col items-start gap-4;
+    }
+    
+    .form-row {
+      @apply flex-col;
+    }
+    
+    .task-item {
+      @apply flex-col items-stretch;
+    }
+    
+    .task-actions {
+      @apply justify-start;
+    }
+    
+    .day-label {
+      @apply w-auto text-left;
+    }
+    
+    .event-modal-footer {
+      @apply flex-col gap-4;
+    }
+    
+    .save-button,
+    .cancel-button,
+    .delete-button {
+      @apply w-full py-3;
+    }
   }
 }

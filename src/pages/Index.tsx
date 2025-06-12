@@ -1,13 +1,41 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import React, { useState } from 'react';
+import { AppProvider } from '../context/AppContext';
+import Navigation from '../components/Navigation';
+import Dashboard from '../components/Dashboard';
+import Calendar from '../components/Calendar';
+import Schedule from '../components/Schedule';
+import Revision from '../components/Revision';
+import EventModal from '../components/EventModal';
 
 const Index = () => {
+  const [currentView, setCurrentView] = useState('dashboard');
+
+  const renderCurrentView = () => {
+    switch (currentView) {
+      case 'dashboard':
+        return <Dashboard />;
+      case 'calendar':
+        return <Calendar />;
+      case 'schedule':
+        return <Schedule />;
+      case 'revision':
+        return <Revision />;
+      default:
+        return <Dashboard />;
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <AppProvider>
+      <div className="min-h-screen bg-background">
+        <Navigation currentView={currentView} onViewChange={setCurrentView} />
+        <main>
+          {renderCurrentView()}
+        </main>
+        <EventModal />
       </div>
-    </div>
+    </AppProvider>
   );
 };
 
