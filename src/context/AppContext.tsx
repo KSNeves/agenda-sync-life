@@ -167,20 +167,8 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, isEventModalOpen: false, selectedEvent: null };
     
     case 'ADD_REVISION_ITEM':
-      const { nextDate, intervalDays } = calculateNextRevisionDate(0, action.payload.createdAt);
-      const newItem = {
-        ...action.payload,
-        revisionCount: 0,
-        nextRevisionDate: nextDate,
-        intervalDays,
-        category: categorizeRevision({
-          ...action.payload,
-          revisionCount: 0,
-          nextRevisionDate: nextDate,
-          intervalDays,
-        } as RevisionItem) as 'pending' | 'completed' | 'priority',
-      };
-      return { ...state, revisionItems: [...state.revisionItems, newItem] };
+      // Adiciona o item exatamente como veio, sem modificar
+      return { ...state, revisionItems: [...state.revisionItems, action.payload] };
     
     case 'UPDATE_REVISION_ITEM':
       return {
@@ -198,6 +186,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
                 nextRevisionDate: nextDate,
                 intervalDays,
                 completedAt: Date.now(),
+                category: 'priority', // Vai direto para "Próximas"
               };
             }
             return action.payload;

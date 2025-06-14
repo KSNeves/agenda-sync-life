@@ -1,4 +1,6 @@
 
+import { RevisionItem } from '../types';
+
 export const INITIAL_INTERVAL = 1; // 1 dia
 
 export function calculateNextRevisionDate(revisionCount: number, createdAt: number): { nextDate: number; intervalDays: number } {
@@ -43,9 +45,9 @@ export function categorizeRevision(item: RevisionItem): 'pending' | 'priority' |
   const today = new Date(now);
   const revisionDate = new Date(item.nextRevisionDate);
   
-  // Se já foi concluída hoje, fica em completed
+  // Se foi recém concluída, fica em priority (próximas)
   if (item.completedAt && new Date(item.completedAt).toDateString() === today.toDateString()) {
-    return 'completed';
+    return 'priority';
   }
   
   // Se a data de revisão é hoje, vai para pending

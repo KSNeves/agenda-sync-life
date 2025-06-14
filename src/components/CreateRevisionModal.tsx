@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { RevisionItem } from '../types';
-import { calculateNextRevisionDate } from '../utils/spacedRepetition';
 import {
   Dialog,
   DialogContent,
@@ -29,18 +28,19 @@ export default function CreateRevisionModal({ isOpen, onClose }: CreateRevisionM
     
     if (!title.trim()) return;
 
-    const createdAt = Date.now();
-    const { nextDate, intervalDays } = calculateNextRevisionDate(0, createdAt);
+    const now = Date.now();
+    const today = new Date(now);
+    today.setHours(0, 0, 0, 0); // Define para o início do dia
 
     const newRevision: RevisionItem = {
       id: Date.now().toString(),
       title: title.trim(),
       description: content.trim() || undefined,
       category: 'pending',
-      createdAt,
+      createdAt: now,
       revisionCount: 0,
-      nextRevisionDate: nextDate,
-      intervalDays,
+      nextRevisionDate: today.getTime(), // Começa hoje
+      intervalDays: 1,
     };
 
     dispatch({ type: 'ADD_REVISION_ITEM', payload: newRevision });
