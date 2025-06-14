@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { AppProvider } from '../context/AppContext';
 import { PomodoroProvider } from '../context/PomodoroContext';
 import { FlashcardsProvider } from '../context/FlashcardsContext';
-import { useAuth } from '../context/AuthContext';
+import { LanguageProvider } from '../context/LanguageContext';
 import Navigation from '../components/Navigation';
 import Dashboard from '../components/Dashboard';
 import Calendar from '../components/Calendar';
@@ -13,28 +13,9 @@ import Flashcards from '../components/Flashcards';
 import Settings from './Settings';
 import Profile from './Profile';
 import EventModal from '../components/EventModal';
-import LoginRegister from './LoginRegister';
 
 const Index = () => {
   const [currentView, setCurrentView] = useState('dashboard');
-  const { user, isLoading } = useAuth();
-
-  // Mostrar loading enquanto verifica autenticação
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-muted-foreground">Carregando...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Se não estiver autenticado, mostrar página de login
-  if (!user) {
-    return <LoginRegister />;
-  }
 
   const renderCurrentView = () => {
     switch (currentView) {
@@ -58,21 +39,23 @@ const Index = () => {
   };
 
   return (
-    <AppProvider>
-      <PomodoroProvider>
-        <FlashcardsProvider>
-          <div className="min-h-screen bg-background">
-            {currentView !== 'settings' && currentView !== 'profile' && (
-              <Navigation currentView={currentView} onViewChange={setCurrentView} />
-            )}
-            <main>
-              {renderCurrentView()}
-            </main>
-            <EventModal />
-          </div>
-        </FlashcardsProvider>
-      </PomodoroProvider>
-    </AppProvider>
+    <LanguageProvider>
+      <AppProvider>
+        <PomodoroProvider>
+          <FlashcardsProvider>
+            <div className="min-h-screen bg-background">
+              {currentView !== 'settings' && currentView !== 'profile' && (
+                <Navigation currentView={currentView} onViewChange={setCurrentView} />
+              )}
+              <main>
+                {renderCurrentView()}
+              </main>
+              <EventModal />
+            </div>
+          </FlashcardsProvider>
+        </PomodoroProvider>
+      </AppProvider>
+    </LanguageProvider>
   );
 };
 
