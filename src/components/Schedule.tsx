@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
@@ -68,10 +67,11 @@ export default function Schedule() {
         month: 'long', 
         day: 'numeric' 
       });
+    } else { // viewMode === 'week'
+      const start = weekDays[0];
+      const end = weekDays[6];
+      return `${start.getDate()} - ${end.getDate()} de ${end.toLocaleDateString('pt-BR', { month: 'long' })} de ${end.getFullYear()}`;
     }
-    const start = weekDays[0];
-    const end = weekDays[6];
-    return `${start.getDate()} - ${end.getDate()} de ${end.toLocaleDateString('pt-BR', { month: 'long' })} de ${end.getFullYear()}`;
   };
 
   // Obter eventos para um dia específico
