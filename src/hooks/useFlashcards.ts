@@ -8,30 +8,41 @@ export function useFlashcards() {
 
   // Load data from localStorage on mount
   useEffect(() => {
+    console.log('🔄 Loading data from localStorage...');
     const savedDecks = localStorage.getItem('flashcard-decks');
     const savedCards = localStorage.getItem('flashcard-cards');
     
     if (savedDecks) {
       const parsedDecks = JSON.parse(savedDecks);
+      console.log('📚 Loaded decks from localStorage:', parsedDecks);
       setDecks(parsedDecks);
+    } else {
+      console.log('📚 No decks found in localStorage');
     }
     
     if (savedCards) {
       const parsedCards = JSON.parse(savedCards);
+      console.log('🃏 Loaded cards from localStorage:', parsedCards);
       setFlashcards(parsedCards);
+    } else {
+      console.log('🃏 No cards found in localStorage');
     }
   }, []);
 
   // Save to localStorage whenever data changes
   useEffect(() => {
+    console.log('💾 Saving decks to localStorage:', decks);
     localStorage.setItem('flashcard-decks', JSON.stringify(decks));
   }, [decks]);
 
   useEffect(() => {
+    console.log('💾 Saving cards to localStorage:', flashcards);
     localStorage.setItem('flashcard-cards', JSON.stringify(flashcards));
   }, [flashcards]);
 
   const createDeck = (deckData: { name: string; description?: string }) => {
+    console.log('🆕 Creating new deck:', deckData);
+    
     const newDeck: Deck = {
       id: Date.now().toString(),
       name: deckData.name,
@@ -42,7 +53,15 @@ export function useFlashcards() {
       reviewCards: 0,
     };
 
-    setDecks(prev => [...prev, newDeck]);
+    console.log('🆕 New deck object:', newDeck);
+    console.log('📚 Current decks before adding:', decks);
+
+    setDecks(prev => {
+      const updated = [...prev, newDeck];
+      console.log('📚 Updated decks array:', updated);
+      return updated;
+    });
+    
     return newDeck.id;
   };
 

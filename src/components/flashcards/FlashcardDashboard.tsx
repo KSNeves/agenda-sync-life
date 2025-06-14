@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, BookOpen, Clock, TrendingUp, Upload } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -18,10 +18,18 @@ export default function FlashcardDashboard() {
 
   const stats = getDecksStats();
   
+  // Log decks whenever they change
+  useEffect(() => {
+    console.log('🎯 Dashboard - Decks updated:', decks);
+    console.log('🎯 Dashboard - Decks count:', decks.length);
+  }, [decks]);
+  
   const filteredDecks = decks.filter(deck =>
     deck.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     deck.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  console.log('🎯 Dashboard render - Total decks:', decks.length, 'Filtered decks:', filteredDecks.length);
 
   if (studyMode) {
     return (
@@ -53,7 +61,10 @@ export default function FlashcardDashboard() {
           </div>
           <div className="flex gap-3">
             <Button 
-              onClick={() => setIsCreateModalOpen(true)}
+              onClick={() => {
+                console.log('🎯 Opening create modal');
+                setIsCreateModalOpen(true);
+              }}
               className="flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
@@ -118,7 +129,7 @@ export default function FlashcardDashboard() {
 
         {/* Meus Decks Section */}
         <div className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">Meus Decks</h2>
+          <h2 className="text-2xl font-semibold mb-4">Meus Decks ({decks.length})</h2>
 
           {/* Decks List */}
           {filteredDecks.length === 0 ? (
@@ -157,7 +168,10 @@ export default function FlashcardDashboard() {
 
         <CreateDeckModal
           isOpen={isCreateModalOpen}
-          onClose={() => setIsCreateModalOpen(false)}
+          onClose={() => {
+            console.log('🎯 Closing create modal');
+            setIsCreateModalOpen(false);
+          }}
         />
       </div>
     </div>
