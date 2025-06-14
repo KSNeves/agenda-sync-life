@@ -7,6 +7,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from './ui/dialog';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -90,11 +91,14 @@ export default function CreateRevisionModal({ isOpen, onClose }: CreateRevisionM
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px] bg-card border-border">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] bg-card border-border overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-foreground text-center">
             Criar Nova Revisão
           </DialogTitle>
+          <DialogDescription className="text-muted-foreground text-center">
+            Configure uma nova revisão com sistema de repetição espaçada
+          </DialogDescription>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-6 mt-6">

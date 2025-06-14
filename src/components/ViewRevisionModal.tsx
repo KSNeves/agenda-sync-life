@@ -6,6 +6,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from './ui/dialog';
 import { Button } from './ui/button';
 import { Calendar, Clock, Hash, CalendarX } from 'lucide-react';
@@ -64,11 +65,14 @@ export default function ViewRevisionModal({ isOpen, onClose, revision }: ViewRev
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px] bg-card border-border">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] bg-card border-border overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-foreground">
             {revision.title}
           </DialogTitle>
+          <DialogDescription className="text-muted-foreground">
+            Detalhes completos da revisão programada
+          </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-6 mt-6">
