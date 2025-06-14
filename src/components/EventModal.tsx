@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { CalendarEvent, RevisionItem } from '../types';
@@ -433,14 +434,14 @@ export default function EventModal() {
             )}
           </div>
 
-          {/* Seção para adicionar à revisão espaçada - movida para baixo da recorrência */}
-          <div className="form-group" style={{ marginTop: '24px' }}>
+          {/* Seção para adicionar à revisão espaçada - com melhor visibilidade */}
+          <div className="form-group" style={{ marginTop: '24px', padding: '16px', border: '1px solid #e5e7eb', borderRadius: '8px', backgroundColor: '#f9fafb' }}>
             <div className="flex items-center justify-between">
-              <div>
-                <label className="text-sm font-medium">
+              <div className="flex-1">
+                <label className="text-sm font-medium text-gray-900">
                   Adicionar à Revisão Espaçada
                 </label>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-gray-600 mt-1">
                   Criará automaticamente uma revisão para este evento na data programada
                 </p>
               </div>
@@ -448,7 +449,8 @@ export default function EventModal() {
                 pressed={addToRevision}
                 onPressedChange={setAddToRevision}
                 aria-label="Adicionar à revisão espaçada"
-                className="ml-4"
+                className="ml-4 data-[state=on]:bg-blue-600 data-[state=on]:text-white"
+                size="lg"
               />
             </div>
           </div>
