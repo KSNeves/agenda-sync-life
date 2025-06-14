@@ -14,6 +14,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../hooks/useTranslation';
+import { useAuth } from '../context/AuthContext';
 
 interface NavigationProps {
   currentView: string;
@@ -31,6 +32,7 @@ export default function Navigation({ currentView, onViewChange }: NavigationProp
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const { language, setLanguage } = useLanguage();
   const { t } = useTranslation();
+  const { logout } = useAuth();
 
   // Load user profile from localStorage and listen for changes
   useEffect(() => {
@@ -89,7 +91,7 @@ export default function Navigation({ currentView, onViewChange }: NavigationProp
         onViewChange('settings');
         break;
       case 'logout':
-        // Implementar logout
+        logout();
         break;
     }
   };

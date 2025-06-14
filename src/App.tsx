@@ -6,13 +6,17 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "./context/ThemeContext";
 import { LanguageProvider } from "./context/LanguageContext";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 import Index from "./pages/Index";
+import LoginRegister from "./pages/LoginRegister";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
+function AppContent() {
+  const { isAuthenticated } = useAuth();
+
+  return (
     <LanguageProvider>
       <ThemeProvider>
         <TooltipProvider>
@@ -20,14 +24,32 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Index />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
+              {isAuthenticated ? (
+                <>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/dashboard" element={<Index />} />
+                  <Route path="*" element={<NotFound />} />
+                </>
+              ) : (
+                <>
+                  <Route path="/" element={<LoginRegister />} />
+                  <Route path="/login" element={<LoginRegister />} />
+                  <Route path="*" element={<LoginRegister />} />
+                </>
+              )}
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
       </ThemeProvider>
     </LanguageProvider>
+  );
+}
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   </QueryClientProvider>
 );
 
