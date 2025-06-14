@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useCallback } from 'react';
 
 interface Translation {
@@ -93,8 +92,6 @@ const translations = {
       scheduleDeleted: 'Agenda excluída',
       allDataDeleted: 'Todos os dados excluídos',
       changesSaved: 'Alterações salvas',
-      appearance: 'Aparência',
-      darkMode: 'Modo Escuro',
       appearance: {
         desc: 'Personalize a aparência da aplicação'
       },
