@@ -68,13 +68,13 @@ export default function Revision() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-6xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex justify-between items-center px-6 py-6">
           <h1 className="text-3xl font-bold text-foreground">Revisão</h1>
           <button
             onClick={() => setActiveTab('pending')}
-            className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors"
+            className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
           >
             <Plus size={20} />
             Criar Nova Revisão
@@ -82,54 +82,57 @@ export default function Revision() {
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-border mb-8">
-          {(['pending', 'priority', 'completed'] as const).map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-6 py-3 font-medium border-b-2 transition-colors ${
-                activeTab === tab
-                  ? 'border-green-500 text-green-600'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {getTabLabel(tab)} ({getTabCount(tab)})
-            </button>
-          ))}
+        <div className="px-6">
+          <div className="flex gap-8 border-b border-border">
+            {(['pending', 'priority', 'completed'] as const).map(tab => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`pb-4 font-medium border-b-2 transition-colors ${
+                  activeTab === tab
+                    ? 'border-green-500 text-green-500'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {getTabLabel(tab)} ({getTabCount(tab)})
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Add New Item */}
-        {activeTab === 'pending' && (
-          <div className="mb-6">
-            <div className="flex gap-3">
-              <input
-                type="text"
-                value={newItemTitle}
-                onChange={(e) => setNewItemTitle(e.target.value)}
-                placeholder="Digite o título da nova revisão..."
-                className="flex-1 px-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                onKeyPress={(e) => e.key === 'Enter' && addRevisionItem()}
-              />
-              <button
-                onClick={addRevisionItem}
-                className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
-              >
-                <Plus size={18} />
-                Adicionar
-              </button>
-            </div>
-          </div>
-        )}
-
         {/* Content */}
-        <div className="bg-card rounded-lg border border-border p-6">
-          <h2 className="text-xl font-semibold mb-6 text-card-foreground">
+        <div className="px-6 py-8">
+          <h2 className="text-2xl font-semibold mb-8 text-foreground">
             Revisões para {getTabLabel(activeTab)}
           </h2>
 
+          {/* Add New Item Input */}
+          {activeTab === 'pending' && (
+            <div className="mb-8">
+              <div className="flex gap-3">
+                <input
+                  type="text"
+                  value={newItemTitle}
+                  onChange={(e) => setNewItemTitle(e.target.value)}
+                  placeholder="Digite o título da nova revisão..."
+                  className="flex-1 px-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  onKeyPress={(e) => e.key === 'Enter' && addRevisionItem()}
+                />
+                <button
+                  onClick={addRevisionItem}
+                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
+                >
+                  <Plus size={18} />
+                  Adicionar
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Items List */}
           {filteredItems.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-muted-foreground text-lg mb-2">
+            <div className="text-center py-16">
+              <div className="text-muted-foreground text-lg">
                 {activeTab === 'pending' && 'Nenhuma revisão agendada para hoje.'}
                 {activeTab === 'priority' && 'Nenhuma revisão próxima.'}
                 {activeTab === 'completed' && 'Nenhuma revisão concluída.'}
@@ -138,10 +141,10 @@ export default function Revision() {
           ) : (
             <div className="space-y-4">
               {filteredItems.map(item => (
-                <div key={item.id} className="bg-background border border-border rounded-lg p-4 hover:shadow-sm transition-shadow">
+                <div key={item.id} className="bg-card border border-border rounded-lg p-6 hover:shadow-sm transition-shadow">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
-                      <h3 className="font-medium text-foreground mb-2">{item.title}</h3>
+                      <h3 className="font-medium text-foreground mb-2 text-lg">{item.title}</h3>
                       {item.description && (
                         <p className="text-muted-foreground text-sm mb-3">{item.description}</p>
                       )}
