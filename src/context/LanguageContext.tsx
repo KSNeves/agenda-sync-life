@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
@@ -108,6 +109,8 @@ const translations = {
     'settings.scheduleDeleted.desc': 'Todos os eventos do cronograma foram removidos',
     'settings.allDataDeleted': 'Todos os dados apagados',
     'settings.allDataDeleted.desc': 'Todos os dados do aplicativo foram removidos permanentemente',
+    'settings.changesSaved': 'Alterações salvas',
+    'settings.changesSaved.desc': 'Suas configurações foram salvas com sucesso',
     
     'common.save': 'Salvar Alterações',
     'common.cancel': 'Cancelar',

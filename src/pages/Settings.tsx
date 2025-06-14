@@ -89,6 +89,17 @@ export default function Settings({ onBack }: SettingsProps) {
     });
   };
 
+  const handleSaveChanges = () => {
+    // Save notification settings to localStorage
+    localStorage.setItem('notifications', JSON.stringify(notifications));
+    localStorage.setItem('studyReminders', JSON.stringify(studyReminders));
+    
+    toast({
+      title: t('settings.changesSaved'),
+      description: t('settings.changesSaved.desc'),
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto p-6">
@@ -323,7 +334,9 @@ export default function Settings({ onBack }: SettingsProps) {
           </Card>
 
           <div className="flex gap-4 pt-6">
-            <Button className="flex-1">{t('common.save')}</Button>
+            <Button className="flex-1" onClick={handleSaveChanges}>
+              {t('common.save')}
+            </Button>
             <Button variant="outline" onClick={onBack}>
               {t('common.cancel')}
             </Button>
