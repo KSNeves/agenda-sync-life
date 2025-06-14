@@ -1,4 +1,5 @@
 
+
 import React, { useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Task, RevisionItem } from '../types';
@@ -253,7 +254,7 @@ export default function Dashboard() {
             {getWeekProgress().map((day, index) => (
               <div key={index} className="day-progress-row">
                 <div className="day-label">{day.day}</div>
-                <div className="progress-container flex-1 mt-2">
+                <div className="progress-container flex-1">
                   <div className="progress-bar h-3">
                     <div 
                       className="h-full bg-primary rounded-full transition-all duration-500"
@@ -276,3 +277,4 @@ export default function Dashboard() {
     </div>
   );
 }
+
