@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { CalendarEvent, RevisionItem } from '../types';
@@ -439,7 +440,7 @@ export default function EventModal() {
               <Checkbox
                 id="addToRevision"
                 checked={addToRevision}
-                onCheckedChange={setAddToRevision}
+                onCheckedChange={(checked) => setAddToRevision(checked === true)}
               />
               <div>
                 <label htmlFor="addToRevision" className="text-sm font-medium cursor-pointer">
