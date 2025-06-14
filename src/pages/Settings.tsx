@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ArrowLeft, Bell, Palette, Timer, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -30,16 +29,9 @@ export default function Settings({ onBack }: SettingsProps) {
   const [studyReminders, setStudyReminders] = useState(true);
 
   const languageOptions = [
-    { value: 'ar', label: 'العربية' },
-    { value: 'bn', label: 'বাংলা' },
     { value: 'en', label: 'English' },
     { value: 'es', label: 'Español' },
-    { value: 'fr', label: 'Français' },
-    { value: 'hi', label: 'हिन्दी' },
-    { value: 'it', label: 'Italiano' },
     { value: 'pt', label: 'Português' },
-    { value: 'ru', label: 'Русский' },
-    { value: 'zh', label: '中文' },
   ];
 
   // Generate time options in 5-minute intervals
