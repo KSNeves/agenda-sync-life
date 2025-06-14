@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, RotateCcw } from 'lucide-react';
 import { Button } from '../ui/button';
@@ -165,19 +164,19 @@ export default function StudyMode({ deckId, onExit }: StudyModeProps) {
                     <div className="flex gap-2 justify-center flex-wrap">
                       <Button
                         onClick={() => handleResponse('again')}
-                        className="bg-red-700 hover:bg-red-800 text-white min-w-20"
+                        className="bg-red-600 hover:bg-red-700 text-white min-w-20"
                       >
                         Esqueci
                       </Button>
                       <Button
                         onClick={() => handleResponse('hard')}
-                        className="bg-red-600 hover:bg-red-700 text-white min-w-20"
+                        className="bg-orange-500 hover:bg-orange-600 text-white min-w-20"
                       >
                         Difícil
                       </Button>
                       <Button
                         onClick={() => handleResponse('good')}
-                        className="bg-green-600 hover:bg-green-700 text-white min-w-20"
+                        className="bg-yellow-500 hover:bg-yellow-600 text-white min-w-20"
                       >
                         Bom
                       </Button>
