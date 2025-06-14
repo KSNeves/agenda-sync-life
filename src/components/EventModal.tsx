@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { CalendarEvent } from '../types';
+import { CalendarEvent, RevisionItem } from '../types';
 import { X } from 'lucide-react';
 
 const eventColors = [
@@ -33,6 +33,8 @@ export default function EventModal() {
     },
   });
 
+  const [addToRevision, setAddToRevision] = useState(false);
+
   useEffect(() => {
     if (selectedEvent) {
       // Corrigido: formatação correta do datetime-local
@@ -59,6 +61,7 @@ export default function EventModal() {
           weekdays: selectedEvent.recurrence?.weekdays || [],
         },
       });
+      setAddToRevision(false);
     } else {
       // New event - set default times
       const now = new Date();
@@ -87,6 +90,7 @@ export default function EventModal() {
         customColor: 'blue',
         recurrence: { type: 'none', weekdays: [] },
       });
+      setAddToRevision(false);
     }
   }, [selectedEvent, state.selectedDate]);
 
@@ -211,6 +215,32 @@ export default function EventModal() {
       } else {
         dispatch({ type: 'ADD_EVENT', payload: eventData });
       }
+    }
+
+    // Se a opção de adicionar à revisão estiver marcada, criar item de revisão
+    if (addToRevision) {
+      const eventStartDate = new Date(formData.startTime);
+      eventStartDate.setHours(0, 0, 0, 0);
+
+      const revisionContent = [
+        formData.title,
+        formData.description && `Descrição: ${formData.description}`,
+        formData.location && `Local: ${formData.location}`,
+        formData.professor && `Professor: ${formData.professor}`,
+      ].filter(Boolean).join('\n\n');
+
+      const revisionItem: RevisionItem = {
+        id: Date.now().toString(),
+        title: `Revisão: ${formData.title}`,
+        description: revisionContent,
+        category: 'pending',
+        createdAt: Date.now(),
+        revisionCount: 0,
+        nextRevisionDate: eventStartDate.getTime(),
+        intervalDays: 1,
+      };
+
+      dispatch({ type: 'ADD_REVISION_ITEM', payload: revisionItem });
     }
 
     handleClose();
@@ -360,6 +390,24 @@ export default function EventModal() {
                 />
               ))}
             </div>
+          </div>
+
+          {/* Nova seção para adicionar à revisão espaçada */}
+          <div className="form-group">
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="addToRevision"
+                checked={addToRevision}
+                onChange={(e) => setAddToRevision(e.target.checked)}
+              />
+              <label htmlFor="addToRevision" className="text-sm font-medium">
+                Adicionar à Revisão Espaçada
+              </label>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Criará automaticamente uma revisão para este evento na data programada
+            </p>
           </div>
 
           {/* Espaço adicionado entre cores e recorrência */}
