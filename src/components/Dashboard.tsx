@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Task, RevisionItem } from '../types';
@@ -175,18 +174,27 @@ export default function Dashboard() {
     dispatch({ type: 'ADD_TASK', payload: newTask });
   };
 
+  // Usar tradução para a data atual
+  const formatCurrentDate = () => {
+    const options: Intl.DateTimeFormatOptions = { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    };
+    
+    // Usar locale baseado no idioma selecionado
+    const locale = t('common.locale'); // Vamos adicionar esta chave de tradução
+    return today.toLocaleDateString(locale, options);
+  };
+
   return (
     <div className="dashboard-container">
       <header className="dashboard-header">
         <div>
           <h1 className="text-2xl font-bold">{t('dashboard.title')}</h1>
           <div className="date-display text-muted-foreground">
-            {today.toLocaleDateString('pt-BR', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
-            })}
+            {formatCurrentDate()}
           </div>
         </div>
       </header>

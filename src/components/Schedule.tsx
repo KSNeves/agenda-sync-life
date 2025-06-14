@@ -69,12 +69,14 @@ export default function Schedule() {
     t('event.weekdays.sat')
   ];
 
-  // Formatar título da semana
+  // Formatar título da semana com tradução
   const getWeekTitle = () => {
+    const locale = t('common.locale');
+    
     if (viewMode === 'month') {
-      return currentWeek.toLocaleDateString('pt-BR', { year: 'numeric', month: 'long' });
+      return currentWeek.toLocaleDateString(locale, { year: 'numeric', month: 'long' });
     } else if (viewMode === 'day') {
-      return currentWeek.toLocaleDateString('pt-BR', { 
+      return currentWeek.toLocaleDateString(locale, { 
         weekday: 'long', 
         year: 'numeric', 
         month: 'long', 
@@ -83,7 +85,8 @@ export default function Schedule() {
     } else { // viewMode === 'week'
       const start = weekDays[0];
       const end = weekDays[6];
-      return `${start.getDate()} - ${end.getDate()} de ${end.toLocaleDateString('pt-BR', { month: 'long' })} de ${end.getFullYear()}`;
+      const monthName = end.toLocaleDateString(locale, { month: 'long' });
+      return `${start.getDate()} - ${end.getDate()} de ${monthName} de ${end.getFullYear()}`;
     }
   };
 
