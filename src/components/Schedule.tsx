@@ -332,11 +332,11 @@ export default function Schedule() {
                 const isToday = day.toDateString() === new Date().toDateString();
                 
                 return (
-                  <div key={index} className="p-4 text-center border-r border-border/50 last:border-r-0">
-                    <div className="text-xs text-muted-foreground font-medium mb-1">
+                  <div key={index} className={`p-4 text-center border-r border-border/50 last:border-r-0 ${isToday ? 'bg-blue-50' : ''}`}>
+                    <div className={`text-xs font-medium mb-1 ${isToday ? 'text-blue-600' : 'text-muted-foreground'}`}>
                       {dayNames[index]}
                     </div>
-                    <div className={`text-2xl font-semibold ${isToday ? 'text-primary' : 'text-foreground'}`}>
+                    <div className={`text-2xl font-semibold ${isToday ? 'text-blue-600 bg-blue-100 rounded-full w-10 h-10 flex items-center justify-center mx-auto' : 'text-foreground'}`}>
                       {day.getDate()}
                     </div>
                   </div>
@@ -369,9 +369,10 @@ export default function Schedule() {
                 <div className="w-20"></div>
                 {weekDays.map((day, dayIndex) => {
                   const dayEvents = getEventsForDay(day);
+                  const isToday = day.toDateString() === new Date().toDateString();
                   
                   return (
-                    <div key={dayIndex} className="relative">
+                    <div key={dayIndex} className={`relative ${isToday ? 'bg-blue-50/30' : ''}`}>
                       {dayEvents.map(event => {
                         const position = getEventPosition(event);
                         const eventStyle = getEventStyle(event);
@@ -420,18 +421,21 @@ export default function Schedule() {
                   </div>
                   
                   {/* Colunas dos Dias */}
-                  {weekDays.map((day, dayIndex) => (
-                    <div
-                      key={dayIndex}
-                      className="relative border-r border-border/20 last:border-r-0 hover:bg-secondary/20 cursor-pointer transition-colors"
-                      onClick={() => {
-                        const startTime = new Date(day);
-                        startTime.setHours(hour, 0, 0, 0);
-                        dispatch({ type: 'SET_SELECTED_DATE', payload: startTime });
-                        dispatch({ type: 'OPEN_EVENT_MODAL', payload: null });
-                      }}
-                    />
-                  ))}
+                  {weekDays.map((day, dayIndex) => {
+                    const isToday = day.toDateString() === new Date().toDateString();
+                    return (
+                      <div
+                        key={dayIndex}
+                        className={`relative border-r border-border/20 last:border-r-0 hover:bg-secondary/20 cursor-pointer transition-colors ${isToday ? 'bg-blue-50/20' : ''}`}
+                        onClick={() => {
+                          const startTime = new Date(day);
+                          startTime.setHours(hour, 0, 0, 0);
+                          dispatch({ type: 'SET_SELECTED_DATE', payload: startTime });
+                          dispatch({ type: 'OPEN_EVENT_MODAL', payload: null });
+                        }}
+                      />
+                    );
+                  })}
                 </div>
               ))}
             </div>
