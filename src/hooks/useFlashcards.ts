@@ -70,16 +70,23 @@ export function useFlashcards() {
       hardCount: 0,
     };
 
-    setFlashcards(prev => [...prev, newCard]);
-    updateDeckStats(deckId);
+    setFlashcards(prev => {
+      const updated = [...prev, newCard];
+      // Update deck stats with the new card count
+      setTimeout(() => updateDeckStatsWithCards(deckId, updated), 0);
+      return updated;
+    });
   };
 
   const deleteCard = (cardId: string) => {
-    const card = flashcards.find(c => c.id === cardId);
-    setFlashcards(prev => prev.filter(c => c.id !== cardId));
-    if (card) {
-      updateDeckStats(card.deckId);
-    }
+    setFlashcards(prev => {
+      const card = prev.find(c => c.id === cardId);
+      const updated = prev.filter(c => c.id !== cardId);
+      if (card) {
+        setTimeout(() => updateDeckStatsWithCards(card.deckId, updated), 0);
+      }
+      return updated;
+    });
   };
 
   const getCardsFromDeck = (deckId: string) => {
@@ -87,84 +94,91 @@ export function useFlashcards() {
   };
 
   const reviewCard = (cardId: string, difficulty: 'easy' | 'medium' | 'hard') => {
-    setFlashcards(prev => prev.map(card => {
-      if (card.id === cardId) {
-        const newReviewCount = card.reviewCount + 1;
-        let newStatus = card.status;
-        let newEasyCount = card.easyCount;
-        let newMediumCount = card.mediumCount;
-        let newHardCount = card.hardCount;
+    setFlashcards(prev => {
+      const updated = prev.map(card => {
+        if (card.id === cardId) {
+          const newReviewCount = card.reviewCount + 1;
+          let newStatus = card.status;
+          let newEasyCount = card.easyCount;
+          let newMediumCount = card.mediumCount;
+          let newHardCount = card.hardCount;
 
-        // Lógica de revisão do Anki
-        if (difficulty === 'easy') {
-          newEasyCount += 1;
-          if (card.status === 'unlearned') {
-            newStatus = 'reviewing';
-          } else if (card.status === 'reviewing' && newEasyCount >= 2) {
-            newStatus = 'learned';
+          if (difficulty === 'easy') {
+            newEasyCount += 1;
+            if (card.status === 'unlearned') {
+              newStatus = 'reviewing';
+            } else if (card.status === 'reviewing' && newEasyCount >= 2) {
+              newStatus = 'learned';
+            }
+          } else if (difficulty === 'medium') {
+            newMediumCount += 1;
+            if (card.status === 'unlearned') {
+              newStatus = 'reviewing';
+            }
+          } else if (difficulty === 'hard') {
+            newHardCount += 1;
+            if (card.status === 'unlearned') {
+              newStatus = 'reviewing';
+            }
           }
-        } else if (difficulty === 'medium') {
-          newMediumCount += 1;
-          if (card.status === 'unlearned') {
-            newStatus = 'reviewing';
-          }
-          // Se estava em reviewing e clicou medium, continua em reviewing
-          // Se clicou easy depois de medium, vai para lógica de easy
-        } else if (difficulty === 'hard') {
-          newHardCount += 1;
-          if (card.status === 'unlearned') {
-            newStatus = 'reviewing';
-          }
-          // Se estava em reviewing e clicou hard, continua em reviewing
-          // Se clicou medium ou easy depois de hard, vai para respectiva lógica
+
+          return {
+            ...card,
+            difficulty,
+            reviewCount: newReviewCount,
+            lastReviewed: Date.now(),
+            status: newStatus,
+            easyCount: newEasyCount,
+            mediumCount: newMediumCount,
+            hardCount: newHardCount,
+          };
         }
+        return card;
+      });
 
-        return {
-          ...card,
-          difficulty,
-          reviewCount: newReviewCount,
-          lastReviewed: Date.now(),
-          status: newStatus,
-          easyCount: newEasyCount,
-          mediumCount: newMediumCount,
-          hardCount: newHardCount,
-        };
+      // Update deck stats with the updated cards
+      const reviewedCard = updated.find(c => c.id === cardId);
+      if (reviewedCard) {
+        setTimeout(() => updateDeckStatsWithCards(reviewedCard.deckId, updated), 0);
       }
-      return card;
-    }));
+      
+      return updated;
+    });
   };
 
   const restartStudies = (deckId: string) => {
-    setFlashcards(prev => prev.map(card => {
-      if (card.deckId === deckId) {
-        return {
-          ...card,
-          status: 'unlearned' as const,
-          reviewCount: 0,
-          easyCount: 0,
-          mediumCount: 0,
-          hardCount: 0,
-          lastReviewed: undefined,
-        };
-      }
-      return card;
-    }));
-    updateDeckStats(deckId);
+    setFlashcards(prev => {
+      const updated = prev.map(card => {
+        if (card.deckId === deckId) {
+          return {
+            ...card,
+            status: 'unlearned' as const,
+            reviewCount: 0,
+            easyCount: 0,
+            mediumCount: 0,
+            hardCount: 0,
+            lastReviewed: undefined,
+          };
+        }
+        return card;
+      });
+      
+      setTimeout(() => updateDeckStatsWithCards(deckId, updated), 0);
+      return updated;
+    });
   };
 
-  const updateDeckStats = (deckId: string) => {
-    setTimeout(() => {
-      const deckCards = flashcards.filter(card => card.deckId === deckId);
-      const cardCount = deckCards.length;
-      const newCards = deckCards.filter(card => card.status === 'unlearned').length;
-      const reviewCards = deckCards.filter(card => card.status === 'reviewing').length;
+  const updateDeckStatsWithCards = (deckId: string, cards: Flashcard[]) => {
+    const deckCards = cards.filter(card => card.deckId === deckId);
+    const cardCount = deckCards.length;
+    const newCards = deckCards.filter(card => card.status === 'unlearned').length;
+    const reviewCards = deckCards.filter(card => card.status === 'reviewing').length;
 
-      setDecks(prev => prev.map(deck => 
-        deck.id === deckId 
-          ? { ...deck, cardCount, newCards, reviewCards }
-          : deck
-      ));
-    }, 100);
+    setDecks(prev => prev.map(deck => 
+      deck.id === deckId 
+        ? { ...deck, cardCount, newCards, reviewCards }
+        : deck
+    ));
   };
 
   const getDecksStats = () => {
@@ -176,11 +190,6 @@ export function useFlashcards() {
 
     return { totalDecks, totalCards, cardsToReview };
   };
-
-  // Update deck stats whenever flashcards change
-  useEffect(() => {
-    decks.forEach(deck => updateDeckStats(deck.id));
-  }, [flashcards.length]);
 
   return {
     decks,
