@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { CalendarEvent } from '../types';
@@ -219,7 +218,20 @@ export default function EventModal() {
 
   const handleDelete = () => {
     if (selectedEvent) {
-      dispatch({ type: 'DELETE_EVENT', payload: selectedEvent.id });
+      // Verificar se é um evento recorrente
+      if (selectedEvent.recurrence && selectedEvent.recurrence.type !== 'none') {
+        // Excluir todos os eventos relacionados
+        const baseId = selectedEvent.id.split('_')[0];
+        dispatch({ type: 'DELETE_RECURRING_EVENTS', payload: baseId });
+      } else {
+        // Verificar se faz parte de uma série recorrente (ID contém underscore)
+        if (selectedEvent.id.includes('_')) {
+          const baseId = selectedEvent.id.split('_')[0];
+          dispatch({ type: 'DELETE_RECURRING_EVENTS', payload: baseId });
+        } else {
+          dispatch({ type: 'DELETE_EVENT', payload: selectedEvent.id });
+        }
+      }
       handleClose();
     }
   };
@@ -397,7 +409,7 @@ export default function EventModal() {
                 onClick={handleDelete}
                 className="delete-button"
               >
-                Excluir
+                {selectedEvent.recurrence?.type !== 'none' || selectedEvent.id.includes('_') ? 'Excluir Série' : 'Excluir'}
               </button>
             )}
             <div className="flex gap-2">

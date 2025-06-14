@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 import { Task, CalendarEvent, RevisionItem, CalendarView } from '../types';
 
@@ -26,6 +25,7 @@ type AppAction =
   | { type: 'ADD_EVENT'; payload: CalendarEvent }
   | { type: 'UPDATE_EVENT'; payload: CalendarEvent }
   | { type: 'DELETE_EVENT'; payload: string }
+  | { type: 'DELETE_RECURRING_EVENTS'; payload: string }
   | { type: 'SET_CALENDAR_VIEW'; payload: CalendarView }
   | { type: 'SET_SELECTED_DATE'; payload: Date }
   | { type: 'SET_CURRENT_DATE'; payload: Date }
@@ -138,6 +138,16 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return {
         ...state,
         events: state.events.filter(event => event.id !== action.payload),
+      };
+    
+    case 'DELETE_RECURRING_EVENTS':
+      return {
+        ...state,
+        events: state.events.filter(event => {
+          // Remove o evento original e todos os eventos que começam com o baseId
+          const baseId = action.payload;
+          return event.id !== baseId && !event.id.startsWith(`${baseId}_`);
+        }),
       };
     
     case 'SET_CALENDAR_VIEW':
