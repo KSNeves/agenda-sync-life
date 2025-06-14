@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, useCallback } from 'react';
 
 interface Translation {
@@ -238,7 +239,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
 
   const t = useCallback((key: string): string => {
     const keys = key.split('.');
-    let value: string | Translation = translations[language as key];
+    let value: string | Translation = translations[language as keyof typeof translations];
   
     for (const k of keys) {
       if (typeof value === 'string') {
