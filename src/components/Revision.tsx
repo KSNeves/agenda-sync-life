@@ -8,23 +8,8 @@ export default function Revision() {
   const { state, dispatch } = useApp();
   const { revisionItems } = state;
   const [activeTab, setActiveTab] = useState<'pending' | 'completed' | 'priority'>('pending');
-  const [newItemTitle, setNewItemTitle] = useState('');
 
   const filteredItems = revisionItems.filter(item => item.category === activeTab);
-
-  const addRevisionItem = () => {
-    if (!newItemTitle.trim()) return;
-
-    const newItem: RevisionItem = {
-      id: Date.now().toString(),
-      title: newItemTitle,
-      category: activeTab,
-      createdAt: Date.now(),
-    };
-
-    dispatch({ type: 'ADD_REVISION_ITEM', payload: newItem });
-    setNewItemTitle('');
-  };
 
   const toggleItemCompletion = (item: RevisionItem) => {
     const updatedItem: RevisionItem = {
@@ -105,29 +90,6 @@ export default function Revision() {
           <h2 className="text-2xl font-semibold mb-8 text-foreground">
             Revisões para {getTabLabel(activeTab)}
           </h2>
-
-          {/* Add New Item Input */}
-          {activeTab === 'pending' && (
-            <div className="mb-8">
-              <div className="flex gap-3">
-                <input
-                  type="text"
-                  value={newItemTitle}
-                  onChange={(e) => setNewItemTitle(e.target.value)}
-                  placeholder="Digite o título da nova revisão..."
-                  className="flex-1 px-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                  onKeyPress={(e) => e.key === 'Enter' && addRevisionItem()}
-                />
-                <button
-                  onClick={addRevisionItem}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
-                >
-                  <Plus size={18} />
-                  Adicionar
-                </button>
-              </div>
-            </div>
-          )}
 
           {/* Items List */}
           {filteredItems.length === 0 ? (
