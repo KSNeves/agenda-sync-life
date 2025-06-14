@@ -43,37 +43,42 @@ export default function Dashboard() {
 
   // Calculate daily progress based on completed revisions today
   const completedRevisionsToday = revisionItems.filter(item => {
-    // Conta revisões que foram completadas hoje OU que foram marcadas como completed hoje
     const wasCompletedToday = item.completedAt && 
       new Date(item.completedAt).toDateString() === today.toDateString();
     
     return wasCompletedToday;
   }).length;
   
-  // Total de tarefas = revisões pendentes hoje + revisões já completadas hoje
   const totalDailyTasks = todayRevisions.length + completedRevisionsToday;
   const dailyProgress = totalDailyTasks > 0 ? (completedRevisionsToday / totalDailyTasks) * 100 : 0;
 
-  // Weekly progress calculation
+  // Weekly progress calculation - baseado em revisões
   const getWeekProgress = () => {
     const weekDays = [];
     for (let i = 0; i < 7; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() - today.getDay() + i);
       
-      const dayTasks = tasks.filter(task => {
-        const taskDate = new Date(task.createdAt);
-        return taskDate.toDateString() === date.toDateString();
-      });
+      // Contar revisões completadas neste dia específico
+      const completedRevisionsThisDay = revisionItems.filter(item => {
+        return item.completedAt && 
+          new Date(item.completedAt).toDateString() === date.toDateString();
+      }).length;
       
-      const completed = dayTasks.filter(task => task.completed).length;
-      const total = dayTasks.length;
+      // Para calcular o total, consideramos as revisões que estavam agendadas para este dia
+      // mais as que foram completadas neste dia
+      const revisionsForThisDay = revisionItems.filter(item => {
+        const nextRevisionDate = new Date(item.nextRevisionDate);
+        return nextRevisionDate.toDateString() === date.toDateString();
+      }).length;
+      
+      const totalForThisDay = Math.max(revisionsForThisDay, completedRevisionsThisDay);
       
       weekDays.push({
         day: date.toLocaleDateString('pt-BR', { weekday: 'short' }),
-        progress: total > 0 ? (completed / total) * 100 : 0,
-        completed,
-        total
+        progress: totalForThisDay > 0 ? (completedRevisionsThisDay / totalForThisDay) * 100 : 0,
+        completed: completedRevisionsThisDay,
+        total: totalForThisDay
       });
     }
     return weekDays;
@@ -234,7 +239,7 @@ export default function Dashboard() {
                 <div className="progress-container flex-1">
                   <div className="progress-bar h-3">
                     <div 
-                      className="h-full bg-secondary-color rounded-full transition-all duration-500"
+                      className="h-full bg-primary rounded-full transition-all duration-500"
                       style={{ width: `${day.progress}%` }}
                     />
                   </div>
