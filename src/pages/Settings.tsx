@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { ArrowLeft, Bell, Shield, Palette, Timer, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Bell, Palette, Timer, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -9,6 +10,9 @@ import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../hooks/useTranslation';
 import { usePomodoro } from '../context/PomodoroContext';
+import { useApp } from '../context/AppContext';
+import { useFlashcards } from '../hooks/useFlashcards';
+import { toast } from '@/components/ui/use-toast';
 
 interface SettingsProps {
   onBack: () => void;
@@ -19,6 +23,8 @@ export default function Settings({ onBack }: SettingsProps) {
   const { language, setLanguage } = useLanguage();
   const { t } = useTranslation();
   const { settings, updateSettings } = usePomodoro();
+  const { dispatch } = useApp();
+  const { deleteAllDecks } = useFlashcards();
   
   const [notifications, setNotifications] = useState(true);
   const [studyReminders, setStudyReminders] = useState(true);
@@ -48,6 +54,40 @@ export default function Settings({ onBack }: SettingsProps) {
   const focusTimeOptions = generateTimeOptions(5, 120); // 5 to 120 minutes
   const shortBreakOptions = generateTimeOptions(5, 30); // 5 to 30 minutes
   const longBreakOptions = generateTimeOptions(5, 60); // 5 to 60 minutes
+
+  const handleDeleteSchedule = () => {
+    dispatch({ type: 'CLEAR_EVENTS' });
+    toast({
+      title: "Schedule apagado",
+      description: "Todos os eventos do calendário foram removidos.",
+    });
+  };
+
+  const handleDeleteAllData = () => {
+    // Clear schedule events
+    dispatch({ type: 'CLEAR_EVENTS' });
+    
+    // Clear flashcards
+    deleteAllDecks();
+    
+    // Clear revision items
+    dispatch({ type: 'CLEAR_REVISIONS' });
+    
+    // Reset pomodoro settings to default
+    updateSettings({
+      focusTime: 25,
+      shortBreak: 5,
+      longBreak: 15,
+      longBreakInterval: 4,
+      autoStartBreaks: false
+    });
+    
+    toast({
+      title: "Todos os dados apagados",
+      description: "Calendário, flashcards, revisões e configurações foram resetados.",
+      variant: "destructive"
+    });
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -261,13 +301,21 @@ export default function Settings({ onBack }: SettingsProps) {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label>Apagar Schedule</Label>
-                <Button variant="outline" className="w-full bg-orange-500 hover:bg-orange-600 text-white">
+                <Button 
+                  variant="outline" 
+                  className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+                  onClick={handleDeleteSchedule}
+                >
                   Apagar Schedule
                 </Button>
               </div>
               <div className="space-y-2">
                 <Label>{t('settings.deleteAllData')}</Label>
-                <Button variant="destructive" className="w-full">
+                <Button 
+                  variant="destructive" 
+                  className="w-full"
+                  onClick={handleDeleteAllData}
+                >
                   {t('settings.deleteAllData.btn')}
                 </Button>
               </div>
