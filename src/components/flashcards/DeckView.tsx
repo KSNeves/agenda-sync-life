@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ArrowLeft, Plus, Play, Edit, Trash2, RotateCcw } from 'lucide-react';
 import { Button } from '../ui/button';
@@ -57,9 +56,11 @@ export default function DeckView({ deckId, onBack, onStudy }: DeckViewProps) {
     }
   };
 
-  // Categorizar cards por status
-  const learning = cards.filter(card => card.status === 'learning');
-  const reviewing = cards.filter(card => card.status === 'reviewing');
+  // Categorizar cards por status - ajustado para incluir cards revisados na coluna "Revisando"
+  const learning = cards.filter(card => card.status === 'learning' && card.reviewCount === 0);
+  const reviewing = cards.filter(card => 
+    card.reviewCount >= 1 && (card.status === 'learning' || card.status === 'reviewing')
+  );
   const learned = cards.filter(card => card.status === 'learned');
 
   const CardColumn = ({ title, cards, color }: { title: string; cards: any[]; color: string }) => (
