@@ -1,7 +1,19 @@
+
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { CalendarEvent } from '../types';
 import { X } from 'lucide-react';
+
+const eventColors = [
+  { name: 'Azul', value: 'blue', bg: 'bg-blue-500', preview: '#3b82f6' },
+  { name: 'Verde', value: 'green', bg: 'bg-green-500', preview: '#10b981' },
+  { name: 'Vermelho', value: 'red', bg: 'bg-red-500', preview: '#ef4444' },
+  { name: 'Roxo', value: 'purple', bg: 'bg-purple-500', preview: '#8b5cf6' },
+  { name: 'Laranja', value: 'orange', bg: 'bg-orange-500', preview: '#f97316' },
+  { name: 'Rosa', value: 'pink', bg: 'bg-pink-500', preview: '#ec4899' },
+  { name: 'Amarelo', value: 'yellow', bg: 'bg-yellow-500', preview: '#eab308' },
+  { name: 'Cinza', value: 'gray', bg: 'bg-gray-500', preview: '#6b7280' },
+];
 
 export default function EventModal() {
   const { state, dispatch } = useApp();
@@ -15,6 +27,7 @@ export default function EventModal() {
     type: 'other' as CalendarEvent['type'],
     location: '',
     professor: '',
+    customColor: 'blue',
     recurrence: {
       type: 'none' as 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly',
       weekdays: [] as number[],
@@ -31,6 +44,7 @@ export default function EventModal() {
         type: selectedEvent.type,
         location: selectedEvent.location || '',
         professor: selectedEvent.professor || '',
+        customColor: selectedEvent.customColor || 'blue',
         recurrence: {
           type: selectedEvent.recurrence?.type || 'none',
           weekdays: selectedEvent.recurrence?.weekdays || [],
@@ -52,6 +66,7 @@ export default function EventModal() {
         type: 'other',
         location: '',
         professor: '',
+        customColor: 'blue',
         recurrence: { type: 'none', weekdays: [] },
       });
     }
@@ -69,6 +84,7 @@ export default function EventModal() {
       type: formData.type,
       location: formData.location,
       professor: formData.professor,
+      customColor: formData.customColor,
       recurrence: formData.recurrence.type !== 'none' ? formData.recurrence : undefined,
     };
 
@@ -195,6 +211,24 @@ export default function EventModal() {
               />
             </div>
           )}
+
+          <div className="form-group">
+            <label>Cor do Evento</label>
+            <div className="color-selector">
+              {eventColors.map((color) => (
+                <button
+                  key={color.value}
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, customColor: color.value }))}
+                  className={`color-option ${color.bg} ${
+                    formData.customColor === color.value ? 'selected' : ''
+                  }`}
+                  title={color.name}
+                  style={{ backgroundColor: color.preview }}
+                />
+              ))}
+            </div>
+          </div>
 
           <div className="recurrence-options">
             <div className="form-group">

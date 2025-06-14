@@ -19,6 +19,7 @@ export interface CalendarEvent {
   endTime: Date;
   type: 'class' | 'study' | 'exam' | 'personal' | 'other';
   color?: string;
+  customColor?: string; // Nova propriedade para cor personalizada
   recurrence?: {
     type: 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly';
     weekdays?: number[]; // 0-6, domingo a sábado

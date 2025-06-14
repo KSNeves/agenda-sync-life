@@ -411,6 +411,19 @@
     @apply absolute left-1 right-1 rounded p-1 text-xs font-medium cursor-pointer hover:shadow-lg transition-all duration-200;
   }
   
+  /* Color Selector Styles */
+  .color-selector {
+    @apply flex gap-3 flex-wrap mt-2;
+  }
+  
+  .color-option {
+    @apply w-8 h-8 rounded-full cursor-pointer border-2 border-transparent transition-all duration-200 hover:scale-110 hover:shadow-lg;
+  }
+  
+  .color-option.selected {
+    @apply border-white shadow-xl scale-110 ring-2 ring-white/50;
+  }
+  
   /* Responsive adjustments */
   @media (max-width: 768px) {
     .dashboard-header {
@@ -453,6 +466,14 @@
     
     .calendar-nav-button {
       @apply w-10 h-10;
+    }
+
+    .color-selector {
+      @apply gap-2;
+    }
+    
+    .color-option {
+      @apply w-6 h-6;
     }
   }
 }

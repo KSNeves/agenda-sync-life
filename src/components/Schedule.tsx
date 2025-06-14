@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
@@ -64,6 +63,28 @@ export default function Schedule() {
     return {
       top: `${Math.max(0, topPosition)}%`,
       height: `${Math.max(5, height)}%`, // Altura mínima de 5%
+    };
+  };
+
+  // Função para obter a cor do evento
+  const getEventStyle = (event: any) => {
+    const colorMap: { [key: string]: string } = {
+      blue: '#3b82f6',
+      green: '#10b981',
+      red: '#ef4444',
+      purple: '#8b5cf6',
+      orange: '#f97316',
+      pink: '#ec4899',
+      yellow: '#eab308',
+      gray: '#6b7280',
+    };
+
+    const backgroundColor = colorMap[event.customColor] || colorMap.blue;
+    
+    return {
+      backgroundColor,
+      borderColor: backgroundColor,
+      boxShadow: `0 4px 14px 0 ${backgroundColor}40`,
     };
   };
 
@@ -176,11 +197,15 @@ export default function Schedule() {
                         
                         if (eventHour === hour) {
                           const position = getEventPosition(event);
+                          const eventStyle = getEventStyle(event);
                           return (
                             <div
                               key={event.id}
-                              className={`absolute left-1 right-1 rounded-lg p-2 text-xs font-medium cursor-pointer hover:shadow-xl transition-all duration-200 z-10 schedule-event-${event.type}`}
-                              style={position}
+                              className="absolute left-1 right-1 rounded-lg p-2 text-xs font-medium cursor-pointer hover:shadow-xl transition-all duration-200 z-10 border-2"
+                              style={{
+                                ...position,
+                                ...eventStyle,
+                              }}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 dispatch({ type: 'OPEN_EVENT_MODAL', payload: event });
