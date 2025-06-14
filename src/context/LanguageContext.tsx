@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 type Language = 'pt' | 'en' | 'es';
@@ -105,15 +106,13 @@ const translations = {
     },
     navigation: {
       dashboard: 'Painel',
-      calendar: 'Calendário',
       schedule: 'Agenda',
       revision: 'Revisão',
       flashcards: 'Flashcards',
       settings: 'Configurações',
       profile: 'Perfil',
-      darkMode: 'Modo Escuro',
-      lightMode: 'Modo Claro',
-      language: 'Idioma'
+      language: 'Idioma',
+      logout: 'Sair'
     },
     dashboard: {
       title: 'Painel',
@@ -205,6 +204,75 @@ const translations = {
       running: 'Em execução',
       paused: 'Pausado',
       autoBreaksEnabled: 'Pausas automáticas habilitadas'
+    },
+    settings: {
+      title: 'Configurações',
+      appearance: {
+        title: 'Aparência',
+        desc: 'Personalize a aparência do aplicativo'
+      },
+      darkMode: {
+        title: 'Modo Escuro',
+        desc: 'Usar tema escuro'
+      },
+      language: {
+        title: 'Idioma',
+        placeholder: 'Selecione um idioma'
+      },
+      notifications: {
+        title: 'Notificações',
+        desc: 'Configure suas notificações'
+      },
+      pushNotifications: {
+        title: 'Notificações Push',
+        desc: 'Receber notificações push'
+      },
+      studyReminders: {
+        title: 'Lembretes de Estudo',
+        desc: 'Receber lembretes para estudar'
+      },
+      pomodoro: {
+        title: 'Pomodoro',
+        desc: 'Configure seu timer Pomodoro',
+        focusTime: 'Tempo de Foco (min)',
+        shortBreak: 'Pausa Curta (min)',
+        longBreak: 'Pausa Longa (min)',
+        longBreakInterval: 'Intervalos para Pausa Longa'
+      },
+      autoStartBreaks: {
+        title: 'Iniciar Pausas Automaticamente',
+        desc: 'Iniciar pausas automaticamente após o foco'
+      },
+      resetData: {
+        title: 'Redefinir Dados',
+        desc: 'Limpar dados do aplicativo'
+      },
+      deleteSchedule: {
+        title: 'Excluir Agenda',
+        desc: 'Todos os eventos da agenda foram removidos',
+        btn: 'Excluir Agenda'
+      },
+      deleteAllData: {
+        title: 'Excluir Todos os Dados',
+        desc: 'Todos os dados foram removidos permanentemente',
+        btn: 'Excluir Todos os Dados'
+      },
+      scheduleDeleted: 'Agenda excluída',
+      allDataDeleted: 'Todos os dados excluídos',
+      changesSaved: {
+        title: 'Alterações salvas',
+        desc: 'Suas configurações foram atualizadas'
+      }
+    },
+    profile: {
+      title: 'Perfil',
+      personalInfo: {
+        title: 'Informações Pessoais',
+        desc: 'Gerencie suas informações pessoais'
+      },
+      firstName: 'Nome',
+      lastName: 'Sobrenome',
+      email: 'E-mail'
     }
   },
   en: {
@@ -303,15 +371,13 @@ const translations = {
     },
     navigation: {
       dashboard: 'Dashboard',
-      calendar: 'Calendar',
       schedule: 'Schedule',
       revision: 'Revision',
       flashcards: 'Flashcards',
       settings: 'Settings',
       profile: 'Profile',
-      darkMode: 'Dark Mode',
-      lightMode: 'Light Mode',
-      language: 'Language'
+      language: 'Language',
+      logout: 'Logout'
     },
     dashboard: {
       title: 'Dashboard',
@@ -403,6 +469,75 @@ const translations = {
       running: 'Running',
       paused: 'Paused',
       autoBreaksEnabled: 'Auto breaks enabled'
+    },
+    settings: {
+      title: 'Settings',
+      appearance: {
+        title: 'Appearance',
+        desc: 'Customize the app appearance'
+      },
+      darkMode: {
+        title: 'Dark Mode',
+        desc: 'Use dark theme'
+      },
+      language: {
+        title: 'Language',
+        placeholder: 'Select a language'
+      },
+      notifications: {
+        title: 'Notifications',
+        desc: 'Configure your notifications'
+      },
+      pushNotifications: {
+        title: 'Push Notifications',
+        desc: 'Receive push notifications'
+      },
+      studyReminders: {
+        title: 'Study Reminders',
+        desc: 'Receive study reminders'
+      },
+      pomodoro: {
+        title: 'Pomodoro',
+        desc: 'Configure your Pomodoro timer',
+        focusTime: 'Focus Time (min)',
+        shortBreak: 'Short Break (min)',
+        longBreak: 'Long Break (min)',
+        longBreakInterval: 'Long Break Interval'
+      },
+      autoStartBreaks: {
+        title: 'Auto Start Breaks',
+        desc: 'Automatically start breaks after focus'
+      },
+      resetData: {
+        title: 'Reset Data',
+        desc: 'Clear application data'
+      },
+      deleteSchedule: {
+        title: 'Delete Schedule',
+        desc: 'All schedule events have been removed',
+        btn: 'Delete Schedule'
+      },
+      deleteAllData: {
+        title: 'Delete All Data',
+        desc: 'All data has been permanently removed',
+        btn: 'Delete All Data'
+      },
+      scheduleDeleted: 'Schedule deleted',
+      allDataDeleted: 'All data deleted',
+      changesSaved: {
+        title: 'Changes saved',
+        desc: 'Your settings have been updated'
+      }
+    },
+    profile: {
+      title: 'Profile',
+      personalInfo: {
+        title: 'Personal Information',
+        desc: 'Manage your personal information'
+      },
+      firstName: 'First Name',
+      lastName: 'Last Name',
+      email: 'Email'
     }
   },
   es: {
@@ -501,15 +636,13 @@ const translations = {
     },
     navigation: {
       dashboard: 'Panel',
-      calendar: 'Calendario',
       schedule: 'Agenda',
       revision: 'Revisión',
       flashcards: 'Tarjetas',
       settings: 'Configuración',
       profile: 'Perfil',
-      darkMode: 'Modo Oscuro',
-      lightMode: 'Modo Claro',
-      language: 'Idioma'
+      language: 'Idioma',
+      logout: 'Cerrar sesión'
     },
     dashboard: {
       title: 'Panel',
@@ -601,6 +734,75 @@ const translations = {
       running: 'En ejecución',
       paused: 'Pausado',
       autoBreaksEnabled: 'Pausas automáticas habilitadas'
+    },
+    settings: {
+      title: 'Configuración',
+      appearance: {
+        title: 'Apariencia',
+        desc: 'Personalizar la apariencia de la aplicación'
+      },
+      darkMode: {
+        title: 'Modo Oscuro',
+        desc: 'Usar tema oscuro'
+      },
+      language: {
+        title: 'Idioma',
+        placeholder: 'Selecciona un idioma'
+      },
+      notifications: {
+        title: 'Notificaciones',
+        desc: 'Configura tus notificaciones'
+      },
+      pushNotifications: {
+        title: 'Notificaciones Push',
+        desc: 'Recibir notificaciones push'
+      },
+      studyReminders: {
+        title: 'Recordatorios de Estudio',
+        desc: 'Recibir recordatorios de estudio'
+      },
+      pomodoro: {
+        title: 'Pomodoro',
+        desc: 'Configura tu temporizador Pomodoro',
+        focusTime: 'Tiempo de Enfoque (min)',
+        shortBreak: 'Pausa Corta (min)',
+        longBreak: 'Pausa Larga (min)',
+        longBreakInterval: 'Intervalo de Pausa Larga'
+      },
+      autoStartBreaks: {
+        title: 'Iniciar Pausas Automáticamente',
+        desc: 'Iniciar pausas automáticamente después del enfoque'
+      },
+      resetData: {
+        title: 'Restablecer Datos',
+        desc: 'Limpiar datos de la aplicación'
+      },
+      deleteSchedule: {
+        title: 'Eliminar Agenda',
+        desc: 'Todos los eventos de la agenda han sido eliminados',
+        btn: 'Eliminar Agenda'
+      },
+      deleteAllData: {
+        title: 'Eliminar Todos los Datos',
+        desc: 'Todos los datos han sido eliminados permanentemente',
+        btn: 'Eliminar Todos los Datos'
+      },
+      scheduleDeleted: 'Agenda eliminada',
+      allDataDeleted: 'Todos los datos eliminados',
+      changesSaved: {
+        title: 'Cambios guardados',
+        desc: 'Tu configuración ha sido actualizada'
+      }
+    },
+    profile: {
+      title: 'Perfil',
+      personalInfo: {
+        title: 'Información Personal',
+        desc: 'Gestiona tu información personal'
+      },
+      firstName: 'Nombre',
+      lastName: 'Apellido',
+      email: 'Correo electrónico'
     }
   }
 };
