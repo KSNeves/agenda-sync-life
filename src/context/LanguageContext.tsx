@@ -76,6 +76,10 @@ const translations = {
     'schedule.high': 'Alta',
     'schedule.medium': 'Média',
     'schedule.low': 'Baixa',
+    'schedule.today': 'Hoje',
+    'schedule.day': 'Dia',
+    'schedule.week': 'Semana',
+    'schedule.month': 'Mês',
     
     'revision.title': 'Sistema de Revisão',
     'revision.subtitle': 'Gerencie seus materiais de estudo com repetição espaçada',
@@ -356,6 +360,10 @@ const translations = {
     'schedule.high': 'High',
     'schedule.medium': 'Medium',
     'schedule.low': 'Low',
+    'schedule.today': 'Today',
+    'schedule.day': 'Day',
+    'schedule.week': 'Week',
+    'schedule.month': 'Month',
     
     'revision.title': 'Revision System',
     'revision.subtitle': 'Manage your study materials with spaced repetition',
@@ -636,6 +644,10 @@ const translations = {
     'schedule.high': 'Alta',
     'schedule.medium': 'Media',
     'schedule.low': 'Baja',
+    'schedule.today': 'Hoy',
+    'schedule.day': 'Día',
+    'schedule.week': 'Semana',
+    'schedule.month': 'Mes',
     
     'revision.title': 'Sistema de Revisión',
     'revision.subtitle': 'Gestiona tus materiales de estudio con repetición espaciada',
