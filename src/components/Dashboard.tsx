@@ -1,15 +1,18 @@
+
 import React, { useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Task, RevisionItem } from '../types';
 import { Play, Pause, Check, Clock, Calendar, PlayCircle, CheckCircle, ClockIcon } from 'lucide-react';
 import { categorizeRevision } from '../utils/spacedRepetition';
 import StudyTimerModal from './StudyTimerModal';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 
 export default function Dashboard() {
   const { state, dispatch } = useApp();
   const { tasks, events, revisionItems } = state;
   const [isStudyModalOpen, setIsStudyModalOpen] = useState(false);
   const [selectedRevisionTitle, setSelectedRevisionTitle] = useState('');
+  const [weeklyProgressData, setWeeklyProgressData] = useLocalStorage<Record<string, { completed: number; total: number }>>('weeklyProgressData', {});
 
   // Timer logic
   useEffect(() => {
@@ -52,34 +55,54 @@ export default function Dashboard() {
   const totalDailyTasks = todayRevisions.length + completedRevisionsToday;
   const dailyProgress = totalDailyTasks > 0 ? (completedRevisionsToday / totalDailyTasks) * 100 : 0;
 
+  // Update today's progress in localStorage
+  useEffect(() => {
+    const todayKey = today.toDateString();
+    setWeeklyProgressData(prev => ({
+      ...prev,
+      [todayKey]: {
+        completed: completedRevisionsToday,
+        total: totalDailyTasks
+      }
+    }));
+  }, [completedRevisionsToday, totalDailyTasks, today, setWeeklyProgressData]);
+
   // Weekly progress calculation - baseado em revisões
   const getWeekProgress = () => {
     const weekDays = [];
     for (let i = 0; i < 7; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() - today.getDay() + i);
+      const dateKey = date.toDateString();
       
-      // Contar revisões completadas neste dia específico
-      const completedRevisionsThisDay = revisionItems.filter(item => {
-        return item.completedAt && 
-          new Date(item.completedAt).toDateString() === date.toDateString();
-      }).length;
+      // Verificar se temos dados salvos para este dia
+      const savedData = weeklyProgressData[dateKey];
       
-      // Para calcular o total, consideramos as revisões que estavam agendadas para este dia
-      // mais as que foram completadas neste dia
-      const revisionsForThisDay = revisionItems.filter(item => {
-        const nextRevisionDate = new Date(item.nextRevisionDate);
-        return nextRevisionDate.toDateString() === date.toDateString();
-      }).length;
-      
-      const totalForThisDay = Math.max(revisionsForThisDay, completedRevisionsThisDay);
-      
-      weekDays.push({
-        day: date.toLocaleDateString('pt-BR', { weekday: 'short' }),
-        progress: totalForThisDay > 0 ? (completedRevisionsThisDay / totalForThisDay) * 100 : 0,
-        completed: completedRevisionsThisDay,
-        total: totalForThisDay
-      });
+      if (savedData) {
+        // Usar dados salvos
+        weekDays.push({
+          day: date.toLocaleDateString('pt-BR', { weekday: 'short' }),
+          progress: savedData.total > 0 ? (savedData.completed / savedData.total) * 100 : 0,
+          completed: savedData.completed,
+          total: savedData.total
+        });
+      } else if (date.toDateString() === today.toDateString()) {
+        // Para hoje, usar dados em tempo real
+        weekDays.push({
+          day: date.toLocaleDateString('pt-BR', { weekday: 'short' }),
+          progress: totalDailyTasks > 0 ? (completedRevisionsToday / totalDailyTasks) * 100 : 0,
+          completed: completedRevisionsToday,
+          total: totalDailyTasks
+        });
+      } else {
+        // Para dias futuros ou dias sem dados, mostrar vazio
+        weekDays.push({
+          day: date.toLocaleDateString('pt-BR', { weekday: 'short' }),
+          progress: 0,
+          completed: 0,
+          total: 0
+        });
+      }
     }
     return weekDays;
   };
@@ -154,12 +177,6 @@ export default function Dashboard() {
             })}
           </div>
         </div>
-        <button
-          onClick={addSampleTask}
-          className="bg-primary text-primary-foreground px-4 py-2 rounded font-medium"
-        >
-          Adicionar Tarefa
-        </button>
       </header>
 
       <div className="dashboard-content">
