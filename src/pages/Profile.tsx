@@ -1,11 +1,12 @@
 
-import React from 'react';
-import { ArrowLeft, User } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowLeft, User, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { useTranslation } from '../hooks/useTranslation';
 
 interface ProfileProps {
@@ -14,6 +15,7 @@ interface ProfileProps {
 
 export default function Profile({ onBack }: ProfileProps) {
   const { t } = useTranslation();
+  const [autoBackup, setAutoBackup] = useState(true);
 
   return (
     <div className="min-h-screen bg-background">
@@ -56,6 +58,40 @@ export default function Profile({ onBack }: ProfileProps) {
               <div className="space-y-2">
                 <Label htmlFor="bio">{t('profile.bio')}</Label>
                 <Textarea id="bio" placeholder={t('profile.bio.placeholder')} />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Privacidade e Segurança - Moved from Settings */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5" />
+                {t('settings.privacy')}
+              </CardTitle>
+              <CardDescription>
+                {t('settings.privacy.desc')}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="autoBackup">{t('settings.autoBackup')}</Label>
+                  <p className="text-sm text-muted-foreground">
+                    {t('settings.autoBackup.desc')}
+                  </p>
+                </div>
+                <Switch
+                  id="autoBackup"
+                  checked={autoBackup}
+                  onCheckedChange={setAutoBackup}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>{t('settings.changePassword')}</Label>
+                <Button variant="outline" className="w-full">
+                  {t('settings.changePassword')}
+                </Button>
               </div>
             </CardContent>
           </Card>

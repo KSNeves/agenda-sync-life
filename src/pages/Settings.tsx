@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ArrowLeft, Bell, Shield, Palette, Timer, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -22,7 +21,6 @@ export default function Settings({ onBack }: SettingsProps) {
   const { settings, updateSettings } = usePomodoro();
   
   const [notifications, setNotifications] = useState(true);
-  const [autoBackup, setAutoBackup] = useState(true);
   const [studyReminders, setStudyReminders] = useState(true);
 
   const languageOptions = [
@@ -147,7 +145,7 @@ export default function Settings({ onBack }: SettingsProps) {
             </CardContent>
           </Card>
 
-          {/* Configurações do Pomodoro - Updated with more time options */}
+          {/* Configurações do Pomodoro */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -249,40 +247,7 @@ export default function Settings({ onBack }: SettingsProps) {
             </CardContent>
           </Card>
 
-          {/* Privacidade e Segurança */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5" />
-                {t('settings.privacy')}
-              </CardTitle>
-              <CardDescription>
-                {t('settings.privacy.desc')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="autoBackup">{t('settings.autoBackup')}</Label>
-                  <p className="text-sm text-muted-foreground">
-                    {t('settings.autoBackup.desc')}
-                  </p>
-                </div>
-                <Switch
-                  id="autoBackup"
-                  checked={autoBackup}
-                  onCheckedChange={setAutoBackup}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('settings.changePassword')}</Label>
-                <Button variant="outline" className="w-full">
-                  {t('settings.changePassword')}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
+          {/* Redefinir Dados - Modified */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -295,15 +260,9 @@ export default function Settings({ onBack }: SettingsProps) {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>{t('settings.exportData')}</Label>
-                <Button variant="outline" className="w-full">
-                  {t('settings.exportData.btn')}
-                </Button>
-              </div>
-              <div className="space-y-2">
-                <Label>{t('settings.resetSettings')}</Label>
-                <Button variant="outline" className="w-full">
-                  {t('settings.resetSettings.btn')}
+                <Label>Apagar Schedule</Label>
+                <Button variant="outline" className="w-full bg-orange-500 hover:bg-orange-600 text-white">
+                  Apagar Schedule
                 </Button>
               </div>
               <div className="space-y-2">
