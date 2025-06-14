@@ -1,23 +1,12 @@
-import React, { createContext, useState, useContext, useCallback } from 'react';
 
-interface Translation {
-  [key: string]: string | Translation;
-}
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-interface LanguageContextProps {
-  language: string;
-  setLanguage: (language: string) => void;
+type Language = 'pt' | 'en';
+
+interface LanguageContextType {
+  language: Language;
+  setLanguage: (lang: Language) => void;
   t: (key: string) => string;
-}
-
-const LanguageContext = createContext<LanguageContextProps>({
-  language: 'pt',
-  setLanguage: () => {},
-  t: (key: string) => key,
-});
-
-interface LanguageProviderProps {
-  children: React.ReactNode;
 }
 
 const translations = {
@@ -26,26 +15,185 @@ const translations = {
       locale: 'pt-BR',
       save: 'Salvar',
       cancel: 'Cancelar',
-      edit: 'Editar',
       delete: 'Excluir',
-      optional: 'Opcional',
+      edit: 'Editar',
+      add: 'Adicionar',
+      search: 'Pesquisar',
+      loading: 'Carregando...',
+      error: 'Erro',
+      success: 'Sucesso',
+      confirm: 'Confirmar',
+      yes: 'Sim',
+      no: 'Não',
       back: 'Voltar',
+      next: 'Próximo',
+      previous: 'Anterior',
+      close: 'Fechar',
+      open: 'Abrir',
+      view: 'Visualizar',
+      create: 'Criar',
+      update: 'Atualizar',
+      remove: 'Remover',
+      select: 'Selecionar',
+      clear: 'Limpar',
+      apply: 'Aplicar',
+      reset: 'Resetar',
+      filter: 'Filtrar',
+      sort: 'Ordenar',
+      export: 'Exportar',
+      import: 'Importar',
+      print: 'Imprimir',
+      help: 'Ajuda',
+      settings: 'Configurações',
+      profile: 'Perfil',
+      logout: 'Sair',
+      login: 'Entrar',
+      register: 'Registrar',
+      email: 'E-mail',
+      password: 'Senha',
+      username: 'Nome de usuário',
+      name: 'Nome',
+      description: 'Descrição',
+      title: 'Título',
+      status: 'Status',
+      active: 'Ativo',
+      inactive: 'Inativo',
+      enabled: 'Habilitado',
+      disabled: 'Desabilitado',
+      public: 'Público',
+      private: 'Privado',
+      draft: 'Rascunho',
+      published: 'Publicado',
+      archived: 'Arquivado',
+      date: 'Data',
+      time: 'Hora',
+      datetime: 'Data e Hora',
+      startDate: 'Data de Início',
+      endDate: 'Data de Fim',
+      startTime: 'Hora de Início',
+      endTime: 'Hora de Fim',
+      duration: 'Duração',
+      location: 'Local',
+      address: 'Endereço',
+      phone: 'Telefone',
+      website: 'Site',
+      notes: 'Notas',
+      tags: 'Tags',
+      category: 'Categoria',
+      priority: 'Prioridade',
+      high: 'Alta',
+      medium: 'Média',
+      low: 'Baixa',
+      urgent: 'Urgente',
+      normal: 'Normal',
+      completed: 'Concluído',
+      pending: 'Pendente',
+      inProgress: 'Em Progresso',
+      cancelled: 'Cancelado',
+      failed: 'Falhou',
+      today: 'Hoje',
+      yesterday: 'Ontem',
+      tomorrow: 'Amanhã',
+      thisWeek: 'Esta Semana',
+      nextWeek: 'Próxima Semana',
+      lastWeek: 'Semana Passada',
+      thisMonth: 'Este Mês',
+      nextMonth: 'Próximo Mês',
+      lastMonth: 'Mês Passado',
+      thisYear: 'Este Ano',
+      nextYear: 'Próximo Ano',
+      lastYear: 'Ano Passado',
+    },
+    navigation: {
+      dashboard: 'Painel',
+      calendar: 'Calendário',
+      schedule: 'Agenda',
+      revision: 'Revisão',
+      flashcards: 'Flashcards',
+      settings: 'Configurações',
+      profile: 'Perfil',
+      darkMode: 'Modo Escuro',
+      lightMode: 'Modo Claro',
+      language: 'Idioma'
     },
     dashboard: {
       title: 'Painel',
       todayTasks: 'Revisões de Hoje',
+      noRevisionsToday: 'Nenhuma revisão para hoje!',
       dailyProgress: 'Progresso Diário',
       weeklyProgress: 'Progresso Semanal',
-      noTasksToday: 'Nenhuma tarefa para hoje!',
-      noRevisionsToday: 'Nenhuma revisão para hoje!',
-      start: 'Começar',
+      tasks: 'tarefas',
+      start: 'Iniciar',
       complete: 'Concluir',
-      postpone: 'Adiar',
-      tasks: 'tarefas'
+      postpone: 'Adiar'
+    },
+    schedule: {
+      createEvent: 'Criar Evento',
+      today: 'Hoje',
+      day: 'Dia',
+      week: 'Semana',
+      month: 'Mês'
+    },
+    weekdays: {
+      sun: 'Dom',
+      mon: 'Seg',
+      tue: 'Ter',
+      wed: 'Qua',
+      thu: 'Qui',
+      fri: 'Sex',
+      sat: 'Sáb'
+    },
+    event: {
+      title: 'Título',
+      description: 'Descrição',
+      startTime: 'Início',
+      endTime: 'Fim',
+      location: 'Local',
+      type: 'Tipo',
+      color: 'Cor',
+      recurring: 'Recorrente',
+      allDay: 'Dia inteiro',
+      reminder: 'Lembrete',
+      categories: {
+        meeting: 'Reunião',
+        appointment: 'Compromisso',
+        task: 'Tarefa',
+        event: 'Evento',
+        personal: 'Pessoal',
+        work: 'Trabalho',
+        study: 'Estudo',
+        health: 'Saúde',
+        other: 'Outro'
+      },
+      colors: {
+        blue: 'Azul',
+        green: 'Verde',
+        red: 'Vermelho',
+        purple: 'Roxo',
+        orange: 'Laranja',
+        pink: 'Rosa',
+        yellow: 'Amarelo',
+        gray: 'Cinza'
+      },
+      recurrence: {
+        none: 'Nenhuma',
+        daily: 'Diário',
+        weekly: 'Semanal',
+        monthly: 'Mensal',
+        yearly: 'Anual'
+      },
+      reminders: {
+        none: 'Nenhum',
+        '5min': '5 minutos antes',
+        '15min': '15 minutos antes',
+        '30min': '30 minutos antes',
+        '1hour': '1 hora antes',
+        '1day': '1 dia antes'
+      }
     },
     timer: {
       focusTime: 'Tempo de Foco',
-      shortBreak: 'Pausa Curta',
+      shortBreak: 'Pausa Curta', 
       longBreak: 'Pausa Longa',
       cycle: 'Ciclo',
       of: 'de',
@@ -53,249 +201,11 @@ const translations = {
       continue: 'Continuar',
       nextPhase: 'Próxima Fase',
       restart: 'Reiniciar',
-      completed: 'concluído!',
-      running: 'Timer em execução...',
-      paused: 'Timer pausado',
-      autoBreaksEnabled: '⚡ Pausas automáticas ativadas',
-      autoStarting: 'iniciando automaticamente...'
-    },
-    event: {
-      title: 'Evento',
-      description: 'Descrição',
-      startTime: 'Hora de Início',
-      endTime: 'Hora de Término',
-      customColor: 'Cor',
-      color: 'Cor',
-      addEvent: 'Adicionar Evento',
-      editEvent: 'Editar Evento',
-      deleteEvent: 'Excluir Evento',
-      createTitle: 'Criar Evento',
-      editTitle: 'Editar Evento',
-      type: 'Tipo',
-      location: 'Local',
-      professor: 'Professor',
-      recurrence: 'Recorrência',
-      noRepeat: 'Não repetir',
-      daily: 'Diário',
-      weekly: 'Semanal',
-      monthly: 'Mensal',
-      yearly: 'Anual',
-      weekdays: 'Dias da Semana',
-      addToRevision: 'Adicionar à Revisão Espaçada',
-      addToRevisionDesc: 'Criar automaticamente um item de revisão para este evento',
-      save: 'Salvar',
-      create: 'Criar',
-      delete: 'Excluir',
-      deleteSeries: 'Excluir Série',
-      cancel: 'Cancelar',
-      types: {
-        class: 'Aula',
-        study: 'Estudo',
-        exam: 'Prova',
-        personal: 'Pessoal',
-        other: 'Outro'
-      },
-      weekdayLabels: {
-        sun: 'Dom',
-        mon: 'Seg',
-        tue: 'Ter',
-        wed: 'Qua',
-        thu: 'Qui',
-        fri: 'Sex',
-        sat: 'Sáb'
-      }
-    },
-    schedule: {
-      title: 'Agenda',
-      createEvent: 'Criar Evento',
-      today: 'Hoje',
-      day: 'Dia',
-      week: 'Semana',
-      month: 'Mês'
-    },
-    settings: {
-      title: 'Configurações',
-      appearance: {
-        title: 'Aparência',
-        desc: 'Personalize a aparência da aplicação'
-      },
-      darkMode: {
-        title: 'Modo Escuro',
-        desc: 'Alternar entre tema claro e escuro'
-      },
-      language: {
-        title: 'Idioma',
-        placeholder: 'Selecione um idioma'
-      },
-      notifications: {
-        title: 'Notificações',
-        desc: 'Configure suas preferências de notificação'
-      },
-      pushNotifications: {
-        title: 'Notificações Push',
-        desc: 'Receber notificações no dispositivo'
-      },
-      studyReminders: {
-        title: 'Lembretes de Estudo',
-        desc: 'Receber lembretes para estudar'
-      },
-      pomodoro: {
-        title: 'Pomodoro',
-        desc: 'Configure os tempos do Pomodoro',
-        focusTime: 'Tempo de Foco',
-        shortBreak: 'Pausa Curta',
-        longBreak: 'Pausa Longa',
-        longBreakInterval: 'Intervalo da Pausa Longa'
-      },
-      autoStartBreaks: {
-        title: 'Iniciar Pausas Automaticamente',
-        desc: 'Iniciar pausas automaticamente após o tempo de foco'
-      },
-      resetData: {
-        title: 'Redefinir Dados',
-        desc: 'Excluir dados da aplicação'
-      },
-      deleteSchedule: {
-        title: 'Excluir Agenda',
-        btn: 'Excluir Agenda',
-        desc: 'Todos os eventos da agenda foram removidos'
-      },
-      deleteAllData: {
-        title: 'Excluir Todos os Dados',
-        btn: 'Excluir Todos os Dados',
-        desc: 'Todos os dados da aplicação foram removidos'
-      },
-      scheduleDeleted: 'Agenda excluída',
-      allDataDeleted: 'Todos os dados excluídos',
-      changesSaved: {
-        title: 'Alterações salvas',
-        desc: 'Suas configurações foram salvas com sucesso'
-      }
-    },
-    task: {
-      title: 'Tarefa',
-      duration: 'Duração',
       completed: 'Concluído',
-      addTask: 'Adicionar Tarefa',
-    },
-    revision: {
-      title: 'Revisão',
-      description: 'Descrição',
-      addRevision: 'Adicionar Revisão',
-      editRevision: 'Editar Revisão',
-      deleteRevision: 'Excluir Revisão',
-      nextRevisionDate: 'Próxima Revisão',
-      createTitle: 'Criar Nova Revisão',
-      createDescription: 'Adicione uma nova revisão ao seu sistema de estudo',
-      titleLabel: 'Título',
-      titlePlaceholder: 'Digite o título da revisão',
-      contentLabel: 'Conteúdo',
-      contentPlaceholder: 'Digite o conteúdo a ser revisado',
-      subjectLabel: 'Matéria',
-      subjectPlaceholder: 'Digite a matéria',
-      timeLabel: 'Tempo Estimado (minutos)',
-      timePlaceholder: '30',
-      nonStudyDaysLabel: 'Dias de Não Estudo',
-      nonStudyDaysDescription: 'Selecione os dias em que você não deseja estudar',
-      create: 'Criar Revisão',
-      cancel: 'Cancelar',
-      forToday: 'Para Hoje',
-      upcoming: 'Próximas',
-      completed: 'Concluídas',
-      createNew: 'Criar Nova',
-      revisionsFor: 'Revisões',
-      noRevisionsToday: 'Nenhuma revisão para hoje!',
-      noUpcomingRevisions: 'Nenhuma revisão próxima!',
-      noCompletedRevisions: 'Nenhuma revisão concluída!',
-      viewContent: 'Ver Conteúdo',
-      complete: 'Concluir',
-      postpone: 'Adiar',
-      delete: 'Excluir'
-    },
-    flashcards: {
-      title: 'Flashcards',
-      subtitle: 'Sistema de repetição espaçada para memorização eficiente',
-      createDeck: 'Criar Baralho',
-      createNewDeck: 'Criar Novo Baralho',
-      noDeckMessage: 'Nenhum baralho criado ainda.',
-      createFirstDeck: 'Crie seu primeiro baralho de flashcards para começar a estudar!',
-      cards: 'cartões',
-      study: 'Estudar',
-      edit: 'Editar',
-      delete: 'Excluir',
-      import: 'Importar Baralho',
-      export: 'Exportar',
-      importDeck: 'Importar Baralho',
-      deckName: 'Nome do Baralho',
-      deckNamePlaceholder: 'Digite o nome do baralho',
-      deckDescription: 'Descrição do Baralho',
-      deckDescriptionPlaceholder: 'Digite uma descrição para o baralho',
-      loading: 'Carregando...',
-      confirmDelete: 'Tem certeza que deseja excluir este baralho?',
-      totalDecks: 'Total de Baralhos',
-      totalCards: 'Total de Cards',
-      toReview: 'Para Revisar',
-      toReviewShort: 'revisar',
-      searchDecks: 'Buscar baralhos...',
-      myDecks: 'Meus Baralhos',
-      noDecksFound: 'Nenhum baralho encontrado.',
-      noDecksCreate: 'Nenhum baralho criado ainda.',
-      cardsToReview: 'cards para revisar',
-      deckNotFound: 'Baralho não encontrado',
-      noCardsToReview: 'Nenhum card para revisar',
-      exit: 'Sair',
-      of: 'de',
-      studied: 'Estudados',
-      restart: 'Reiniciar',
-      reviews: 'Revisões',
-      ease: 'Facilidade',
-      clickToReveal: 'Clique para revelar',
-      howWasAnswer: 'Como foi sua resposta?',
-      forgot: 'Esqueci',
-      hard: 'Difícil',
-      good: 'Bom',
-      easy: 'Fácil',
-      studyComplete: 'Estudo completo!',
-      studiedCards: 'Cards estudados',
-      learning: 'Aprendendo',
-      reviewing: 'Revisando',
-      learned: 'Aprendido',
-      unknown: 'Desconhecido',
-      confirmRestartStudies: 'Tem certeza que deseja reiniciar todos os estudos? Isso irá resetar o progresso de todos os cards.',
-      noCardsInCategory: 'Nenhum card nesta categoria',
-      addNewCard: 'Adicionar Novo Card',
-      frontCard: 'Frente do Card',
-      frontCardPlaceholder: 'Digite a pergunta ou termo...',
-      backCard: 'Verso do Card',
-      backCardPlaceholder: 'Digite a resposta ou definição...',
-      addCard: 'Adicionar Card',
-      restartStudies: 'Reiniciar Estudos',
-      interval: 'Intervalo'
-    },
-    profile: {
-      title: 'Perfil',
-      firstName: 'Nome',
-      lastName: 'Sobrenome',
-      email: 'Email',
-      personalInfo: {
-        title: 'Informações Pessoais',
-        desc: 'Gerencie suas informações pessoais e configurações de conta'
-      }
-    },
-    navigation: {
-      profile: 'Perfil',
-      settings: 'Configurações',
-      logout: 'Sair da conta',
-      language: 'Idioma'
-    },
-    days: {
-      sunday: 'Domingo',
-      monday: 'Segunda-feira',
-      tuesday: 'Terça-feira',
-      wednesday: 'Quarta-feira',
-      thursday: 'Quinta-feira',
-      friday: 'Sexta-feira',
-      saturday: 'Sábado'
+      autoStarting: 'iniciando automaticamente',
+      running: 'Em execução',
+      paused: 'Pausado',
+      autoBreaksEnabled: 'Pausas automáticas habilitadas'
     }
   },
   en: {
@@ -303,22 +213,181 @@ const translations = {
       locale: 'en-US',
       save: 'Save',
       cancel: 'Cancel',
-      edit: 'Edit',
       delete: 'Delete',
-      optional: 'Optional',
+      edit: 'Edit',
+      add: 'Add',
+      search: 'Search',
+      loading: 'Loading...',
+      error: 'Error',
+      success: 'Success',
+      confirm: 'Confirm',
+      yes: 'Yes',
+      no: 'No',
       back: 'Back',
+      next: 'Next',
+      previous: 'Previous',
+      close: 'Close',
+      open: 'Open',
+      view: 'View',
+      create: 'Create',
+      update: 'Update',
+      remove: 'Remove',
+      select: 'Select',
+      clear: 'Clear',
+      apply: 'Apply',
+      reset: 'Reset',
+      filter: 'Filter',
+      sort: 'Sort',
+      export: 'Export',
+      import: 'Import',
+      print: 'Print',
+      help: 'Help',
+      settings: 'Settings',
+      profile: 'Profile',
+      logout: 'Logout',
+      login: 'Login',
+      register: 'Register',
+      email: 'Email',
+      password: 'Password',
+      username: 'Username',
+      name: 'Name',
+      description: 'Description',
+      title: 'Title',
+      status: 'Status',
+      active: 'Active',
+      inactive: 'Inactive',
+      enabled: 'Enabled',
+      disabled: 'Disabled',
+      public: 'Public',
+      private: 'Private',
+      draft: 'Draft',
+      published: 'Published',
+      archived: 'Archived',
+      date: 'Date',
+      time: 'Time',
+      datetime: 'DateTime',
+      startDate: 'Start Date',
+      endDate: 'End Date',
+      startTime: 'Start Time',
+      endTime: 'End Time',
+      duration: 'Duration',
+      location: 'Location',
+      address: 'Address',
+      phone: 'Phone',
+      website: 'Website',
+      notes: 'Notes',
+      tags: 'Tags',
+      category: 'Category',
+      priority: 'Priority',
+      high: 'High',
+      medium: 'Medium',
+      low: 'Low',
+      urgent: 'Urgent',
+      normal: 'Normal',
+      completed: 'Completed',
+      pending: 'Pending',
+      inProgress: 'In Progress',
+      cancelled: 'Cancelled',
+      failed: 'Failed',
+      today: 'Today',
+      yesterday: 'Yesterday',
+      tomorrow: 'Tomorrow',
+      thisWeek: 'This Week',
+      nextWeek: 'Next Week',
+      lastWeek: 'Last Week',
+      thisMonth: 'This Month',
+      nextMonth: 'Next Month',
+      lastMonth: 'Last Month',
+      thisYear: 'This Year',
+      nextYear: 'Next Year',
+      lastYear: 'Last Year',
+    },
+    navigation: {
+      dashboard: 'Dashboard',
+      calendar: 'Calendar',
+      schedule: 'Schedule',
+      revision: 'Revision',
+      flashcards: 'Flashcards',
+      settings: 'Settings',
+      profile: 'Profile',
+      darkMode: 'Dark Mode',
+      lightMode: 'Light Mode',
+      language: 'Language'
     },
     dashboard: {
       title: 'Dashboard',
       todayTasks: 'Today\'s Revisions',
+      noRevisionsToday: 'No revisions for today!',
       dailyProgress: 'Daily Progress',
       weeklyProgress: 'Weekly Progress',
-      noTasksToday: 'No tasks for today!',
-      noRevisionsToday: 'No revisions for today!',
+      tasks: 'tasks',
       start: 'Start',
       complete: 'Complete',
-      postpone: 'Postpone',
-      tasks: 'tasks'
+      postpone: 'Postpone'
+    },
+    schedule: {
+      createEvent: 'Create Event',
+      today: 'Today',
+      day: 'Day',
+      week: 'Week',
+      month: 'Month'
+    },
+    weekdays: {
+      sun: 'Sun',
+      mon: 'Mon',
+      tue: 'Tue',
+      wed: 'Wed',
+      thu: 'Thu',
+      fri: 'Fri',
+      sat: 'Sat'
+    },
+    event: {
+      title: 'Title',
+      description: 'Description',
+      startTime: 'Start Time',
+      endTime: 'End Time',
+      location: 'Location',
+      type: 'Type',
+      color: 'Color',
+      recurring: 'Recurring',
+      allDay: 'All Day',
+      reminder: 'Reminder',
+      categories: {
+        meeting: 'Meeting',
+        appointment: 'Appointment',
+        task: 'Task',
+        event: 'Event',
+        personal: 'Personal',
+        work: 'Work',
+        study: 'Study',
+        health: 'Health',
+        other: 'Other'
+      },
+      colors: {
+        blue: 'Blue',
+        green: 'Green',
+        red: 'Red',
+        purple: 'Purple',
+        orange: 'Orange',
+        pink: 'Pink',
+        yellow: 'Yellow',
+        gray: 'Gray'
+      },
+      recurrence: {
+        none: 'None',
+        daily: 'Daily',
+        weekly: 'Weekly',
+        monthly: 'Monthly',
+        yearly: 'Yearly'
+      },
+      reminders: {
+        none: 'None',
+        '5min': '5 minutes before',
+        '15min': '15 minutes before',
+        '30min': '30 minutes before',
+        '1hour': '1 hour before',
+        '1day': '1 day before'
+      }
     },
     timer: {
       focusTime: 'Focus Time',
@@ -330,577 +399,61 @@ const translations = {
       continue: 'Continue',
       nextPhase: 'Next Phase',
       restart: 'Restart',
-      completed: 'completed!',
-      running: 'Timer running...',
-      paused: 'Timer paused',
-      autoBreaksEnabled: '⚡ Auto breaks enabled',
-      autoStarting: 'starting automatically...'
-    },
-    event: {
-      title: 'Event',
-      description: 'Description',
-      startTime: 'Start Time',
-      endTime: 'End Time',
-      customColor: 'Color',
-      color: 'Color',
-      addEvent: 'Add Event',
-      editEvent: 'Edit Event',
-      deleteEvent: 'Delete Event',
-      createTitle: 'Create Event',
-      editTitle: 'Edit Event',
-      type: 'Type',
-      location: 'Location',
-      professor: 'Professor',
-      recurrence: 'Recurrence',
-      noRepeat: 'No repeat',
-      daily: 'Daily',
-      weekly: 'Weekly',
-      monthly: 'Monthly',
-      yearly: 'Yearly',
-      weekdays: 'Weekdays',
-      addToRevision: 'Add to Spaced Revision',
-      addToRevisionDesc: 'Automatically create a revision item for this event',
-      save: 'Save',
-      create: 'Create',
-      delete: 'Delete',
-      deleteSeries: 'Delete Series',
-      cancel: 'Cancel',
-      types: {
-        class: 'Class',
-        study: 'Study',
-        exam: 'Exam',
-        personal: 'Personal',
-        other: 'Other'
-      },
-      weekdayLabels: {
-        sun: 'Sun',
-        mon: 'Mon',
-        tue: 'Tue',
-        wed: 'Wed',
-        thu: 'Thu',
-        fri: 'Fri',
-        sat: 'Sat'
-      }
-    },
-    schedule: {
-      title: 'Schedule',
-      createEvent: 'Create Event',
-      today: 'Today',
-      day: 'Day',
-      week: 'Week',
-      month: 'Month'
-    },
-    settings: {
-      title: 'Settings',
-      appearance: {
-        title: 'Appearance',
-        desc: 'Customize the application appearance'
-      },
-      darkMode: {
-        title: 'Dark Mode',
-        desc: 'Toggle between light and dark theme'
-      },
-      language: {
-        title: 'Language',
-        placeholder: 'Select a language'
-      },
-      notifications: {
-        title: 'Notifications',
-        desc: 'Configure your notification preferences'
-      },
-      pushNotifications: {
-        title: 'Push Notifications',
-        desc: 'Receive notifications on your device'
-      },
-      studyReminders: {
-        title: 'Study Reminders',
-        desc: 'Receive reminders to study'
-      },
-      pomodoro: {
-        title: 'Pomodoro',
-        desc: 'Configure Pomodoro timers',
-        focusTime: 'Focus Time',
-        shortBreak: 'Short Break',
-        longBreak: 'Long Break',
-        longBreakInterval: 'Long Break Interval'
-      },
-      autoStartBreaks: {
-        title: 'Auto Start Breaks',
-        desc: 'Automatically start breaks after focus time'
-      },
-      resetData: {
-        title: 'Reset Data',
-        desc: 'Delete application data'
-      },
-      deleteSchedule: {
-        title: 'Delete Schedule',
-        btn: 'Delete Schedule',
-        desc: 'All schedule events have been removed'
-      },
-      deleteAllData: {
-        title: 'Delete All Data',
-        btn: 'Delete All Data',
-        desc: 'All application data has been removed'
-      },
-      scheduleDeleted: 'Schedule deleted',
-      allDataDeleted: 'All data deleted',
-      changesSaved: {
-        title: 'Changes saved',
-        desc: 'Your settings have been saved successfully'
-      }
-    },
-    task: {
-      title: 'Task',
-      duration: 'Duration',
       completed: 'Completed',
-      addTask: 'Add Task',
-    },
-    revision: {
-      title: 'Revision',
-      description: 'Description',
-      addRevision: 'Add Revision',
-      editRevision: 'Edit Revision',
-      deleteRevision: 'Delete Revision',
-      nextRevisionDate: 'Next Revision',
-      createTitle: 'Create New Revision',
-      createDescription: 'Add a new revision to your study system',
-      titleLabel: 'Title',
-      titlePlaceholder: 'Enter revision title',
-      contentLabel: 'Content',
-      contentPlaceholder: 'Enter content to be reviewed',
-      subjectLabel: 'Subject',
-      subjectPlaceholder: 'Enter subject',
-      timeLabel: 'Estimated Time (minutes)',
-      timePlaceholder: '30',
-      nonStudyDaysLabel: 'Non-Study Days',
-      nonStudyDaysDescription: 'Select days when you don\'t want to study',
-      create: 'Create Revision',
-      cancel: 'Cancel',
-      forToday: 'For Today',
-      upcoming: 'Upcoming',
-      completed: 'Completed',
-      createNew: 'Create New',
-      revisionsFor: 'Revisions',
-      noRevisionsToday: 'No revisions for today!',
-      noUpcomingRevisions: 'No upcoming revisions!',
-      noCompletedRevisions: 'No completed revisions!',
-      viewContent: 'View Content',
-      complete: 'Complete',
-      postpone: 'Postpone',
-      delete: 'Delete'
-    },
-    flashcards: {
-      title: 'Flashcards',
-      subtitle: 'Spaced repetition system for efficient memorization',
-      createDeck: 'Create Deck',
-      createNewDeck: 'Create New Deck',
-      noDeckMessage: 'No decks created yet.',
-      createFirstDeck: 'Create your first flashcard deck to start studying!',
-      cards: 'cards',
-      study: 'Study',
-      edit: 'Edit',
-      delete: 'Delete',
-      import: 'Import',
-      export: 'Export',
-      importDeck: 'Import Deck',
-      deckName: 'Deck Name',
-      deckNamePlaceholder: 'Enter deck name',
-      deckDescription: 'Deck Description',
-      deckDescriptionPlaceholder: 'Enter deck description',
-      loading: 'Loading...',
-      confirmDelete: 'Are you sure you want to delete this deck?',
-      totalDecks: 'Total Decks',
-      totalCards: 'Total Cards',
-      toReview: 'To Review',
-      toReviewShort: 'to review',
-      searchDecks: 'Search decks...',
-      myDecks: 'My Decks',
-      noDecksFound: 'No decks found.',
-      noDecksCreate: 'No decks created yet.',
-      cardsToReview: 'cards to review',
-      deckNotFound: 'Deck not found',
-      noCardsToReview: 'No cards to review',
-      exit: 'Exit',
-      of: 'of',
-      studied: 'Studied',
-      restart: 'Restart',
-      reviews: 'Reviews',
-      ease: 'Ease',
-      clickToReveal: 'Click to reveal',
-      howWasAnswer: 'How was your answer?',
-      forgot: 'Forgot',
-      hard: 'Hard',
-      good: 'Good',
-      easy: 'Easy',
-      studyComplete: 'Study complete!',
-      studiedCards: 'Studied cards',
-      learning: 'Learning',
-      reviewing: 'Revising',
-      learned: 'Learned',
-      unknown: 'Unknown',
-      confirmRestartStudies: 'Are you sure you want to restart all studies? This will reset the progress of all cards.',
-      noCardsInCategory: 'No cards in this category',
-      addNewCard: 'Add New Card',
-      frontCard: 'Front Card',
-      frontCardPlaceholder: 'Enter question or term...',
-      backCard: 'Back Card',
-      backCardPlaceholder: 'Enter answer or definition...',
-      addCard: 'Add Card',
-      restartStudies: 'Restart Studies',
-      interval: 'Interval'
-    },
-    profile: {
-      title: 'Profile',
-      firstName: 'First Name',
-      lastName: 'Last Name',
-      email: 'Email',
-      personalInfo: {
-        title: 'Personal Information',
-        desc: 'Manage your personal information and account settings'
-      }
-    },
-    navigation: {
-      profile: 'Profile',
-      settings: 'Settings',
-      logout: 'Logout',
-      language: 'Language'
-    },
-    days: {
-      sunday: 'Sunday',
-      monday: 'Monday',
-      tuesday: 'Tuesday',
-      wednesday: 'Wednesday',
-      thursday: 'Thursday',
-      friday: 'Friday',
-      saturday: 'Saturday'
-    }
-  },
-  es: {
-    common: {
-      locale: 'es-ES',
-      save: 'Guardar',
-      cancel: 'Cancelar',
-      edit: 'Editar',
-      delete: 'Eliminar',
-      optional: 'Opcional',
-      back: 'Volver',
-    },
-    dashboard: {
-      title: 'Dashboard',
-      todayTasks: 'Revisiones de Hoy',
-      dailyProgress: 'Progreso Diario',
-      weeklyProgress: 'Progreso Semanal',
-      noTasksToday: '¡No hay tareas para hoy!',
-      noRevisionsToday: '¡No hay revisiones para hoy!',
-      start: 'Empezar',
-      complete: 'Completar',
-      postpone: 'Posponer',
-      tasks: 'tareas'
-    },
-    timer: {
-      focusTime: 'Tiempo de Enfoque',
-      shortBreak: 'Pausa Corta',
-      longBreak: 'Pausa Larga',
-      cycle: 'Ciclo',
-      of: 'de',
-      pause: 'Pausar',
-      continue: 'Continuar',
-      nextPhase: 'Siguiente Fase',
-      restart: 'Reiniciar',
-      completed: 'completado!',
-      running: 'Timer en ejecución...',
-      paused: 'Timer pausado',
-      autoBreaksEnabled: '⚡ Pausas automáticas activadas',
-      autoStarting: 'iniciando automáticamente...'
-    },
-    event: {
-      title: 'Evento',
-      description: 'Descripción',
-      startTime: 'Hora de Inicio',
-      endTime: 'Hora de Fin',
-      customColor: 'Color',
-      color: 'Color',
-      addEvent: 'Agregar Evento',
-      editEvent: 'Editar Evento',
-      deleteEvent: 'Eliminar Evento',
-      createTitle: 'Crear Evento',
-      editTitle: 'Editar Evento',
-      type: 'Tipo',
-      location: 'Ubicación',
-      professor: 'Profesor',
-      recurrence: 'Recurrencia',
-      noRepeat: 'No repetir',
-      daily: 'Diario',
-      weekly: 'Semanal',
-      monthly: 'Mensual',
-      yearly: 'Anual',
-      weekdays: 'Días de la Semana',
-      addToRevision: 'Agregar a Revisión Espaciada',
-      addToRevisionDesc: 'Crear automáticamente un elemento de revisión para este evento',
-      save: 'Guardar',
-      create: 'Crear',
-      delete: 'Eliminar',
-      deleteSeries: 'Eliminar Serie',
-      cancel: 'Cancelar',
-      types: {
-        class: 'Clase',
-        study: 'Estudio',
-        exam: 'Examen',
-        personal: 'Personal',
-        other: 'Otro'
-      },
-      weekdayLabels: {
-        sun: 'Dom',
-        mon: 'Lun',
-        tue: 'Mar',
-        wed: 'Mié',
-        thu: 'Jue',
-        fri: 'Vie',
-        sat: 'Sáb'
-      }
-    },
-    schedule: {
-      title: 'Agenda',
-      createEvent: 'Crear Evento',
-      today: 'Hoy',
-      day: 'Día',
-      week: 'Semana',
-      month: 'Mes'
-    },
-    settings: {
-      title: 'Configuración',
-      appearance: {
-        title: 'Apariencia',
-        desc: 'Personalizar la apariencia de la aplicación'
-      },
-      darkMode: {
-        title: 'Modo Oscuro',
-        desc: 'Alternar entre tema claro y oscuro'
-      },
-      language: {
-        title: 'Idioma',
-        placeholder: 'Seleccionar un idioma'
-      },
-      notifications: {
-        title: 'Notificaciones',
-        desc: 'Configurar las preferencias de notificación'
-      },
-      pushNotifications: {
-        title: 'Notificaciones Push',
-        desc: 'Recibir notificaciones en el dispositivo'
-      },
-      studyReminders: {
-        title: 'Recordatorios de Estudio',
-        desc: 'Recibir recordatorios para estudiar'
-      },
-      pomodoro: {
-        title: 'Pomodoro',
-        desc: 'Configurar los temporizadores Pomodoro',
-        focusTime: 'Tiempo de Enfoque',
-        shortBreak: 'Pausa Corta',
-        longBreak: 'Pausa Larga',
-        longBreakInterval: 'Intervalo de Pausa Larga'
-      },
-      autoStartBreaks: {
-        title: 'Iniciar Pausas Automáticamente',
-        desc: 'Iniciar pausas automáticamente después del tiempo de enfoque'
-      },
-      resetData: {
-        title: 'Restablecer Datos',
-        desc: 'Eliminar datos de la aplicación'
-      },
-      deleteSchedule: {
-        title: 'Eliminar Agenda',
-        btn: 'Eliminar Agenda',
-        desc: 'Todos los eventos de la agenda han sido eliminados'
-      },
-      deleteAllData: {
-        title: 'Eliminar Todos los Datos',
-        btn: 'Eliminar Todos los Datos',
-        desc: 'Todos los datos de la aplicación han sido eliminados'
-      },
-      scheduleDeleted: 'Agenda eliminada',
-      allDataDeleted: 'Todos los datos eliminados',
-      changesSaved: {
-        title: 'Cambios guardados',
-        desc: 'Sus configuraciones han sido guardadas exitosamente'
-      }
-    },
-    task: {
-      title: 'Tarea',
-      duration: 'Duración',
-      completed: 'Completado',
-      addTask: 'Agregar Tarea',
-    },
-    revision: {
-      title: 'Revisión',
-      description: 'Descripción',
-      addRevision: 'Agregar Revisión',
-      editRevision: 'Editar Revisión',
-      deleteRevision: 'Eliminar Revisión',
-      nextRevisionDate: 'Próxima Revisión',
-      createTitle: 'Crear Nueva Revisión',
-      createDescription: 'Agregar una nueva revisión a tu sistema de estudio',
-      titleLabel: 'Título',
-      titlePlaceholder: 'Ingresa el título de la revisión',
-      contentLabel: 'Contenido',
-      contentPlaceholder: 'Ingresa el contenido a revisar',
-      subjectLabel: 'Materia',
-      subjectPlaceholder: 'Ingresa la materia',
-      timeLabel: 'Tiempo Estimado (minutos)',
-      timePlaceholder: '30',
-      nonStudyDaysLabel: 'Días de No Estudio',
-      nonStudyDaysDescription: 'Selecciona los días en que no deseas estudiar',
-      create: 'Crear Revisión',
-      cancel: 'Cancelar',
-      forToday: 'Para Hoy',
-      upcoming: 'Próximas',
-      completed: 'Completadas',
-      createNew: 'Crear Nueva',
-      revisionsFor: 'Revisiones',
-      noRevisionsToday: '¡No hay revisiones para hoy!',
-      noUpcomingRevisions: '¡No hay revisiones próximas!',
-      noCompletedRevisions: '¡No hay revisiones completadas!',
-      viewContent: 'Ver Contenido',
-      complete: 'Completar',
-      postpone: 'Posponer',
-      delete: 'Eliminar'
-    },
-    flashcards: {
-      title: 'Flashcards',
-      subtitle: 'Sistema de repetición espaciada para memorización eficiente',
-      createDeck: 'Crear Mazo',
-      createNewDeck: 'Crear Nuevo Mazo',
-      noDeckMessage: 'No se han creado mazos aún.',
-      createFirstDeck: '¡Crea tu primer mazo de flashcards para empezar a estudiar!',
-      cards: 'cartas',
-      study: 'Estudiar',
-      edit: 'Editar',
-      delete: 'Eliminar',
-      import: 'Importar',
-      export: 'Exportar',
-      importDeck: 'Importar Mazo',
-      deckName: 'Nombre del Mazo',
-      deckNamePlaceholder: 'Ingresa el nombre del mazo',
-      deckDescription: 'Descripción del Mazo',
-      deckDescriptionPlaceholder: 'Ingresa una descripción para el mazo',
-      loading: 'Cargando...',
-      confirmDelete: '¿Estás seguro de que quieres eliminar este mazo?',
-      totalDecks: 'Total de Mazos',
-      totalCards: 'Total de Cartas',
-      toReview: 'Para Revisar',
-      toReviewShort: 'revisar',
-      searchDecks: 'Buscar mazos...',
-      myDecks: 'Mis Mazos',
-      noDecksFound: 'No se encontraron mazos.',
-      noDecksCreate: 'No se han creado mazos aún.',
-      cardsToReview: 'cartas para revisar',
-      deckNotFound: 'Mazo no encontrado',
-      noCardsToReview: 'No hay cartas para revisar',
-      exit: 'Salir',
-      of: 'de',
-      studied: 'Estudiadas',
-      restart: 'Reiniciar',
-      reviews: 'Revisiones',
-      ease: 'Facilidad',
-      clickToReveal: 'Clic para revelar',
-      howWasAnswer: '¿Cómo fue tu respuesta?',
-      forgot: 'Olvidé',
-      hard: 'Difícil',
-      good: 'Bueno',
-      easy: 'Fácil',
-      studyComplete: '¡Estudio completo!',
-      studiedCards: 'Cartas estudiadas',
-      learning: 'Aprendiendo',
-      reviewing: 'Revisando',
-      learned: 'Aprendido',
-      unknown: 'Desconocido',
-      confirmRestartStudies: '¿Estás seguro de que quieres reiniciar todos los estudios? Esto restablecerá el progreso de todas las cartas.',
-      noCardsInCategory: 'No hay cartas en esta categoría',
-      addNewCard: 'Agregar Nueva Carta',
-      frontCard: 'Frente de la Carta',
-      frontCardPlaceholder: 'Ingresa pregunta o término...',
-      backCard: 'Reverso de la Carta',
-      backCardPlaceholder: 'Ingresa respuesta o definición...',
-      addCard: 'Agregar Carta',
-      restartStudies: 'Reiniciar Estudios',
-      interval: 'Intervalo'
-    },
-    profile: {
-      title: 'Perfil',
-      firstName: 'Nombre',
-      lastName: 'Apellido',
-      email: 'Email',
-      personalInfo: {
-        title: 'Información Personal',
-        desc: 'Gestiona tu información personal y configuraciones de cuenta'
-      }
-    },
-    navigation: {
-      profile: 'Perfil',
-      settings: 'Configuración',
-      logout: 'Cerrar sesión',
-      language: 'Idioma'
-    },
-    days: {
-      sunday: 'Domingo',
-      monday: 'Lunes',
-      tuesday: 'Martes',
-      wednesday: 'Miércoles',
-      thursday: 'Jueves',      
-      friday: 'Viernes',
-      saturday: 'Sábado'
+      autoStarting: 'auto starting',
+      running: 'Running',
+      paused: 'Paused',
+      autoBreaksEnabled: 'Auto breaks enabled'
     }
   }
 };
 
-export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
-  const [language, setLanguage] = useState<string>('pt');
+const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-  const t = useCallback((key: string): string => {
-    console.log('🔍 Translation requested for key:', key, 'Language:', language);
+export function LanguageProvider({ children }: { children: ReactNode }) {
+  const [language, setLanguage] = useState<Language>(() => {
+    const saved = localStorage.getItem('language');
+    return (saved as Language) || 'pt';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('language', language);
+  }, [language]);
+
+  const t = (key: string): string => {
+    console.info(`🔍 Translation requested for key: ${key} Language: ${language}`);
     
     const keys = key.split('.');
-    const currentTranslations = translations[language as keyof typeof translations];
+    let current: any = translations[language];
     
-    if (!currentTranslations) {
-      console.log('❌ No translations found for language:', language);
-      return key;
-    }
-    
-    let value: string | Translation = currentTranslations;
-  
-    for (const k of keys) {
-      console.log('🔎 Processing key part:', k, 'Current value type:', typeof value);
+    for (const keyPart of keys) {
+      console.info(`🔎 Processing key part: ${keyPart} Current value type: ${typeof current}`);
       
-      if (typeof value === 'string') {
-        console.log('❌ Value is string, but still have keys to process:', k);
-        return key;
-      }
-      
-      if (value && typeof value === 'object' && k in value) {
-        value = value[k];
-        console.log('✅ Found key:', k, 'New value:', typeof value === 'string' ? value : 'object');
+      if (current && typeof current === 'object' && keyPart in current) {
+        current = current[keyPart];
+        console.info(`✅ Found key: ${keyPart} New value: ${typeof current === 'object' ? 'object' : current}`);
       } else {
-        console.log('❌ Key not found:', k, 'Available keys:', Object.keys(value || {}));
+        console.warn(`❌ Translation not found for key: ${key} at part: ${keyPart}`);
         return key;
       }
     }
-  
-    if (typeof value === 'string') {
-      console.log('✅ Translation found:', value);
-      return value;
-    }
-  
-    console.log('❌ Final value is not string:', value);
-    return key;
-  }, [language]);
+    
+    const result = typeof current === 'string' ? current : key;
+    console.info(`✅ Translation found: ${result}`);
+    return result;
+  };
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t }}>
       {children}
     </LanguageContext.Provider>
   );
-};
+}
 
-export const useLanguage = () => useContext(LanguageContext);
+export function useLanguage() {
+  const context = useContext(LanguageContext);
+  if (!context) {
+    throw new Error('useLanguage must be used within a LanguageProvider');
+  }
+  return context;
+}

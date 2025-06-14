@@ -72,13 +72,13 @@ export default function Dashboard() {
   const getWeekProgress = () => {
     const weekDays = [];
     const dayNamesShort = [
-      t('event.weekdays.sun'),
-      t('event.weekdays.mon'), 
-      t('event.weekdays.tue'),
-      t('event.weekdays.wed'),
-      t('event.weekdays.thu'),
-      t('event.weekdays.fri'),
-      t('event.weekdays.sat')
+      t('weekdays.sun'),
+      t('weekdays.mon'), 
+      t('weekdays.tue'),
+      t('weekdays.wed'),
+      t('weekdays.thu'),
+      t('weekdays.fri'),
+      t('weekdays.sat')
     ];
 
     for (let i = 0; i < 7; i++) {

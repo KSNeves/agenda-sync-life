@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
@@ -60,13 +61,13 @@ export default function Schedule() {
 
   // Array com traduções dos dias da semana abreviados
   const dayNamesShort = [
-    t('event.weekdays.sun'),
-    t('event.weekdays.mon'), 
-    t('event.weekdays.tue'),
-    t('event.weekdays.wed'),
-    t('event.weekdays.thu'),
-    t('event.weekdays.fri'),
-    t('event.weekdays.sat')
+    t('weekdays.sun'),
+    t('weekdays.mon'), 
+    t('weekdays.tue'),
+    t('weekdays.wed'),
+    t('weekdays.thu'),
+    t('weekdays.fri'),
+    t('weekdays.sat')
   ];
 
   // Formatar título da semana com tradução
