@@ -73,6 +73,7 @@ export default function StudyTimerModal({ isOpen, onClose, revisionTitle }: Stud
         setTimeLeft(settings.shortBreak * 60);
       }
       
+      // Auto-start breaks if enabled
       if (settings.autoStartBreaks) {
         setIsRunning(true);
       }
@@ -81,6 +82,7 @@ export default function StudyTimerModal({ isOpen, onClose, revisionTitle }: Stud
       setPhase('focus');
       setTimeLeft(settings.focusTime * 60);
       
+      // Auto-start focus if enabled (optional - you might want focus to always require manual start)
       if (settings.autoStartBreaks) {
         setIsRunning(true);
       }
@@ -226,6 +228,11 @@ export default function StudyTimerModal({ isOpen, onClose, revisionTitle }: Stud
             {timeLeft === 0 ? (
               <div className="font-semibold text-lg" style={{ color: getPhaseColor() }}>
                 🎉 {getPhaseText()} concluído!
+                {settings.autoStartBreaks && phase === 'focus' && (
+                  <div className="text-sm mt-1">
+                    {cycles >= settings.longBreakInterval ? 'Pausa longa' : 'Pausa curta'} iniciando automaticamente...
+                  </div>
+                )}
               </div>
             ) : (
               <div>
@@ -233,6 +240,13 @@ export default function StudyTimerModal({ isOpen, onClose, revisionTitle }: Stud
               </div>
             )}
           </div>
+
+          {/* Auto-start indicator */}
+          {settings.autoStartBreaks && (
+            <div className="text-xs text-muted-foreground bg-muted px-3 py-1 rounded-full">
+              ⚡ Pausas automáticas ativadas
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
