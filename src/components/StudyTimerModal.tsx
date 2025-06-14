@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { Button } from './ui/button';
-import { Play, Pause, X } from 'lucide-react';
+import { Play, Pause } from 'lucide-react';
 
 interface StudyTimerModalProps {
   isOpen: boolean;
@@ -69,19 +69,9 @@ export default function StudyTimerModal({ isOpen, onClose, revisionTitle }: Stud
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl w-full">
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-xl font-semibold">
-              Estudando: {revisionTitle}
-            </DialogTitle>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleClose}
-              className="h-8 w-8"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          </div>
+          <DialogTitle className="text-xl font-semibold">
+            Estudando: {revisionTitle}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="flex flex-col items-center justify-center py-12 space-y-8">
