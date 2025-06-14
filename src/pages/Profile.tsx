@@ -1,12 +1,11 @@
 
 import React, { useState } from 'react';
-import { ArrowLeft, User, Shield } from 'lucide-react';
+import { ArrowLeft, User, Camera, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useTranslation } from '../hooks/useTranslation';
 
 interface ProfileProps {
@@ -15,7 +14,21 @@ interface ProfileProps {
 
 export default function Profile({ onBack }: ProfileProps) {
   const { t } = useTranslation();
-  const [autoBackup, setAutoBackup] = useState(true);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setProfileImage(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -40,7 +53,40 @@ export default function Profile({ onBack }: ProfileProps) {
                 {t('profile.personalInfo.desc')}
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
+              {/* Profile Picture Section */}
+              <div className="flex flex-col items-center gap-4">
+                <div className="relative">
+                  <Avatar className="h-24 w-24">
+                    <AvatarImage src={profileImage || undefined} />
+                    <AvatarFallback className="text-lg">
+                      <User className="h-8 w-8" />
+                    </AvatarFallback>
+                  </Avatar>
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full"
+                    onClick={() => document.getElementById('profile-upload')?.click()}
+                  >
+                    <Camera className="h-4 w-4" />
+                  </Button>
+                  <input
+                    id="profile-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageUpload}
+                  />
+                </div>
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground">
+                    Clique no ícone da câmera para alterar sua foto de perfil
+                  </p>
+                </div>
+              </div>
+
+              {/* Personal Information */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">{t('profile.firstName')}</Label>
@@ -55,43 +101,81 @@ export default function Profile({ onBack }: ProfileProps) {
                 <Label htmlFor="email">{t('profile.email')}</Label>
                 <Input id="email" type="email" placeholder={t('profile.email.placeholder')} />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="bio">{t('profile.bio')}</Label>
-                <Textarea id="bio" placeholder={t('profile.bio.placeholder')} />
-              </div>
-            </CardContent>
-          </Card>
 
-          {/* Privacidade e Segurança - Moved from Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5" />
-                {t('settings.privacy')}
-              </CardTitle>
-              <CardDescription>
-                {t('settings.privacy.desc')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="autoBackup">{t('settings.autoBackup')}</Label>
-                  <p className="text-sm text-muted-foreground">
-                    {t('settings.autoBackup.desc')}
-                  </p>
+              {/* Password Change Section */}
+              <div className="space-y-4 pt-4 border-t">
+                <h3 className="text-lg font-medium">Alterar Senha</h3>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="currentPassword">Senha Atual</Label>
+                    <div className="relative">
+                      <Input
+                        id="currentPassword"
+                        type={showCurrentPassword ? "text" : "password"}
+                        placeholder="Digite sua senha atual"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-0 top-0 h-full px-3"
+                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                      >
+                        {showCurrentPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="newPassword">Nova Senha</Label>
+                    <div className="relative">
+                      <Input
+                        id="newPassword"
+                        type={showNewPassword ? "text" : "password"}
+                        placeholder="Digite sua nova senha"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-0 top-0 h-full px-3"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                      >
+                        {showNewPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword">Confirmar Nova Senha</Label>
+                    <div className="relative">
+                      <Input
+                        id="confirmPassword"
+                        type={showConfirmPassword ? "text" : "password"}
+                        placeholder="Confirme sua nova senha"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-0 top-0 h-full px-3"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-                <Switch
-                  id="autoBackup"
-                  checked={autoBackup}
-                  onCheckedChange={setAutoBackup}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('settings.changePassword')}</Label>
-                <Button variant="outline" className="w-full">
-                  {t('settings.changePassword')}
-                </Button>
               </div>
             </CardContent>
           </Card>
