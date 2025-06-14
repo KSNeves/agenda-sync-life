@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Task, RevisionItem } from '../types';
@@ -42,15 +41,18 @@ export default function Dashboard() {
     return categorizeRevision(item) === 'pending';
   });
 
-  // Calculate daily progress based on completed revisions
-  const completedRevisions = revisionItems.filter(item => 
-    item.category === 'completed' && 
-    item.completedAt && 
-    new Date(item.completedAt).toDateString() === today.toDateString()
-  ).length;
+  // Calculate daily progress based on completed revisions today
+  const completedRevisionsToday = revisionItems.filter(item => {
+    // Conta revisões que foram completadas hoje OU que foram marcadas como completed hoje
+    const wasCompletedToday = item.completedAt && 
+      new Date(item.completedAt).toDateString() === today.toDateString();
+    
+    return wasCompletedToday;
+  }).length;
   
-  const totalDailyTasks = todayRevisions.length + completedRevisions;
-  const dailyProgress = totalDailyTasks > 0 ? (completedRevisions / totalDailyTasks) * 100 : 0;
+  // Total de tarefas = revisões pendentes hoje + revisões já completadas hoje
+  const totalDailyTasks = todayRevisions.length + completedRevisionsToday;
+  const dailyProgress = totalDailyTasks > 0 ? (completedRevisionsToday / totalDailyTasks) * 100 : 0;
 
   // Weekly progress calculation
   const getWeekProgress = () => {
@@ -98,7 +100,11 @@ export default function Dashboard() {
     } else if (action === 'complete') {
       dispatch({ 
         type: 'UPDATE_REVISION_ITEM', 
-        payload: { ...revision, category: 'completed' }
+        payload: { 
+          ...revision, 
+          category: 'completed',
+          completedAt: Date.now() // Garante que a data de conclusão seja hoje
+        }
       });
     } else if (action === 'postpone') {
       const newDate = new Date();
@@ -212,7 +218,7 @@ export default function Dashboard() {
               />
             </div>
             <div className="progress-stats">
-              <span className="progress-value">{completedRevisions}/{totalDailyTasks} tarefas</span>
+              <span className="progress-value">{completedRevisionsToday}/{totalDailyTasks} tarefas</span>
               <span className="progress-goal">{dailyProgress.toFixed(0)}%</span>
             </div>
           </div>
