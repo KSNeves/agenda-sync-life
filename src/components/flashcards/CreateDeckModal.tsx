@@ -17,16 +17,25 @@ export default function CreateDeckModal({ isOpen, onClose }: CreateDeckModalProp
   const [description, setDescription] = useState('');
   const { createDeck } = useFlashcards();
 
+  console.log('CreateDeckModal render - isOpen:', isOpen);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Form submitted with name:', name, 'description:', description);
+    
     if (name.trim()) {
-      createDeck({
+      console.log('Creating deck...');
+      const deckId = createDeck({
         name: name.trim(),
         description: description.trim() || undefined,
       });
+      console.log('Deck created with ID:', deckId);
+      
       setName('');
       setDescription('');
       onClose();
+    } else {
+      console.log('Name is empty, not creating deck');
     }
   };
 
@@ -49,7 +58,10 @@ export default function CreateDeckModal({ isOpen, onClose }: CreateDeckModalProp
               </label>
               <Input
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                  console.log('Name changed to:', e.target.value);
+                  setName(e.target.value);
+                }}
                 placeholder="Ex: Inglês - Vocabulário"
                 required
               />
@@ -60,7 +72,10 @@ export default function CreateDeckModal({ isOpen, onClose }: CreateDeckModalProp
               </label>
               <Textarea
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                onChange={(e) => {
+                  console.log('Description changed to:', e.target.value);
+                  setDescription(e.target.value);
+                }}
                 placeholder="Descreva sobre o que é este deck..."
                 rows={3}
               />

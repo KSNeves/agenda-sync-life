@@ -16,6 +16,10 @@ export default function FlashcardDashboard() {
   const [selectedDeck, setSelectedDeck] = useState<string | null>(null);
   const [studyMode, setStudyMode] = useState<string | null>(null);
 
+  console.log('FlashcardDashboard render - decks:', decks);
+  console.log('FlashcardDashboard render - searchTerm:', searchTerm);
+  console.log('FlashcardDashboard render - isCreateModalOpen:', isCreateModalOpen);
+
   const stats = getDecksStats();
   
   const filteredDecks = decks.filter(deck =>
@@ -53,7 +57,10 @@ export default function FlashcardDashboard() {
           </div>
           <div className="flex gap-3">
             <Button 
-              onClick={() => setIsCreateModalOpen(true)}
+              onClick={() => {
+                console.log('Create deck button clicked');
+                setIsCreateModalOpen(true);
+              }}
               className="flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
@@ -157,7 +164,10 @@ export default function FlashcardDashboard() {
 
         <CreateDeckModal
           isOpen={isCreateModalOpen}
-          onClose={() => setIsCreateModalOpen(false)}
+          onClose={() => {
+            console.log('Closing create deck modal');
+            setIsCreateModalOpen(false);
+          }}
         />
       </div>
     </div>
