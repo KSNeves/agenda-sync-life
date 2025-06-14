@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { CalendarEvent, RevisionItem } from '../types';
 import { X } from 'lucide-react';
+import { Toggle } from './ui/toggle';
 
 const eventColors = [
   { name: 'Azul', value: 'blue', bg: 'bg-blue-500', preview: '#3b82f6' },
@@ -392,25 +393,7 @@ export default function EventModal() {
             </div>
           </div>
 
-          {/* Nova seção para adicionar à revisão espaçada */}
-          <div className="form-group">
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="addToRevision"
-                checked={addToRevision}
-                onChange={(e) => setAddToRevision(e.target.checked)}
-              />
-              <label htmlFor="addToRevision" className="text-sm font-medium">
-                Adicionar à Revisão Espaçada
-              </label>
-            </div>
-            <p className="text-xs text-gray-500 mt-1">
-              Criará automaticamente uma revisão para este evento na data programada
-            </p>
-          </div>
-
-          {/* Espaço adicionado entre cores e recorrência */}
+          {/* Seção de recorrência */}
           <div className="recurrence-options" style={{ marginTop: '32px' }}>
             <div className="form-group">
               <label>Recorrência</label>
@@ -448,6 +431,26 @@ export default function EventModal() {
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Seção para adicionar à revisão espaçada - movida para baixo da recorrência */}
+          <div className="form-group" style={{ marginTop: '24px' }}>
+            <div className="flex items-center justify-between">
+              <div>
+                <label className="text-sm font-medium">
+                  Adicionar à Revisão Espaçada
+                </label>
+                <p className="text-xs text-gray-500 mt-1">
+                  Criará automaticamente uma revisão para este evento na data programada
+                </p>
+              </div>
+              <Toggle
+                pressed={addToRevision}
+                onPressedChange={setAddToRevision}
+                aria-label="Adicionar à revisão espaçada"
+                className="ml-4"
+              />
+            </div>
           </div>
 
           <div className="event-modal-footer">
