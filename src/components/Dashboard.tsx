@@ -107,45 +107,7 @@ export default function Dashboard() {
       </header>
 
       <div className="dashboard-content">
-        {/* Daily Progress */}
-        <div className="dashboard-widget">
-          <h3 className="text-lg font-semibold mb-4">Progresso Diário</h3>
-          <div className="progress-container">
-            <div className="progress-bar">
-              <div 
-                className="progress-fill"
-                style={{ width: `${dailyProgress}%` }}
-              />
-            </div>
-            <div className="progress-stats">
-              <span className="progress-value">{completedTasks}/{totalTasks} tarefas</span>
-              <span className="progress-goal">{dailyProgress.toFixed(0)}%</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Weekly Progress */}
-        <div className="dashboard-widget">
-          <h3 className="text-lg font-semibold mb-4">Progresso Semanal</h3>
-          <div className="weekly-progress-grid">
-            {getWeekProgress().map((day, index) => (
-              <div key={index} className="day-progress-row">
-                <div className="day-label">{day.day}</div>
-                <div className="progress-container flex-1">
-                  <div className="progress-bar h-3">
-                    <div 
-                      className="h-full bg-secondary-color rounded-full transition-all duration-500"
-                      style={{ width: `${day.progress}%` }}
-                    />
-                  </div>
-                </div>
-                <div className="day-stats">{day.completed}/{day.total}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Today's Tasks */}
+        {/* Today's Tasks - First */}
         <div className="dashboard-widget">
           <h3 className="text-lg font-semibold mb-4">Tarefas de Hoje</h3>
           {todayTasks.length === 0 ? (
@@ -214,6 +176,44 @@ export default function Dashboard() {
               ))}
             </div>
           )}
+        </div>
+
+        {/* Daily Progress - Second */}
+        <div className="dashboard-widget">
+          <h3 className="text-lg font-semibold mb-4">Progresso do Dia</h3>
+          <div className="progress-container">
+            <div className="progress-bar">
+              <div 
+                className="progress-fill"
+                style={{ width: `${dailyProgress}%` }}
+              />
+            </div>
+            <div className="progress-stats">
+              <span className="progress-value">{completedTasks}/{totalTasks} tarefas</span>
+              <span className="progress-goal">{dailyProgress.toFixed(0)}%</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Weekly Progress - Third */}
+        <div className="dashboard-widget">
+          <h3 className="text-lg font-semibold mb-4">Progresso Semanal</h3>
+          <div className="weekly-progress-grid">
+            {getWeekProgress().map((day, index) => (
+              <div key={index} className="day-progress-row">
+                <div className="day-label">{day.day}</div>
+                <div className="progress-container flex-1">
+                  <div className="progress-bar h-3">
+                    <div 
+                      className="h-full bg-secondary-color rounded-full transition-all duration-500"
+                      style={{ width: `${day.progress}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="day-stats">{day.completed}/{day.total}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
