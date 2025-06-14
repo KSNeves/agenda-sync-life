@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 type Language = 'pt' | 'en' | 'es';
@@ -103,6 +102,7 @@ const translations = {
       thisYear: 'Este Ano',
       nextYear: 'Próximo Ano',
       lastYear: 'Ano Passado',
+      optional: 'Opcional'
     },
     navigation: {
       dashboard: 'Painel',
@@ -153,14 +153,13 @@ const translations = {
       noCompletedRevisions: 'Nenhuma revisão concluída',
       viewContent: 'Ver Conteúdo',
       complete: 'Concluir',
-      completed: 'Concluída',
-      postpone: 'Adiar',
-      delete: 'Excluir'
+      postpone: 'Adiar'
     },
     flashcards: {
       title: 'Flashcards',
       subtitle: 'Sistema de repetição espaçada para memorização eficiente',
       createDeck: 'Criar Deck',
+      createNewDeck: 'Criar Novo Deck',
       importDeck: 'Importar Deck',
       totalDecks: 'Total de Decks',
       totalCards: 'Total de Cards',
@@ -192,7 +191,11 @@ const translations = {
       forgot: 'Esqueci',
       hard: 'Difícil',
       good: 'Bom',
-      easy: 'Fácil'
+      easy: 'Fácil',
+      deckName: 'Nome do Deck',
+      deckNamePlaceholder: 'Digite o nome do deck...',
+      deckDescription: 'Descrição do Deck',
+      deckDescriptionPlaceholder: 'Digite uma descrição opcional...'
     },
     event: {
       title: 'Título',
@@ -421,6 +424,7 @@ const translations = {
       thisYear: 'This Year',
       nextYear: 'Next Year',
       lastYear: 'Last Year',
+      optional: 'Optional'
     },
     navigation: {
       dashboard: 'Dashboard',
@@ -471,14 +475,13 @@ const translations = {
       noCompletedRevisions: 'No completed revisions',
       viewContent: 'View Content',
       complete: 'Complete',
-      completed: 'Completed',
-      postpone: 'Postpone',
-      delete: 'Delete'
+      postpone: 'Postpone'
     },
     flashcards: {
       title: 'Flashcards',
       subtitle: 'Spaced repetition system for efficient memorization',
       createDeck: 'Create Deck',
+      createNewDeck: 'Create New Deck',
       importDeck: 'Import Deck',
       totalDecks: 'Total Decks',
       totalCards: 'Total Cards',
@@ -510,7 +513,11 @@ const translations = {
       forgot: 'Forgot',
       hard: 'Hard',
       good: 'Good',
-      easy: 'Easy'
+      easy: 'Easy',
+      deckName: 'Deck Name',
+      deckNamePlaceholder: 'Enter deck name...',
+      deckDescription: 'Deck Description',
+      deckDescriptionPlaceholder: 'Enter optional description...'
     },
     event: {
       title: 'Title',
@@ -739,6 +746,7 @@ const translations = {
       thisYear: 'Este Año',
       nextYear: 'Próximo Año',
       lastYear: 'Año Pasado',
+      optional: 'Opcional'
     },
     navigation: {
       dashboard: 'Panel',
@@ -789,14 +797,13 @@ const translations = {
       noCompletedRevisions: 'No hay revisiones completadas',
       viewContent: 'Ver Contenido',
       complete: 'Completar',
-      completed: 'Completada',
-      postpone: 'Posponer',
-      delete: 'Eliminar'
+      postpone: 'Posponer'
     },
     flashcards: {
       title: 'Tarjetas',
       subtitle: 'Sistema de repetición espaciada para memorización eficiente',
       createDeck: 'Crear Mazo',
+      createNewDeck: 'Crear Nuevo Mazo',
       importDeck: 'Importar Mazo',
       totalDecks: 'Total de Mazos',
       totalCards: 'Total de Tarjetas',
@@ -828,7 +835,11 @@ const translations = {
       forgot: 'Olvidé',
       hard: 'Difícil',
       good: 'Bueno',
-      easy: 'Fácil'
+      easy: 'Fácil',
+      deckName: 'Nombre del Mazo',
+      deckNamePlaceholder: 'Ingresa el nombre del mazo...',
+      deckDescription: 'Descripción del Mazo',
+      deckDescriptionPlaceholder: 'Ingresa una descripción opcional...'
     },
     event: {
       title: 'Título',
