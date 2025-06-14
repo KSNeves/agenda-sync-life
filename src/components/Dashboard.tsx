@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { Task, RevisionItem } from '../types';
-import { Play, Pause, Check, Clock, Calendar } from 'lucide-react';
+import { Play, Pause, Check, Clock, Calendar, PlayCircle, CheckCircle, ClockIcon } from 'lucide-react';
 import { categorizeRevision } from '../utils/spacedRepetition';
 
 export default function Dashboard() {
@@ -79,11 +79,14 @@ export default function Dashboard() {
     dispatch({ type: action.toUpperCase() + '_TASK' as any, payload: taskId });
   };
 
-  const handleRevisionAction = (revisionId: string, action: 'complete' | 'postpone') => {
+  const handleRevisionAction = (revisionId: string, action: 'start' | 'complete' | 'postpone') => {
     const revision = revisionItems.find(item => item.id === revisionId);
     if (!revision) return;
 
-    if (action === 'complete') {
+    if (action === 'start') {
+      // Para agora, apenas mostra no console. Futuramente pode abrir modal de estudo
+      console.log('Iniciando revisão:', revision.title);
+    } else if (action === 'complete') {
       dispatch({ 
         type: 'UPDATE_REVISION_ITEM', 
         payload: { ...revision, category: 'completed' }
@@ -153,20 +156,33 @@ export default function Dashboard() {
                 <div key={revision.id} className="task-item">
                   <div className="task-info">
                     <div className="task-title">{revision.title}</div>
-                    <div className="task-duration">30 min</div>
+                    {revision.description && (
+                      <div className="task-description text-sm text-muted-foreground mt-1">
+                        {revision.description}
+                      </div>
+                    )}
                   </div>
                   
-                  <div className="task-actions">
+                  <div className="task-actions flex gap-2">
+                    <button
+                      onClick={() => handleRevisionAction(revision.id, 'start')}
+                      className="action-button start flex items-center gap-1 px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
+                    >
+                      <PlayCircle className="w-4 h-4" />
+                      Iniciar
+                    </button>
                     <button
                       onClick={() => handleRevisionAction(revision.id, 'complete')}
-                      className="action-button complete"
+                      className="action-button complete flex items-center gap-1 px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600"
                     >
+                      <CheckCircle className="w-4 h-4" />
                       Concluir
                     </button>
                     <button
                       onClick={() => handleRevisionAction(revision.id, 'postpone')}
-                      className="action-button postpone"
+                      className="action-button postpone flex items-center gap-1 px-3 py-1 bg-orange-500 text-white rounded text-sm hover:bg-orange-600"
                     >
+                      <ClockIcon className="w-4 h-4" />
                       Adiar
                     </button>
                   </div>
