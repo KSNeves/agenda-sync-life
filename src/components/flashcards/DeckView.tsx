@@ -51,10 +51,10 @@ export default function DeckView({ deckId, onBack, onStudy }: DeckViewProps) {
     deleteCard(cardId);
   };
 
-  // Categorizar cards por status
-  const unlearned = cards.filter(card => card.reviewCount === 0);
-  const reviewing = cards.filter(card => card.reviewCount > 0 && card.nextReview <= Date.now());
-  const learned = cards.filter(card => card.reviewCount > 0 && card.nextReview > Date.now());
+  // Categorizar cards por status usando a nova lógica
+  const unlearned = cards.filter(card => card.status === 'unlearned');
+  const reviewing = cards.filter(card => card.status === 'reviewing' && card.nextReview <= Date.now());
+  const learned = cards.filter(card => card.status === 'learned');
 
   const CardColumn = ({ title, cards, color }: { title: string; cards: any[]; color: string }) => (
     <div className="flex-1">
@@ -92,7 +92,15 @@ export default function DeckView({ deckId, onBack, onStudy }: DeckViewProps) {
                     </div>
                   </div>
                   <div className="text-xs text-muted-foreground mt-2">
-                    Revisões: {card.reviewCount}
+                    {card.status === 'reviewing' && (
+                      <span>Progresso: {card.currentStreak}/{card.targetReviews} revisões</span>
+                    )}
+                    {card.status === 'unlearned' && (
+                      <span>Novo card</span>
+                    )}
+                    {card.status === 'learned' && (
+                      <span>Aprendido - {card.reviewCount} revisões</span>
+                    )}
                   </div>
                 </CardContent>
               </Card>

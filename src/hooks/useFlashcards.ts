@@ -64,6 +64,9 @@ export function useFlashcards() {
       easeFactor: 2.5,
       interval: 1,
       nextReview: Date.now(),
+      status: 'unlearned', // Novos cards começam como não aprendidos
+      targetReviews: 0,
+      currentStreak: 0,
     };
 
     setFlashcards(prev => [...prev, newCard]);
@@ -85,35 +88,88 @@ export function useFlashcards() {
   const reviewCard = (cardId: string, difficulty: 'easy' | 'medium' | 'hard') => {
     setFlashcards(prev => prev.map(card => {
       if (card.id === cardId) {
-        const newReviewCount = card.reviewCount + 1;
-        let newEaseFactor = card.easeFactor;
-        let newInterval = card.interval;
+        let newStatus = card.status;
+        let newTargetReviews = card.targetReviews;
+        let newCurrentStreak = card.currentStreak;
+        let nextReviewDate = Date.now();
 
-        // Simple spaced repetition algorithm
-        switch (difficulty) {
-          case 'easy':
-            newEaseFactor = Math.max(1.3, newEaseFactor + 0.15);
-            newInterval = Math.ceil(newInterval * newEaseFactor);
-            break;
-          case 'medium':
-            newInterval = Math.ceil(newInterval * newEaseFactor);
-            break;
-          case 'hard':
-            newEaseFactor = Math.max(1.3, newEaseFactor - 0.2);
-            newInterval = Math.max(1, Math.ceil(newInterval * 0.6));
-            break;
+        // Se o card é novo (unlearned), definir os parâmetros iniciais
+        if (card.status === 'unlearned') {
+          newStatus = 'reviewing';
+          newCurrentStreak = 1;
+          
+          // Definir target de revisões baseado na dificuldade
+          switch (difficulty) {
+            case 'easy':
+              newTargetReviews = 2;
+              break;
+            case 'medium':
+              newTargetReviews = 4;
+              break;
+            case 'hard':
+              newTargetReviews = 7;
+              break;
+          }
+          
+          // Próxima revisão para o dia seguinte
+          nextReviewDate = Date.now() + (24 * 60 * 60 * 1000);
+        } 
+        // Se o card está em revisão
+        else if (card.status === 'reviewing') {
+          // Se mudou a dificuldade, ajustar o target
+          if (difficulty === 'easy' && card.targetReviews !== 2) {
+            newTargetReviews = 2;
+            newCurrentStreak = 1;
+          } else if (difficulty === 'medium' && card.targetReviews !== 4) {
+            newTargetReviews = 4;
+            newCurrentStreak = 1;
+          } else if (difficulty === 'hard' && card.targetReviews !== 7) {
+            newTargetReviews = 7;
+            newCurrentStreak = 1;
+          } else {
+            // Manteve a mesma dificuldade, incrementar streak
+            newCurrentStreak = card.currentStreak + 1;
+          }
+
+          // Verificar se completou o número necessário de revisões
+          if (newCurrentStreak >= newTargetReviews) {
+            newStatus = 'learned';
+            nextReviewDate = Date.now() + (30 * 24 * 60 * 60 * 1000); // 30 dias no futuro
+          } else {
+            // Ainda em revisão, próxima revisão para o dia seguinte
+            nextReviewDate = Date.now() + (24 * 60 * 60 * 1000);
+          }
         }
-
-        const nextReview = Date.now() + (newInterval * 24 * 60 * 60 * 1000);
+        // Se já estava aprendido, manter como aprendido
+        else if (card.status === 'learned') {
+          // Se revisar um card já aprendido, pode voltar para revisão se não for fácil
+          if (difficulty !== 'easy') {
+            newStatus = 'reviewing';
+            newCurrentStreak = 1;
+            switch (difficulty) {
+              case 'medium':
+                newTargetReviews = 4;
+                break;
+              case 'hard':
+                newTargetReviews = 7;
+                break;
+            }
+            nextReviewDate = Date.now() + (24 * 60 * 60 * 1000);
+          } else {
+            // Mantém como aprendido
+            nextReviewDate = Date.now() + (30 * 24 * 60 * 60 * 1000);
+          }
+        }
 
         return {
           ...card,
           difficulty,
-          reviewCount: newReviewCount,
+          reviewCount: card.reviewCount + 1,
           lastReviewed: Date.now(),
-          easeFactor: newEaseFactor,
-          interval: newInterval,
-          nextReview,
+          nextReview: nextReviewDate,
+          status: newStatus,
+          targetReviews: newTargetReviews,
+          currentStreak: newCurrentStreak,
         };
       }
       return card;
@@ -124,9 +180,9 @@ export function useFlashcards() {
     setTimeout(() => {
       const deckCards = flashcards.filter(card => card.deckId === deckId);
       const cardCount = deckCards.length;
-      const newCards = deckCards.filter(card => card.reviewCount === 0).length;
+      const newCards = deckCards.filter(card => card.status === 'unlearned').length;
       const reviewCards = deckCards.filter(card => 
-        card.reviewCount > 0 && card.nextReview <= Date.now()
+        card.status === 'reviewing' && card.nextReview <= Date.now()
       ).length;
 
       setDecks(prev => prev.map(deck => 
@@ -141,7 +197,7 @@ export function useFlashcards() {
     const totalDecks = decks.length;
     const totalCards = flashcards.length;
     const cardsToReview = flashcards.filter(card => 
-      card.nextReview <= Date.now()
+      card.nextReview <= Date.now() && card.status !== 'learned'
     ).length;
 
     return { totalDecks, totalCards, cardsToReview };
