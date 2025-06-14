@@ -63,7 +63,7 @@ export default function CalendarWeek() {
                 <div className="week-day-name">
                   {day.toLocaleDateString('pt-BR', { weekday: 'short' })}
                 </div>
-                <div className={`week-day-number ${isToday ? 'bg-primary text-primary-foreground rounded-full w-8 h-8 flex items-center justify-center font-bold' : ''}`}>
+                <div className={`week-day-number ${isToday ? 'bg-gray-200 text-gray-900 rounded-full w-8 h-8 flex items-center justify-center font-bold' : ''}`}>
                   {day.getDate()}
                 </div>
               </div>

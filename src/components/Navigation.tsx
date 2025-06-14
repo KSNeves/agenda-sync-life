@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Calendar, BarChart3, Clock, BookOpen } from 'lucide-react';
+import { BarChart3, Clock, BookOpen } from 'lucide-react';
 
 interface NavigationProps {
   currentView: string;
@@ -10,7 +10,6 @@ interface NavigationProps {
 export default function Navigation({ currentView, onViewChange }: NavigationProps) {
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
-    { id: 'calendar', label: 'Calendar', icon: Calendar },
     { id: 'schedule', label: 'Schedule', icon: Clock },
     { id: 'revision', label: 'Revision', icon: BookOpen },
   ];
