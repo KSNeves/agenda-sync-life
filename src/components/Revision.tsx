@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { RevisionItem } from '../types';
@@ -6,10 +5,12 @@ import { Plus, Calendar, Clock, Hash } from 'lucide-react';
 import { categorizeRevision } from '../utils/spacedRepetition';
 import CreateRevisionModal from './CreateRevisionModal';
 import ViewRevisionModal from './ViewRevisionModal';
+import { useTranslation } from '../hooks/useTranslation';
 
 export default function Revision() {
   const { state, dispatch } = useApp();
   const { revisionItems } = state;
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'pending' | 'completed' | 'priority'>('pending');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
@@ -68,11 +69,11 @@ export default function Revision() {
   const getTabLabel = (tab: string) => {
     switch (tab) {
       case 'pending':
-        return 'Para Hoje';
+        return t('revision.forToday');
       case 'priority':
-        return 'Próximas';
+        return t('revision.upcoming');
       case 'completed':
-        return 'Concluídas';
+        return t('revision.completed');
       default:
         return '';
     }
@@ -115,13 +116,13 @@ export default function Revision() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex justify-between items-center px-6 py-6">
-          <h1 className="text-3xl font-bold text-foreground">Revisão</h1>
+          <h1 className="text-3xl font-bold text-foreground">{t('revision.title')}</h1>
           <button
             onClick={() => setIsModalOpen(true)}
             className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
           >
             <Plus size={20} />
-            Criar Nova Revisão
+            {t('revision.createNew')}
           </button>
         </div>
 
@@ -147,16 +148,16 @@ export default function Revision() {
         {/* Content */}
         <div className="px-6 py-8">
           <h2 className="text-2xl font-semibold mb-8 text-foreground">
-            Revisões para {getTabLabel(activeTab)}
+            {t('revision.revisionsFor')} {getTabLabel(activeTab)}
           </h2>
 
           {/* Items List */}
           {filteredItems.length === 0 ? (
             <div className="text-center py-16">
               <div className="text-muted-foreground text-lg">
-                {activeTab === 'pending' && 'Nenhuma revisão agendada para hoje.'}
-                {activeTab === 'priority' && 'Nenhuma revisão próxima.'}
-                {activeTab === 'completed' && 'Nenhuma revisão concluída.'}
+                {activeTab === 'pending' && t('revision.noRevisionsToday')}
+                {activeTab === 'priority' && t('revision.noUpcomingRevisions')}
+                {activeTab === 'completed' && t('revision.noCompletedRevisions')}
               </div>
             </div>
           ) : (
@@ -195,7 +196,7 @@ export default function Revision() {
                         onClick={() => viewRevisionContent(item)}
                         className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs font-medium transition-colors"
                       >
-                        Ver Conteúdo
+                        {t('revision.viewContent')}
                       </button>
                       
                       <button
@@ -206,7 +207,7 @@ export default function Revision() {
                             : 'bg-green-100 hover:bg-green-200 text-green-800'
                         }`}
                       >
-                        {item.category === 'completed' ? 'Concluída' : 'Concluir'}
+                        {item.category === 'completed' ? t('revision.completed') : t('revision.complete')}
                       </button>
                       
                       {activeTab !== 'completed' && (
@@ -214,7 +215,7 @@ export default function Revision() {
                           onClick={() => postponeItem(item)}
                           className="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-2 py-1 rounded text-xs font-medium transition-colors"
                         >
-                          Adiar
+                          {t('revision.postpone')}
                         </button>
                       )}
                       
@@ -222,7 +223,7 @@ export default function Revision() {
                         onClick={() => deleteItem(item.id)}
                         className="bg-red-100 hover:bg-red-200 text-red-800 px-2 py-1 rounded text-xs font-medium transition-colors"
                       >
-                        Excluir
+                        {t('revision.delete')}
                       </button>
                     </div>
                   </div>

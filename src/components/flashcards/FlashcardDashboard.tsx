@@ -9,9 +9,11 @@ import CreateDeckModal from './CreateDeckModal';
 import ImportDeckModal from './ImportDeckModal';
 import DeckView from './DeckView';
 import StudyMode from './StudyMode';
+import { useTranslation } from '../../hooks/useTranslation';
 
 export default function FlashcardDashboard() {
   const { decks, deleteDeck, getDecksStats, isLoaded } = useFlashcards();
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -27,7 +29,7 @@ export default function FlashcardDashboard() {
 
   const handleDeleteDeck = (e: React.MouseEvent, deckId: string) => {
     e.stopPropagation(); // Prevent opening the deck
-    if (confirm('Tem certeza que deseja excluir este deck? Esta ação não pode ser desfeita.')) {
+    if (confirm(t('flashcards.confirmDelete'))) {
       deleteDeck(deckId);
     }
   };
@@ -39,7 +41,7 @@ export default function FlashcardDashboard() {
       <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto mb-4"></div>
-          <p>Carregando flashcards...</p>
+          <p>{t('flashcards.loading')}</p>
         </div>
       </div>
     );
@@ -70,8 +72,8 @@ export default function FlashcardDashboard() {
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-4xl font-bold">Flashcards</h1>
-            <p className="text-muted-foreground mt-2">Sistema de repetição espaçada para memorização</p>
+            <h1 className="text-4xl font-bold">{t('flashcards.title')}</h1>
+            <p className="text-muted-foreground mt-2">{t('flashcards.subtitle')}</p>
           </div>
           <div className="flex gap-3">
             <Button 
@@ -82,7 +84,7 @@ export default function FlashcardDashboard() {
               className="flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
-              Criar Deck
+              {t('flashcards.createDeck')}
             </Button>
             <Button 
               variant="outline" 
@@ -90,7 +92,7 @@ export default function FlashcardDashboard() {
               onClick={() => setIsImportModalOpen(true)}
             >
               <Upload className="w-4 h-4" />
-              Importar Deck (CSV)
+              {t('flashcards.importDeck')}
             </Button>
           </div>
         </div>
@@ -103,7 +105,7 @@ export default function FlashcardDashboard() {
                 <BookOpen className="w-5 h-5 text-blue-500" />
                 <div>
                   <div className="text-2xl font-bold">{stats.totalDecks}</div>
-                  <p className="text-sm text-muted-foreground">Total de Decks</p>
+                  <p className="text-sm text-muted-foreground">{t('flashcards.totalDecks')}</p>
                 </div>
               </div>
             </CardContent>
@@ -114,7 +116,7 @@ export default function FlashcardDashboard() {
                 <Clock className="w-5 h-5 text-green-500" />
                 <div>
                   <div className="text-2xl font-bold">{stats.totalCards}</div>
-                  <p className="text-sm text-muted-foreground">Total de Cards</p>
+                  <p className="text-sm text-muted-foreground">{t('flashcards.totalCards')}</p>
                 </div>
               </div>
             </CardContent>
@@ -125,7 +127,7 @@ export default function FlashcardDashboard() {
                 <TrendingUp className="w-5 h-5 text-yellow-500" />
                 <div>
                   <div className="text-2xl font-bold">{stats.cardsToReview}</div>
-                  <p className="text-sm text-muted-foreground">Para Revisar</p>
+                  <p className="text-sm text-muted-foreground">{t('flashcards.toReview')}</p>
                 </div>
               </div>
             </CardContent>
@@ -135,7 +137,7 @@ export default function FlashcardDashboard() {
         {/* Search */}
         <div className="mb-6">
           <Input
-            placeholder="Pesquisar decks..."
+            placeholder={t('flashcards.searchDecks')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="max-w-md"
@@ -144,14 +146,14 @@ export default function FlashcardDashboard() {
 
         {/* Meus Decks Section */}
         <div className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">Meus Decks ({decks.length})</h2>
+          <h2 className="text-2xl font-semibold mb-4">{t('flashcards.myDecks')} ({decks.length})</h2>
 
           {/* Decks List */}
           {filteredDecks.length === 0 ? (
             <Card>
               <CardContent className="p-8 text-center">
                 <p className="text-muted-foreground text-lg">
-                  {searchTerm ? 'Nenhum deck encontrado.' : 'Nenhum deck encontrado. Crie seu primeiro deck!'}
+                  {searchTerm ? t('flashcards.noDecksFound') : t('flashcards.noDecksCreate')}
                 </p>
               </CardContent>
             </Card>
@@ -183,8 +185,8 @@ export default function FlashcardDashboard() {
                   </CardHeader>
                   <CardContent>
                     <div className="flex justify-between text-sm text-muted-foreground">
-                      <span>{deck.cardCount} cards</span>
-                      <span>{deck.reviewCards} para revisar</span>
+                      <span>{deck.cardCount} {t('flashcards.cards')}</span>
+                      <span>{deck.reviewCards} {t('flashcards.toReviewShort')}</span>
                     </div>
                   </CardContent>
                 </Card>

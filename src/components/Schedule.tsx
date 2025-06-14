@@ -1,13 +1,14 @@
-
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import CalendarMonth from './CalendarMonth';
 import CalendarDay from './CalendarDay';
+import { useTranslation } from '../hooks/useTranslation';
 
 export default function Schedule() {
   const { state, dispatch } = useApp();
   const { events, selectedDate } = state;
+  const { t } = useTranslation();
 
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -159,13 +160,13 @@ export default function Schedule() {
             className="bg-primary text-primary-foreground px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary/90 transition-colors"
           >
             <Plus size={16} />
-            Criar Evento
+            {t('schedule.createEvent')}
           </button>
           <button
             onClick={goToToday}
             className="px-4 py-2 text-foreground hover:bg-secondary/50 rounded-lg transition-colors"
           >
-            Hoje
+            {t('schedule.today')}
           </button>
           <div className="flex items-center gap-2">
             <button
@@ -191,19 +192,19 @@ export default function Schedule() {
             onClick={() => setViewMode('day')}
             className={`px-4 py-2 ${viewMode === 'day' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/50'} transition-colors`}
           >
-            Dia
+            {t('schedule.day')}
           </button>
           <button 
             onClick={() => setViewMode('week')}
             className={`px-4 py-2 ${viewMode === 'week' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/50'} transition-colors`}
           >
-            Semana
+            {t('schedule.week')}
           </button>
           <button 
             onClick={() => setViewMode('month')}
             className={`px-4 py-2 ${viewMode === 'month' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/50'} transition-colors`}
           >
-            Mês
+            {t('schedule.month')}
           </button>
         </div>
       </div>

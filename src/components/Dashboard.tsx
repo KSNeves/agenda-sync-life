@@ -1,5 +1,3 @@
-
-
 import React, { useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Task, RevisionItem } from '../types';
@@ -7,10 +5,12 @@ import { Play, Pause, Check, Clock, Calendar, PlayCircle, CheckCircle, ClockIcon
 import { categorizeRevision } from '../utils/spacedRepetition';
 import StudyTimerModal from './StudyTimerModal';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useTranslation } from '../hooks/useTranslation';
 
 export default function Dashboard() {
   const { state, dispatch } = useApp();
   const { tasks, events, revisionItems } = state;
+  const { t } = useTranslation();
   const [isStudyModalOpen, setIsStudyModalOpen] = useState(false);
   const [selectedRevisionTitle, setSelectedRevisionTitle] = useState('');
   const [weeklyProgressData, setWeeklyProgressData] = useLocalStorage<Record<string, { completed: number; total: number }>>('weeklyProgressData', {});
@@ -168,7 +168,7 @@ export default function Dashboard() {
     <div className="dashboard-container">
       <header className="dashboard-header">
         <div>
-          <h1 className="text-2xl font-bold">Dashboard</h1>
+          <h1 className="text-2xl font-bold">{t('dashboard.title')}</h1>
           <div className="date-display text-muted-foreground">
             {today.toLocaleDateString('pt-BR', { 
               weekday: 'long', 
@@ -183,10 +183,10 @@ export default function Dashboard() {
       <div className="dashboard-content">
         {/* Today's Tasks - First */}
         <div className="dashboard-widget">
-          <h3 className="text-lg font-semibold mb-4">Tarefas de Hoje</h3>
+          <h3 className="text-lg font-semibold mb-4">{t('dashboard.todayTasks')}</h3>
           {todayRevisions.length === 0 ? (
             <div className="empty-message">
-              Nenhuma revisão para hoje. Ótimo trabalho!
+              {t('dashboard.noRevisionsToday')}
             </div>
           ) : (
             <div className="tasks-list">
@@ -207,21 +207,21 @@ export default function Dashboard() {
                       className="action-button start flex items-center gap-1 px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
                     >
                       <PlayCircle className="w-4 h-4" />
-                      Iniciar
+                      {t('dashboard.start')}
                     </button>
                     <button
                       onClick={() => handleRevisionAction(revision.id, 'complete')}
                       className="action-button complete flex items-center gap-1 px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600"
                     >
                       <CheckCircle className="w-4 h-4" />
-                      Concluir
+                      {t('dashboard.complete')}
                     </button>
                     <button
                       onClick={() => handleRevisionAction(revision.id, 'postpone')}
                       className="action-button postpone flex items-center gap-1 px-3 py-1 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded text-sm font-medium transition-colors"
                     >
                       <ClockIcon className="w-4 h-4" />
-                      Adiar
+                      {t('dashboard.postpone')}
                     </button>
                   </div>
                 </div>
@@ -232,7 +232,7 @@ export default function Dashboard() {
 
         {/* Daily Progress - Second */}
         <div className="dashboard-widget">
-          <h3 className="text-lg font-semibold mb-4">Progresso do Dia</h3>
+          <h3 className="text-lg font-semibold mb-4">{t('dashboard.dailyProgress')}</h3>
           <div className="progress-container">
             <div className="progress-bar">
               <div 
@@ -241,7 +241,7 @@ export default function Dashboard() {
               />
             </div>
             <div className="progress-stats">
-              <span className="progress-value">{completedRevisionsToday}/{totalDailyTasks} tarefas</span>
+              <span className="progress-value">{completedRevisionsToday}/{totalDailyTasks} {t('dashboard.tasks')}</span>
               <span className="progress-goal">{dailyProgress.toFixed(0)}%</span>
             </div>
           </div>
@@ -249,7 +249,7 @@ export default function Dashboard() {
 
         {/* Weekly Progress - Third */}
         <div className="dashboard-widget">
-          <h3 className="text-lg font-semibold mb-4">Progresso Semanal</h3>
+          <h3 className="text-lg font-semibold mb-4">{t('dashboard.weeklyProgress')}</h3>
           <div className="weekly-progress-grid">
             {getWeekProgress().map((day, index) => (
               <div key={index} className="day-progress-row">
@@ -277,4 +277,3 @@ export default function Dashboard() {
     </div>
   );
 }
-
