@@ -74,9 +74,9 @@ export default function Navigation({ currentView, onViewChange }: NavigationProp
   ];
 
   const languages = [
-    { code: 'pt', name: 'Português', flag: '🇧🇷' },
-    { code: 'en', name: 'English', flag: '🇺🇸' },
-    { code: 'es', name: 'Español', flag: '🇪🇸' },
+    { code: 'pt' as const, name: 'Português', flag: '🇧🇷' },
+    { code: 'en' as const, name: 'English', flag: '🇺🇸' },
+    { code: 'es' as const, name: 'Español', flag: '🇪🇸' },
   ];
 
   const handleProfileAction = (action: string) => {
@@ -94,7 +94,7 @@ export default function Navigation({ currentView, onViewChange }: NavigationProp
     }
   };
 
-  const handleLanguageChange = (languageCode: string) => {
+  const handleLanguageChange = (languageCode: 'pt' | 'en' | 'es') => {
     setLanguage(languageCode);
   };
 

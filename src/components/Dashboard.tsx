@@ -183,9 +183,16 @@ export default function Dashboard() {
       day: 'numeric' 
     };
     
-    // Usar locale baseado no idioma selecionado
-    const locale = t('common.locale'); // Vamos adicionar esta chave de tradução
-    return today.toLocaleDateString(locale, options);
+    // Usar locale baseado no idioma selecionado com fallback seguro
+    const locale = t('common.locale');
+    const safeLocale = ['pt-BR', 'en-US', 'es-ES'].includes(locale) ? locale : 'en-US';
+    
+    try {
+      return today.toLocaleDateString(safeLocale, options);
+    } catch (error) {
+      // Fallback para inglês se houver erro
+      return today.toLocaleDateString('en-US', options);
+    }
   };
 
   return (
