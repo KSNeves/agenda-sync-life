@@ -58,8 +58,8 @@ export default function Settings({ onBack }: SettingsProps) {
   const handleDeleteSchedule = () => {
     dispatch({ type: 'CLEAR_EVENTS' });
     toast({
-      title: "Schedule apagado",
-      description: "Todos os eventos do calendário foram removidos.",
+      title: t('settings.scheduleDeleted'),
+      description: t('settings.scheduleDeleted.desc'),
     });
   };
 
@@ -83,8 +83,8 @@ export default function Settings({ onBack }: SettingsProps) {
     });
     
     toast({
-      title: "Todos os dados apagados",
-      description: "Calendário, flashcards, revisões e configurações foram resetados.",
+      title: t('settings.allDataDeleted'),
+      description: t('settings.allDataDeleted.desc'),
       variant: "destructive"
     });
   };
@@ -253,7 +253,7 @@ export default function Settings({ onBack }: SettingsProps) {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="longBreakInterval">Repetições até pausa longa</Label>
+                  <Label htmlFor="longBreakInterval">{t('settings.longBreakInterval')}</Label>
                   <Select 
                     value={settings.longBreakInterval.toString()} 
                     onValueChange={(value) => updateSettings({ longBreakInterval: parseInt(value) })}
@@ -287,7 +287,7 @@ export default function Settings({ onBack }: SettingsProps) {
             </CardContent>
           </Card>
 
-          {/* Redefinir Dados - Modified */}
+          {/* Redefinir Dados */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -300,13 +300,13 @@ export default function Settings({ onBack }: SettingsProps) {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Apagar Schedule</Label>
+                <Label>{t('settings.deleteSchedule')}</Label>
                 <Button 
                   variant="outline" 
                   className="w-full bg-orange-500 hover:bg-orange-600 text-white"
                   onClick={handleDeleteSchedule}
                 >
-                  Apagar Schedule
+                  {t('settings.deleteSchedule.btn')}
                 </Button>
               </div>
               <div className="space-y-2">

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BarChart3, Clock, BookOpen, Brain, User, ChevronDown, Settings, LogOut } from 'lucide-react';
 import {
   DropdownMenu,
@@ -8,13 +8,57 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface NavigationProps {
   currentView: string;
   onViewChange: (view: string) => void;
 }
 
+interface UserProfile {
+  firstName: string;
+  lastName: string;
+  email: string;
+  profileImage: string | null;
+}
+
 export default function Navigation({ currentView, onViewChange }: NavigationProps) {
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+
+  // Load user profile from localStorage and listen for changes
+  useEffect(() => {
+    const loadProfile = () => {
+      const savedProfile = localStorage.getItem('userProfile');
+      if (savedProfile) {
+        setUserProfile(JSON.parse(savedProfile));
+      }
+    };
+
+    // Load initially
+    loadProfile();
+
+    // Listen for storage changes
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'userProfile') {
+        loadProfile();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    // Also listen for custom event when profile is updated in the same tab
+    const handleProfileUpdate = () => {
+      loadProfile();
+    };
+
+    window.addEventListener('profileUpdated', handleProfileUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('profileUpdated', handleProfileUpdate);
+    };
+  }, []);
+
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
     { id: 'schedule', label: 'Schedule', icon: Clock },
@@ -69,9 +113,12 @@ export default function Navigation({ currentView, onViewChange }: NavigationProp
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2 p-2 rounded-full hover:bg-accent transition-colors">
-                  <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                    <User size={16} className="text-primary-foreground" />
-                  </div>
+                  <Avatar className="w-8 h-8">
+                    <AvatarImage src={userProfile?.profileImage || undefined} />
+                    <AvatarFallback className="bg-primary">
+                      <User size={16} className="text-primary-foreground" />
+                    </AvatarFallback>
+                  </Avatar>
                   <ChevronDown size={16} className="text-muted-foreground" />
                 </button>
               </DropdownMenuTrigger>

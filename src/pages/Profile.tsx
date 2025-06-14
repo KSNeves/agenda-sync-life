@@ -121,6 +121,9 @@ export default function Profile({ onBack }: ProfileProps) {
 
     localStorage.setItem('userProfile', JSON.stringify(userProfile));
 
+    // Dispatch custom event to notify other components
+    window.dispatchEvent(new Event('profileUpdated'));
+
     // If password was changed, save it separately (in a real app, this would be handled securely on the backend)
     if (newPassword) {
       localStorage.setItem('userPassword', newPassword);
