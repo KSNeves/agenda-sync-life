@@ -74,7 +74,7 @@ export default function Revision() {
           <h1 className="text-3xl font-bold text-foreground">Revisão</h1>
           <button
             onClick={() => setActiveTab('pending')}
-            className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
           >
             <Plus size={20} />
             Criar Nova Revisão
@@ -90,7 +90,7 @@ export default function Revision() {
                 onClick={() => setActiveTab(tab)}
                 className={`pb-4 font-medium border-b-2 transition-colors ${
                   activeTab === tab
-                    ? 'border-green-500 text-green-500'
+                    ? 'border-primary text-primary'
                     : 'border-transparent text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -115,12 +115,12 @@ export default function Revision() {
                   value={newItemTitle}
                   onChange={(e) => setNewItemTitle(e.target.value)}
                   placeholder="Digite o título da nova revisão..."
-                  className="flex-1 px-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="flex-1 px-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   onKeyPress={(e) => e.key === 'Enter' && addRevisionItem()}
                 />
                 <button
                   onClick={addRevisionItem}
-                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
                 >
                   <Plus size={18} />
                   Adicionar
