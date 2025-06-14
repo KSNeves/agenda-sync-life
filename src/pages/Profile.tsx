@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, User, Camera, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,17 +7,46 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useTranslation } from '../hooks/useTranslation';
+import { useToast } from '@/components/ui/use-toast';
 
 interface ProfileProps {
   onBack: () => void;
 }
 
+interface UserProfile {
+  firstName: string;
+  lastName: string;
+  email: string;
+  profileImage: string | null;
+}
+
 export default function Profile({ onBack }: ProfileProps) {
   const { t } = useTranslation();
+  const { toast } = useToast();
+  
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Load user profile from localStorage on component mount
+  useEffect(() => {
+    const savedProfile = localStorage.getItem('userProfile');
+    if (savedProfile) {
+      const profile: UserProfile = JSON.parse(savedProfile);
+      setFirstName(profile.firstName || '');
+      setLastName(profile.lastName || '');
+      setEmail(profile.email || '');
+      setProfileImage(profile.profileImage || null);
+    }
+  }, []);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -28,6 +57,83 @@ export default function Profile({ onBack }: ProfileProps) {
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleSaveProfile = () => {
+    // Validate required fields
+    if (!firstName.trim() || !lastName.trim() || !email.trim()) {
+      toast({
+        title: "Erro",
+        description: "Por favor, preencha todos os campos obrigatórios.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast({
+        title: "Erro",
+        description: "Por favor, insira um email válido.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate password change if any password field is filled
+    if (currentPassword || newPassword || confirmPassword) {
+      if (!currentPassword || !newPassword || !confirmPassword) {
+        toast({
+          title: "Erro",
+          description: "Para alterar a senha, preencha todos os campos de senha.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (newPassword !== confirmPassword) {
+        toast({
+          title: "Erro", 
+          description: "A nova senha e confirmação não coincidem.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (newPassword.length < 6) {
+        toast({
+          title: "Erro",
+          description: "A nova senha deve ter pelo menos 6 caracteres.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    // Save profile to localStorage
+    const userProfile: UserProfile = {
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      email: email.trim(),
+      profileImage: profileImage,
+    };
+
+    localStorage.setItem('userProfile', JSON.stringify(userProfile));
+
+    // If password was changed, save it separately (in a real app, this would be handled securely on the backend)
+    if (newPassword) {
+      localStorage.setItem('userPassword', newPassword);
+      // Clear password fields after successful change
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    }
+
+    toast({
+      title: "Sucesso",
+      description: "Perfil salvo com sucesso!",
+    });
   };
 
   return (
@@ -90,16 +196,32 @@ export default function Profile({ onBack }: ProfileProps) {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">{t('profile.firstName')}</Label>
-                  <Input id="firstName" placeholder={t('profile.firstName.placeholder')} />
+                  <Input 
+                    id="firstName" 
+                    placeholder={t('profile.firstName.placeholder')} 
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="lastName">{t('profile.lastName')}</Label>
-                  <Input id="lastName" placeholder={t('profile.lastName.placeholder')} />
+                  <Input 
+                    id="lastName" 
+                    placeholder={t('profile.lastName.placeholder')} 
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                  />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">{t('profile.email')}</Label>
-                <Input id="email" type="email" placeholder={t('profile.email.placeholder')} />
+                <Input 
+                  id="email" 
+                  type="email" 
+                  placeholder={t('profile.email.placeholder')} 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
               </div>
 
               {/* Password Change Section */}
@@ -113,6 +235,8 @@ export default function Profile({ onBack }: ProfileProps) {
                         id="currentPassword"
                         type={showCurrentPassword ? "text" : "password"}
                         placeholder="Digite sua senha atual"
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
                       />
                       <Button
                         type="button"
@@ -136,6 +260,8 @@ export default function Profile({ onBack }: ProfileProps) {
                         id="newPassword"
                         type={showNewPassword ? "text" : "password"}
                         placeholder="Digite sua nova senha"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
                       />
                       <Button
                         type="button"
@@ -159,6 +285,8 @@ export default function Profile({ onBack }: ProfileProps) {
                         id="confirmPassword"
                         type={showConfirmPassword ? "text" : "password"}
                         placeholder="Confirme sua nova senha"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
                       />
                       <Button
                         type="button"
@@ -182,7 +310,9 @@ export default function Profile({ onBack }: ProfileProps) {
 
           {/* Botões de ação */}
           <div className="flex gap-4 pt-6">
-            <Button className="flex-1">{t('common.save')}</Button>
+            <Button className="flex-1" onClick={handleSaveProfile}>
+              {t('common.save')}
+            </Button>
             <Button variant="outline" onClick={onBack}>
               {t('common.cancel')}
             </Button>
