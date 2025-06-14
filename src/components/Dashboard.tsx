@@ -180,7 +180,7 @@ export default function Dashboard() {
                     </button>
                     <button
                       onClick={() => handleRevisionAction(revision.id, 'postpone')}
-                      className="action-button postpone flex items-center gap-1 px-3 py-1 bg-orange-500 text-white rounded text-sm hover:bg-orange-600"
+                      className="action-button postpone flex items-center gap-1 px-3 py-1 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded text-sm font-medium transition-colors"
                     >
                       <ClockIcon className="w-4 h-4" />
                       Adiar
