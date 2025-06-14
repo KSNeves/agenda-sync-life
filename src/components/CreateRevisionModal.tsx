@@ -60,16 +60,16 @@ export default function CreateRevisionModal({ isOpen, onClose }: CreateRevisionM
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px] bg-gray-900 border-gray-700">
+      <DialogContent className="sm:max-w-[600px] bg-card border-border">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-white text-center">
+          <DialogTitle className="text-2xl font-bold text-foreground text-center">
             Criar Nova Revisão
           </DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-6 mt-6">
           <div>
-            <label className="block text-white text-sm font-medium mb-2">
+            <label className="block text-foreground text-sm font-medium mb-2">
               Título da Revisão:
             </label>
             <Input
@@ -77,26 +77,26 @@ export default function CreateRevisionModal({ isOpen, onClose }: CreateRevisionM
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Ex: Conceitos de Cálculo I"
-              className="bg-gray-800 border-gray-600 text-white placeholder-gray-400"
+              className="bg-input border-border text-foreground placeholder:text-muted-foreground"
               required
             />
           </div>
 
           <div>
-            <label className="block text-white text-sm font-medium mb-2">
+            <label className="block text-foreground text-sm font-medium mb-2">
               Conteúdo para Revisar:
             </label>
             <Textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="Descreva o que precisa ser revisado em detalhes..."
-              className="bg-gray-800 border-gray-600 text-white placeholder-gray-400 min-h-[120px] resize-none"
+              className="bg-input border-border text-foreground placeholder:text-muted-foreground min-h-[120px] resize-none"
               rows={5}
             />
           </div>
 
           <div>
-            <label className="block text-white text-sm font-medium mb-2">
+            <label className="block text-foreground text-sm font-medium mb-2">
               Assunto/Disciplina (Opcional):
             </label>
             <Input
@@ -104,12 +104,12 @@ export default function CreateRevisionModal({ isOpen, onClose }: CreateRevisionM
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               placeholder="Ex: Matemática, Biologia, História"
-              className="bg-gray-800 border-gray-600 text-white placeholder-gray-400"
+              className="bg-input border-border text-foreground placeholder:text-muted-foreground"
             />
           </div>
 
           <div>
-            <label className="block text-white text-sm font-medium mb-2">
+            <label className="block text-foreground text-sm font-medium mb-2">
               Tempo Estimado (minutos):
             </label>
             <Input
@@ -117,7 +117,7 @@ export default function CreateRevisionModal({ isOpen, onClose }: CreateRevisionM
               value={estimatedTime}
               onChange={(e) => setEstimatedTime(e.target.value)}
               placeholder="30"
-              className="bg-gray-800 border-gray-600 text-white placeholder-gray-400"
+              className="bg-input border-border text-foreground placeholder:text-muted-foreground"
               min="1"
             />
           </div>
@@ -125,7 +125,7 @@ export default function CreateRevisionModal({ isOpen, onClose }: CreateRevisionM
           <div className="flex gap-4 pt-4">
             <Button
               type="submit"
-              className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-3"
+              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-3"
             >
               Criar Revisão
             </Button>
@@ -133,7 +133,7 @@ export default function CreateRevisionModal({ isOpen, onClose }: CreateRevisionM
               type="button"
               onClick={handleCancel}
               variant="secondary"
-              className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-medium py-3"
+              className="flex-1 bg-secondary hover:bg-secondary/80 text-secondary-foreground font-medium py-3"
             >
               Cancelar
             </Button>
