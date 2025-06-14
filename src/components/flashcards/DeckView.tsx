@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ArrowLeft, Plus, Play, Edit, Trash2 } from 'lucide-react';
+import { ArrowLeft, Plus, Play, Edit, Trash2, RotateCcw } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
@@ -14,7 +14,7 @@ interface DeckViewProps {
 }
 
 export default function DeckView({ deckId, onBack, onStudy }: DeckViewProps) {
-  const { getDeck, getCardsFromDeck, addCard, deleteCard } = useFlashcards();
+  const { getDeck, getCardsFromDeck, addCard, deleteCard, restartStudies } = useFlashcards();
   const [front, setFront] = useState('');
   const [back, setBack] = useState('');
   const [editingCard, setEditingCard] = useState<string | null>(null);
@@ -51,10 +51,17 @@ export default function DeckView({ deckId, onBack, onStudy }: DeckViewProps) {
     deleteCard(cardId);
   };
 
+  const handleRestartStudies = () => {
+    restartStudies(deckId);
+  };
+
   // Categorizar cards por status
-  const unlearned = cards.filter(card => card.reviewCount === 0);
-  const reviewing = cards.filter(card => card.reviewCount > 0 && card.nextReview <= Date.now());
-  const learned = cards.filter(card => card.reviewCount > 0 && card.nextReview > Date.now());
+  const unlearned = cards.filter(card => card.status === 'unlearned');
+  const reviewing = cards.filter(card => card.status === 'reviewing');
+  const learned = cards.filter(card => card.status === 'learned');
+
+  // Verificar se todos os cards estão aprendidos
+  const allCardsLearned = cards.length > 0 && learned.length === cards.length;
 
   const CardColumn = ({ title, cards, color }: { title: string; cards: any[]; color: string }) => (
     <div className="flex-1">
@@ -92,7 +99,7 @@ export default function DeckView({ deckId, onBack, onStudy }: DeckViewProps) {
                     </div>
                   </div>
                   <div className="text-xs text-muted-foreground mt-2">
-                    Revisões: {card.reviewCount}
+                    Revisões: {card.reviewCount} | Fácil: {card.easyCount} | Médio: {card.mediumCount} | Difícil: {card.hardCount}
                   </div>
                 </CardContent>
               </Card>
@@ -118,10 +125,22 @@ export default function DeckView({ deckId, onBack, onStudy }: DeckViewProps) {
               <p className="text-muted-foreground mt-1">{deck.description}</p>
             )}
           </div>
-          <Button onClick={onStudy} className="bg-primary hover:bg-primary/90">
-            <Play className="w-4 h-4 mr-2" />
-            Estudar
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={onStudy} className="bg-primary hover:bg-primary/90">
+              <Play className="w-4 h-4 mr-2" />
+              Estudar
+            </Button>
+            {allCardsLearned && (
+              <Button 
+                onClick={handleRestartStudies}
+                variant="outline"
+                className="text-orange-600 border-orange-600 hover:bg-orange-50"
+              >
+                <RotateCcw className="w-4 h-4 mr-2" />
+                Reiniciar estudos
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Add Card Form */}

@@ -64,6 +64,10 @@ export function useFlashcards() {
       easeFactor: 2.5,
       interval: 1,
       nextReview: Date.now(),
+      status: 'unlearned',
+      easyCount: 0,
+      mediumCount: 0,
+      hardCount: 0,
     };
 
     setFlashcards(prev => [...prev, newCard]);
@@ -86,48 +90,74 @@ export function useFlashcards() {
     setFlashcards(prev => prev.map(card => {
       if (card.id === cardId) {
         const newReviewCount = card.reviewCount + 1;
-        let newEaseFactor = card.easeFactor;
-        let newInterval = card.interval;
+        let newStatus = card.status;
+        let newEasyCount = card.easyCount;
+        let newMediumCount = card.mediumCount;
+        let newHardCount = card.hardCount;
 
-        // Simple spaced repetition algorithm
-        switch (difficulty) {
-          case 'easy':
-            newEaseFactor = Math.max(1.3, newEaseFactor + 0.15);
-            newInterval = Math.ceil(newInterval * newEaseFactor);
-            break;
-          case 'medium':
-            newInterval = Math.ceil(newInterval * newEaseFactor);
-            break;
-          case 'hard':
-            newEaseFactor = Math.max(1.3, newEaseFactor - 0.2);
-            newInterval = Math.max(1, Math.ceil(newInterval * 0.6));
-            break;
+        // Lógica de revisão do Anki
+        if (difficulty === 'easy') {
+          newEasyCount += 1;
+          if (card.status === 'unlearned') {
+            newStatus = 'reviewing';
+          } else if (card.status === 'reviewing' && newEasyCount >= 2) {
+            newStatus = 'learned';
+          }
+        } else if (difficulty === 'medium') {
+          newMediumCount += 1;
+          if (card.status === 'unlearned') {
+            newStatus = 'reviewing';
+          }
+          // Se estava em reviewing e clicou medium, continua em reviewing
+          // Se clicou easy depois de medium, vai para lógica de easy
+        } else if (difficulty === 'hard') {
+          newHardCount += 1;
+          if (card.status === 'unlearned') {
+            newStatus = 'reviewing';
+          }
+          // Se estava em reviewing e clicou hard, continua em reviewing
+          // Se clicou medium ou easy depois de hard, vai para respectiva lógica
         }
-
-        const nextReview = Date.now() + (newInterval * 24 * 60 * 60 * 1000);
 
         return {
           ...card,
           difficulty,
           reviewCount: newReviewCount,
           lastReviewed: Date.now(),
-          easeFactor: newEaseFactor,
-          interval: newInterval,
-          nextReview,
+          status: newStatus,
+          easyCount: newEasyCount,
+          mediumCount: newMediumCount,
+          hardCount: newHardCount,
         };
       }
       return card;
     }));
   };
 
+  const restartStudies = (deckId: string) => {
+    setFlashcards(prev => prev.map(card => {
+      if (card.deckId === deckId) {
+        return {
+          ...card,
+          status: 'unlearned' as const,
+          reviewCount: 0,
+          easyCount: 0,
+          mediumCount: 0,
+          hardCount: 0,
+          lastReviewed: undefined,
+        };
+      }
+      return card;
+    }));
+    updateDeckStats(deckId);
+  };
+
   const updateDeckStats = (deckId: string) => {
     setTimeout(() => {
       const deckCards = flashcards.filter(card => card.deckId === deckId);
       const cardCount = deckCards.length;
-      const newCards = deckCards.filter(card => card.reviewCount === 0).length;
-      const reviewCards = deckCards.filter(card => 
-        card.reviewCount > 0 && card.nextReview <= Date.now()
-      ).length;
+      const newCards = deckCards.filter(card => card.status === 'unlearned').length;
+      const reviewCards = deckCards.filter(card => card.status === 'reviewing').length;
 
       setDecks(prev => prev.map(deck => 
         deck.id === deckId 
@@ -141,7 +171,7 @@ export function useFlashcards() {
     const totalDecks = decks.length;
     const totalCards = flashcards.length;
     const cardsToReview = flashcards.filter(card => 
-      card.nextReview <= Date.now()
+      card.status === 'reviewing'
     ).length;
 
     return { totalDecks, totalCards, cardsToReview };
@@ -162,6 +192,7 @@ export function useFlashcards() {
     deleteCard,
     getCardsFromDeck,
     reviewCard,
+    restartStudies,
     getDecksStats,
   };
 }

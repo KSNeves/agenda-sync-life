@@ -18,7 +18,10 @@ export default function StudyMode({ deckId, onExit }: StudyModeProps) {
   const [correctAnswers, setCorrectAnswers] = useState(0);
 
   const deck = getDeck(deckId);
-  const cards = getCardsFromDeck(deckId);
+  const allCards = getCardsFromDeck(deckId);
+  
+  // Filtrar apenas cards que não estão aprendidos para estudo
+  const cards = allCards.filter(card => card.status !== 'learned');
 
   const currentCard = cards[currentCardIndex];
   const hasNextCard = currentCardIndex < cards.length - 1;
@@ -61,7 +64,7 @@ export default function StudyMode({ deckId, onExit }: StudyModeProps) {
       <div className="min-h-screen bg-gray-900 text-white p-6">
         <div className="max-w-4xl mx-auto text-center">
           <p className="text-red-400 mb-4">
-            {!deck ? 'Deck não encontrado' : 'Nenhum card para estudar'}
+            {!deck ? 'Deck não encontrado' : 'Nenhum card para estudar. Todos os cards já foram aprendidos!'}
           </p>
           <Button onClick={onExit}>Voltar</Button>
         </div>
