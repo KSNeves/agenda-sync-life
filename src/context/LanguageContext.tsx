@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useCallback } from 'react';
 
 interface Translation {
@@ -108,7 +107,12 @@ const translations = {
       allDataDeleted: 'Todos os dados excluídos',
       'allDataDeleted.desc': 'Todos os dados da aplicação foram removidos',
       changesSaved: 'Alterações salvas',
-      'changesSaved.desc': 'Suas configurações foram salvas com sucesso'
+      'changesSaved.desc': 'Suas configurações foram salvas com sucesso',
+      study: {
+        reminders: {
+          desc: 'Receber lembretes para estudar'
+        }
+      }
     },
     task: {
       title: 'Tarefa',
@@ -317,7 +321,12 @@ const translations = {
       allDataDeleted: 'All data deleted',
       'allDataDeleted.desc': 'All application data has been removed',
       changesSaved: 'Changes saved',
-      'changesSaved.desc': 'Your settings have been saved successfully'
+      'changesSaved.desc': 'Your settings have been saved successfully',
+      study: {
+        reminders: {
+          desc: 'Receive reminders to study'
+        }
+      }
     },
     task: {
       title: 'Task',
@@ -526,7 +535,12 @@ const translations = {
       allDataDeleted: 'Todos los datos eliminados',
       'allDataDeleted.desc': 'Todos los datos de la aplicación han sido eliminados',
       changesSaved: 'Cambios guardados',
-      'changesSaved.desc': 'Sus configuraciones han sido guardadas exitosamente'
+      'changesSaved.desc': 'Sus configuraciones han sido guardadas exitosamente',
+      study: {
+        reminders: {
+          desc: 'Recibir recordatorios para estudiar'
+        }
+      }
     },
     task: {
       title: 'Tarea',
@@ -644,7 +658,7 @@ const translations = {
       monday: 'Lunes',
       tuesday: 'Martes',
       wednesday: 'Miércoles',
-      thursday: 'Jueves',
+      thursday: 'Jueves',      
       friday: 'Viernes',
       saturday: 'Sábado'
     }
