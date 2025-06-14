@@ -13,6 +13,7 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import { Checkbox } from './ui/checkbox';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface CreateRevisionModalProps {
   isOpen: boolean;
@@ -21,6 +22,7 @@ interface CreateRevisionModalProps {
 
 export default function CreateRevisionModal({ isOpen, onClose }: CreateRevisionModalProps) {
   const { dispatch } = useApp();
+  const { t } = useTranslation();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [subject, setSubject] = useState('');
@@ -28,13 +30,13 @@ export default function CreateRevisionModal({ isOpen, onClose }: CreateRevisionM
   const [nonStudyDays, setNonStudyDays] = useState<number[]>([]);
 
   const weekDays = [
-    { value: 0, label: 'Domingo' },
-    { value: 1, label: 'Segunda-feira' },
-    { value: 2, label: 'Terça-feira' },
-    { value: 3, label: 'Quarta-feira' },
-    { value: 4, label: 'Quinta-feira' },
-    { value: 5, label: 'Sexta-feira' },
-    { value: 6, label: 'Sábado' },
+    { value: 0, label: t('days.sunday') },
+    { value: 1, label: t('days.monday') },
+    { value: 2, label: t('days.tuesday') },
+    { value: 3, label: t('days.wednesday') },
+    { value: 4, label: t('days.thursday') },
+    { value: 5, label: t('days.friday') },
+    { value: 6, label: t('days.saturday') },
   ];
 
   const handleNonStudyDayToggle = (dayValue: number) => {
@@ -94,23 +96,23 @@ export default function CreateRevisionModal({ isOpen, onClose }: CreateRevisionM
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] bg-card border-border overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-foreground text-center">
-            Criar Nova Revisão
+            {t('revision.createTitle')}
           </DialogTitle>
           <DialogDescription className="text-muted-foreground text-center">
-            Configure uma nova revisão com sistema de repetição espaçada
+            {t('revision.createDescription')}
           </DialogDescription>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-6 mt-6">
           <div>
             <label className="block text-foreground text-sm font-medium mb-2">
-              Título da Revisão:
+              {t('revision.titleLabel')}
             </label>
             <Input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Ex: Conceitos de Cálculo I"
+              placeholder={t('revision.titlePlaceholder')}
               className="bg-input border-border text-foreground placeholder:text-muted-foreground"
               required
             />
@@ -118,12 +120,12 @@ export default function CreateRevisionModal({ isOpen, onClose }: CreateRevisionM
 
           <div>
             <label className="block text-foreground text-sm font-medium mb-2">
-              Conteúdo para Revisar:
+              {t('revision.contentLabel')}
             </label>
             <Textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Descreva o que precisa ser revisado em detalhes..."
+              placeholder={t('revision.contentPlaceholder')}
               className="bg-input border-border text-foreground placeholder:text-muted-foreground min-h-[120px] resize-none"
               rows={5}
             />
@@ -131,26 +133,26 @@ export default function CreateRevisionModal({ isOpen, onClose }: CreateRevisionM
 
           <div>
             <label className="block text-foreground text-sm font-medium mb-2">
-              Assunto/Disciplina (Opcional):
+              {t('revision.subjectLabel')}
             </label>
             <Input
               type="text"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
-              placeholder="Ex: Matemática, Biologia, História"
+              placeholder={t('revision.subjectPlaceholder')}
               className="bg-input border-border text-foreground placeholder:text-muted-foreground"
             />
           </div>
 
           <div>
             <label className="block text-foreground text-sm font-medium mb-2">
-              Tempo Estimado (minutos):
+              {t('revision.timeLabel')}
             </label>
             <Input
               type="number"
               value={estimatedTime}
               onChange={(e) => setEstimatedTime(e.target.value)}
-              placeholder="30"
+              placeholder={t('revision.timePlaceholder')}
               className="bg-input border-border text-foreground placeholder:text-muted-foreground"
               min="1"
             />
@@ -158,7 +160,7 @@ export default function CreateRevisionModal({ isOpen, onClose }: CreateRevisionM
 
           <div>
             <label className="block text-foreground text-sm font-medium mb-3">
-              Dias que não estuda (opcional):
+              {t('revision.nonStudyDaysLabel')}
             </label>
             <div className="grid grid-cols-2 gap-3">
               {weekDays.map((day) => (
@@ -178,7 +180,7 @@ export default function CreateRevisionModal({ isOpen, onClose }: CreateRevisionM
               ))}
             </div>
             <p className="text-xs text-muted-foreground mt-2">
-              As revisões programadas para estes dias serão automaticamente adiadas para o próximo dia útil.
+              {t('revision.nonStudyDaysDescription')}
             </p>
           </div>
 
@@ -187,7 +189,7 @@ export default function CreateRevisionModal({ isOpen, onClose }: CreateRevisionM
               type="submit"
               className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-3"
             >
-              Criar Revisão
+              {t('revision.create')}
             </Button>
             <Button
               type="button"
@@ -195,7 +197,7 @@ export default function CreateRevisionModal({ isOpen, onClose }: CreateRevisionM
               variant="secondary"
               className="flex-1 bg-secondary hover:bg-secondary/80 text-secondary-foreground font-medium py-3"
             >
-              Cancelar
+              {t('revision.cancel')}
             </Button>
           </div>
         </form>
