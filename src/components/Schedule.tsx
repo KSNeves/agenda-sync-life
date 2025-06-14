@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
@@ -55,20 +54,19 @@ export default function Schedule() {
     const startTime = new Date(event.startTime);
     const endTime = new Date(event.endTime);
     
-    // Converter para minutos desde o início do dia (6:00)
+    // Converter para minutos desde 6:00
     const startMinutes = startTime.getHours() * 60 + startTime.getMinutes();
     const endMinutes = endTime.getHours() * 60 + endTime.getMinutes();
     const dayStartMinutes = 6 * 60; // 6:00 em minutos
-    const dayEndMinutes = 20 * 60; // 20:00 em minutos
-    const totalDayMinutes = dayEndMinutes - dayStartMinutes; // 14 horas = 840 minutos
+    const totalVisibleMinutes = 14 * 60; // 14 horas visíveis (6:00-20:00)
     
-    // Calcular posição relativa ao início do calendário (6:00)
-    const topPosition = ((startMinutes - dayStartMinutes) / totalDayMinutes) * 100;
-    const height = ((endMinutes - startMinutes) / totalDayMinutes) * 100;
+    // Calcular posição relativa
+    const topPercentage = ((startMinutes - dayStartMinutes) / totalVisibleMinutes) * 100;
+    const heightPercentage = ((endMinutes - startMinutes) / totalVisibleMinutes) * 100;
     
     return {
-      top: `${Math.max(0, topPosition)}%`,
-      height: `${Math.max(1, height)}%`, // Altura mínima de 1% para eventos muito curtos
+      top: `${Math.max(0, topPercentage)}%`,
+      height: `${Math.max(0.5, heightPercentage)}%`, // Altura mínima
     };
   };
 
@@ -177,27 +175,15 @@ export default function Schedule() {
 
             {/* Grade de Horários */}
             <div className="relative">
-              {hours.map((hour, hourIndex) => (
-                <div key={hour} className="grid grid-cols-8 border-b border-border/20">
-                  {/* Coluna de Horário */}
-                  <div className="w-20 p-2 text-right text-sm text-muted-foreground border-r border-border/50">
-                    {hour.toString().padStart(2, '0')}:00
-                  </div>
+              {/* Container para eventos - posicionado absolutamente sobre toda a grade */}
+              <div className="absolute inset-0 z-10 grid grid-cols-8">
+                <div className="w-20"></div>
+                {weekDays.map((day, dayIndex) => {
+                  const dayEvents = getEventsForDay(day);
                   
-                  {/* Colunas dos Dias */}
-                  {weekDays.map((day, dayIndex) => (
-                    <div
-                      key={dayIndex}
-                      className="relative h-16 border-r border-border/20 last:border-r-0 hover:bg-secondary/20 cursor-pointer transition-colors"
-                      onClick={() => {
-                        const startTime = new Date(day);
-                        startTime.setHours(hour, 0, 0, 0);
-                        dispatch({ type: 'SET_SELECTED_DATE', payload: startTime });
-                        dispatch({ type: 'OPEN_EVENT_MODAL', payload: null });
-                      }}
-                    >
-                      {/* Renderizar todos os eventos do dia nesta coluna, não apenas por hora */}
-                      {hourIndex === 0 && getEventsForDay(day).map(event => {
+                  return (
+                    <div key={dayIndex} className="relative">
+                      {dayEvents.map(event => {
                         const position = getEventPosition(event);
                         const eventStyle = getEventStyle(event);
                         const startTime = new Date(event.startTime);
@@ -206,13 +192,10 @@ export default function Schedule() {
                         return (
                           <div
                             key={event.id}
-                            className="absolute left-1 right-1 rounded-lg p-2 text-xs font-medium cursor-pointer hover:shadow-xl transition-all duration-200 z-10 border-2"
+                            className="absolute left-1 right-1 rounded-lg p-2 text-xs font-medium cursor-pointer hover:shadow-xl transition-all duration-200 border-2"
                             style={{
                               ...position,
                               ...eventStyle,
-                              // Ajustar a posição para cobrir toda a grade de 15 horas (6:00-20:00)
-                              top: `calc(${position.top} * 15)`, // 15 é o número de linhas de hora
-                              height: `calc(${position.height} * 15)`,
                             }}
                             onClick={(e) => {
                               e.stopPropagation();
@@ -233,6 +216,30 @@ export default function Schedule() {
                         );
                       })}
                     </div>
+                  );
+                })}
+              </div>
+
+              {/* Grade de linhas de hora */}
+              {hours.map((hour, hourIndex) => (
+                <div key={hour} className="grid grid-cols-8 border-b border-border/20">
+                  {/* Coluna de Horário */}
+                  <div className="w-20 p-2 text-right text-sm text-muted-foreground border-r border-border/50">
+                    {hour.toString().padStart(2, '0')}:00
+                  </div>
+                  
+                  {/* Colunas dos Dias */}
+                  {weekDays.map((day, dayIndex) => (
+                    <div
+                      key={dayIndex}
+                      className="relative h-16 border-r border-border/20 last:border-r-0 hover:bg-secondary/20 cursor-pointer transition-colors"
+                      onClick={() => {
+                        const startTime = new Date(day);
+                        startTime.setHours(hour, 0, 0, 0);
+                        dispatch({ type: 'SET_SELECTED_DATE', payload: startTime });
+                        dispatch({ type: 'OPEN_EVENT_MODAL', payload: null });
+                      }}
+                    />
                   ))}
                 </div>
               ))}
