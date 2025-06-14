@@ -81,6 +81,9 @@ export default {
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
 			},
+			boxShadow: { // Adicionando a nova definição de sombra
+        '3xl': '0 30px 60px -15px rgba(0, 0, 0, 0.3)',
+      },
 			keyframes: {
 				'accordion-down': {
 					from: {
@@ -107,3 +110,4 @@ export default {
 	},
 	plugins: [require("tailwindcss-animate")],
 } satisfies Config;
+
