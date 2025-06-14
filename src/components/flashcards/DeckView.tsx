@@ -14,13 +14,13 @@ interface DeckViewProps {
 }
 
 export default function DeckView({ deckId, onBack, onStudy }: DeckViewProps) {
-  const { getDeck, getCardsFromDeck, addCard, deleteCard, restartStudies } = useFlashcards();
+  const { getDeck, getCardsFromDeck, addCard, deleteCard, restartStudies, getDueCards } = useFlashcards();
   const [front, setFront] = useState('');
   const [back, setBack] = useState('');
-  const [editingCard, setEditingCard] = useState<string | null>(null);
 
   const deck = getDeck(deckId);
   const cards = getCardsFromDeck(deckId);
+  const dueCards = getDueCards(deckId);
 
   if (!deck) {
     return (
@@ -52,16 +52,15 @@ export default function DeckView({ deckId, onBack, onStudy }: DeckViewProps) {
   };
 
   const handleRestartStudies = () => {
-    restartStudies(deckId);
+    if (confirm('Tem certeza que deseja reiniciar todos os estudos deste deck? Isso resetará todo o progresso.')) {
+      restartStudies(deckId);
+    }
   };
 
   // Categorizar cards por status
-  const unlearned = cards.filter(card => card.status === 'unlearned');
+  const learning = cards.filter(card => card.status === 'learning');
   const reviewing = cards.filter(card => card.status === 'reviewing');
   const learned = cards.filter(card => card.status === 'learned');
-
-  // Verificar se todos os cards estão aprendidos
-  const allCardsLearned = cards.length > 0 && learned.length === cards.length;
 
   const CardColumn = ({ title, cards, color }: { title: string; cards: any[]; color: string }) => (
     <div className="flex-1">
@@ -85,9 +84,6 @@ export default function DeckView({ deckId, onBack, onStudy }: DeckViewProps) {
                       <p className="text-muted-foreground text-xs">{card.back}</p>
                     </div>
                     <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground">
-                        <Edit className="w-3 h-3" />
-                      </Button>
                       <Button 
                         variant="ghost" 
                         size="icon" 
@@ -99,7 +95,7 @@ export default function DeckView({ deckId, onBack, onStudy }: DeckViewProps) {
                     </div>
                   </div>
                   <div className="text-xs text-muted-foreground mt-2">
-                    Revisões: {card.reviewCount} | Fácil: {card.easyCount} | Médio: {card.mediumCount} | Difícil: {card.hardCount}
+                    Revisões: {card.reviewCount} | Facilidade: {card.easeFactor.toFixed(1)} | Intervalo: {card.interval}d
                   </div>
                 </CardContent>
               </Card>
@@ -124,22 +120,27 @@ export default function DeckView({ deckId, onBack, onStudy }: DeckViewProps) {
             {deck.description && (
               <p className="text-muted-foreground mt-1">{deck.description}</p>
             )}
+            <p className="text-sm text-muted-foreground mt-2">
+              {dueCards.length} cards para revisar
+            </p>
           </div>
           <div className="flex gap-2">
-            <Button onClick={onStudy} className="bg-primary hover:bg-primary/90">
+            <Button 
+              onClick={onStudy} 
+              className="bg-primary hover:bg-primary/90"
+              disabled={dueCards.length === 0}
+            >
               <Play className="w-4 h-4 mr-2" />
-              Estudar
+              Estudar ({dueCards.length})
             </Button>
-            {allCardsLearned && (
-              <Button 
-                onClick={handleRestartStudies}
-                variant="outline"
-                className="text-orange-600 border-orange-600 hover:bg-orange-50"
-              >
-                <RotateCcw className="w-4 h-4 mr-2" />
-                Reiniciar estudos
-              </Button>
-            )}
+            <Button 
+              onClick={handleRestartStudies}
+              variant="outline"
+              className="text-orange-600 border-orange-600 hover:bg-orange-50"
+            >
+              <RotateCcw className="w-4 h-4 mr-2" />
+              Reiniciar estudos
+            </Button>
           </div>
         </div>
 
@@ -185,17 +186,17 @@ export default function DeckView({ deckId, onBack, onStudy }: DeckViewProps) {
         {/* Cards Columns */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <CardColumn 
-            title="Cards não aprendidos" 
-            cards={unlearned} 
+            title="Aprendendo" 
+            cards={learning} 
             color="bg-red-500"
           />
           <CardColumn 
-            title="Cards em revisão" 
+            title="Revisando" 
             cards={reviewing} 
             color="bg-yellow-500"
           />
           <CardColumn 
-            title="Cards aprendidos" 
+            title="Aprendidos" 
             cards={learned} 
             color="bg-green-500"
           />

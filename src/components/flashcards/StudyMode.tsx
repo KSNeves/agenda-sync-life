@@ -11,20 +11,21 @@ interface StudyModeProps {
 }
 
 export default function StudyMode({ deckId, onExit }: StudyModeProps) {
-  const { getDeck, getCardsFromDeck, reviewCard } = useFlashcards();
+  const { getDeck, getDueCards, reviewCard } = useFlashcards();
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [showBack, setShowBack] = useState(false);
   const [studiedCards, setStudiedCards] = useState(0);
-  const [correctAnswers, setCorrectAnswers] = useState(0);
+  const [sessionCards, setSessionCards] = useState<any[]>([]);
 
   const deck = getDeck(deckId);
-  const allCards = getCardsFromDeck(deckId);
-  
-  // Filtrar apenas cards que não estão aprendidos para estudo
-  const cards = allCards.filter(card => card.status !== 'learned');
 
-  const currentCard = cards[currentCardIndex];
-  const hasNextCard = currentCardIndex < cards.length - 1;
+  useEffect(() => {
+    const dueCards = getDueCards(deckId);
+    setSessionCards(dueCards);
+  }, [deckId, getDueCards]);
+
+  const currentCard = sessionCards[currentCardIndex];
+  const hasNextCard = currentCardIndex < sessionCards.length - 1;
 
   const handleCardClick = () => {
     if (!showBack) {
@@ -32,14 +33,10 @@ export default function StudyMode({ deckId, onExit }: StudyModeProps) {
     }
   };
 
-  const handleDifficultySelect = (difficulty: 'easy' | 'medium' | 'hard') => {
+  const handleResponse = (response: 'again' | 'hard' | 'good' | 'easy') => {
     if (currentCard) {
-      reviewCard(currentCard.id, difficulty);
+      reviewCard(currentCard.id, response);
       setStudiedCards(prev => prev + 1);
-      
-      if (difficulty === 'easy') {
-        setCorrectAnswers(prev => prev + 1);
-      }
 
       if (hasNextCard) {
         setCurrentCardIndex(prev => prev + 1);
@@ -53,24 +50,43 @@ export default function StudyMode({ deckId, onExit }: StudyModeProps) {
   };
 
   const handleRestart = () => {
+    const dueCards = getDueCards(deckId);
+    setSessionCards(dueCards);
     setCurrentCardIndex(0);
     setShowBack(false);
     setStudiedCards(0);
-    setCorrectAnswers(0);
   };
 
-  if (!deck || cards.length === 0) {
+  if (!deck || sessionCards.length === 0) {
     return (
       <div className="min-h-screen bg-gray-900 text-white p-6">
         <div className="max-w-4xl mx-auto text-center">
-          <p className="text-red-400 mb-4">
-            {!deck ? 'Deck não encontrado' : 'Nenhum card para estudar. Todos os cards já foram aprendidos!'}
+          <p className="text-yellow-400 mb-4">
+            {!deck ? 'Deck não encontrado' : 'Nenhum card para revisar no momento. Todos os cards estão em dia!'}
           </p>
           <Button onClick={onExit}>Voltar</Button>
         </div>
       </div>
     );
   }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'learning': return 'text-red-400';
+      case 'reviewing': return 'text-yellow-400';
+      case 'learned': return 'text-green-400';
+      default: return 'text-gray-400';
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'learning': return 'Aprendendo';
+      case 'reviewing': return 'Revisando';
+      case 'learned': return 'Aprendido';
+      default: return 'Desconhecido';
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-6">
@@ -85,17 +101,15 @@ export default function StudyMode({ deckId, onExit }: StudyModeProps) {
             <div>
               <h1 className="text-2xl font-bold">{deck.name}</h1>
               <p className="text-gray-400">
-                {currentCardIndex + 1} de {cards.length} cards
+                {currentCardIndex + 1} de {sessionCards.length} cards
               </p>
             </div>
           </div>
           
           <div className="flex items-center gap-4">
-            {studiedCards > 0 && (
-              <div className="text-sm text-gray-400">
-                Estudados: {studiedCards} | Acertos: {correctAnswers}
-              </div>
-            )}
+            <div className="text-sm text-gray-400">
+              Estudados: {studiedCards}
+            </div>
             <Button variant="outline" onClick={handleRestart}>
               <RotateCcw className="w-4 h-4 mr-2" />
               Reiniciar
@@ -107,8 +121,17 @@ export default function StudyMode({ deckId, onExit }: StudyModeProps) {
         <div className="w-full bg-gray-800 rounded-full h-2 mb-8">
           <div 
             className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-            style={{ width: `${((currentCardIndex) / cards.length) * 100}%` }}
+            style={{ width: `${((currentCardIndex) / sessionCards.length) * 100}%` }}
           />
+        </div>
+
+        {/* Card Info */}
+        <div className="mb-4 text-center">
+          <span className={`text-sm font-medium ${getStatusColor(currentCard.status)}`}>
+            {getStatusText(currentCard.status)} • 
+            Revisões: {currentCard.reviewCount} • 
+            Facilidade: {currentCard.easeFactor.toFixed(1)}
+          </span>
         </div>
 
         {/* Card Display */}
@@ -139,22 +162,28 @@ export default function StudyMode({ deckId, onExit }: StudyModeProps) {
                   
                   <div className="space-y-3">
                     <p className="text-gray-300 mb-4">Como foi sua resposta?</p>
-                    <div className="flex gap-3 justify-center">
+                    <div className="flex gap-2 justify-center flex-wrap">
                       <Button
-                        onClick={() => handleDifficultySelect('hard')}
-                        className="bg-red-600 hover:bg-red-700 flex-1 max-w-32"
+                        onClick={() => handleResponse('again')}
+                        className="bg-red-700 hover:bg-red-800 text-white min-w-20"
+                      >
+                        Esqueci
+                      </Button>
+                      <Button
+                        onClick={() => handleResponse('hard')}
+                        className="bg-red-600 hover:bg-red-700 text-white min-w-20"
                       >
                         Difícil
                       </Button>
                       <Button
-                        onClick={() => handleDifficultySelect('medium')}
-                        className="bg-yellow-600 hover:bg-yellow-700 flex-1 max-w-32"
+                        onClick={() => handleResponse('good')}
+                        className="bg-green-600 hover:bg-green-700 text-white min-w-20"
                       >
-                        Médio
+                        Bom
                       </Button>
                       <Button
-                        onClick={() => handleDifficultySelect('easy')}
-                        className="bg-green-600 hover:bg-green-700 flex-1 max-w-32"
+                        onClick={() => handleResponse('easy')}
+                        className="bg-green-500 hover:bg-green-600 text-white min-w-20"
                       >
                         Fácil
                       </Button>

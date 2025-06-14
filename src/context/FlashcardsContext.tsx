@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Flashcard, Deck } from '../types/flashcard.types';
+import { calculateNextReview } from '../utils/ankiAlgorithm';
 
 interface FlashcardsContextType {
   decks: Deck[];
@@ -12,7 +13,8 @@ interface FlashcardsContextType {
   addCard: (deckId: string, cardData: { front: string; back: string }) => void;
   deleteCard: (cardId: string) => void;
   getCardsFromDeck: (deckId: string) => Flashcard[];
-  reviewCard: (cardId: string, difficulty: 'easy' | 'medium' | 'hard') => void;
+  reviewCard: (cardId: string, response: 'again' | 'hard' | 'good' | 'easy') => void;
+  getDueCards: (deckId: string) => Flashcard[];
   restartStudies: (deckId: string) => void;
   getDecksStats: () => { totalDecks: number; totalCards: number; cardsToReview: number };
 }
@@ -84,6 +86,7 @@ export function FlashcardsProvider({ children }: { children: ReactNode }) {
       cardCount: 0,
       newCards: 0,
       reviewCards: 0,
+      learnedCards: 0,
     };
 
     console.log('🆕 New deck object:', newDeck);
@@ -117,10 +120,9 @@ export function FlashcardsProvider({ children }: { children: ReactNode }) {
       easeFactor: 2.5,
       interval: 1,
       nextReview: Date.now(),
-      status: 'unlearned',
-      easyCount: 0,
-      mediumCount: 0,
-      hardCount: 0,
+      status: 'learning',
+      lapses: 0,
+      learningStep: 0,
     };
 
     setFlashcards(prev => {
@@ -145,44 +147,16 @@ export function FlashcardsProvider({ children }: { children: ReactNode }) {
     return flashcards.filter(card => card.deckId === deckId);
   };
 
-  const reviewCard = (cardId: string, difficulty: 'easy' | 'medium' | 'hard') => {
+  const reviewCard = (cardId: string, response: 'again' | 'hard' | 'good' | 'easy') => {
     setFlashcards(prev => {
       const updated = prev.map(card => {
         if (card.id === cardId) {
-          const newReviewCount = card.reviewCount + 1;
-          let newStatus = card.status;
-          let newEasyCount = card.easyCount;
-          let newMediumCount = card.mediumCount;
-          let newHardCount = card.hardCount;
-
-          if (difficulty === 'easy') {
-            newEasyCount += 1;
-            if (card.status === 'unlearned') {
-              newStatus = 'reviewing';
-            } else if (card.status === 'reviewing' && newEasyCount >= 2) {
-              newStatus = 'learned';
-            }
-          } else if (difficulty === 'medium') {
-            newMediumCount += 1;
-            if (card.status === 'unlearned') {
-              newStatus = 'reviewing';
-            }
-          } else if (difficulty === 'hard') {
-            newHardCount += 1;
-            if (card.status === 'unlearned') {
-              newStatus = 'reviewing';
-            }
-          }
-
+          const ankiUpdates = calculateNextReview(card, response);
+          
           return {
             ...card,
-            difficulty,
-            reviewCount: newReviewCount,
+            ...ankiUpdates,
             lastReviewed: Date.now(),
-            status: newStatus,
-            easyCount: newEasyCount,
-            mediumCount: newMediumCount,
-            hardCount: newHardCount,
           };
         }
         return card;
@@ -197,17 +171,25 @@ export function FlashcardsProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const getDueCards = (deckId: string) => {
+    const deckCards = getCardsFromDeck(deckId);
+    const now = Date.now();
+    return deckCards.filter(card => card.nextReview <= now);
+  };
+
   const restartStudies = (deckId: string) => {
     setFlashcards(prev => {
       const updated = prev.map(card => {
         if (card.deckId === deckId) {
           return {
             ...card,
-            status: 'unlearned' as const,
+            status: 'learning' as const,
             reviewCount: 0,
-            easyCount: 0,
-            mediumCount: 0,
-            hardCount: 0,
+            lapses: 0,
+            learningStep: 0,
+            easeFactor: 2.5,
+            interval: 1,
+            nextReview: Date.now(),
             lastReviewed: undefined,
           };
         }
@@ -222,12 +204,13 @@ export function FlashcardsProvider({ children }: { children: ReactNode }) {
   const updateDeckStatsWithCards = (deckId: string, cards: Flashcard[]) => {
     const deckCards = cards.filter(card => card.deckId === deckId);
     const cardCount = deckCards.length;
-    const newCards = deckCards.filter(card => card.status === 'unlearned').length;
-    const reviewCards = deckCards.filter(card => card.status === 'reviewing').length;
+    const newCards = deckCards.filter(card => card.status === 'learning' && card.reviewCount === 0).length;
+    const reviewCards = deckCards.filter(card => card.status === 'learning' || card.status === 'reviewing').length;
+    const learnedCards = deckCards.filter(card => card.status === 'learned').length;
 
     setDecks(prev => prev.map(deck => 
       deck.id === deckId 
-        ? { ...deck, cardCount, newCards, reviewCards }
+        ? { ...deck, cardCount, newCards, reviewCards, learnedCards }
         : deck
     ));
   };
@@ -235,8 +218,9 @@ export function FlashcardsProvider({ children }: { children: ReactNode }) {
   const getDecksStats = () => {
     const totalDecks = decks.length;
     const totalCards = flashcards.length;
+    const now = Date.now();
     const cardsToReview = flashcards.filter(card => 
-      card.status === 'reviewing'
+      card.nextReview <= now && (card.status === 'learning' || card.status === 'reviewing')
     ).length;
 
     return { totalDecks, totalCards, cardsToReview };
@@ -253,6 +237,7 @@ export function FlashcardsProvider({ children }: { children: ReactNode }) {
       deleteCard,
       getCardsFromDeck,
       reviewCard,
+      getDueCards,
       restartStudies,
       getDecksStats,
       isLoaded,
