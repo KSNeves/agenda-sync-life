@@ -27,9 +27,7 @@ export default function StudyMode({ deckId, onExit }: StudyModeProps) {
   const hasNextCard = currentCardIndex < sessionCards.length - 1;
 
   const handleCardClick = () => {
-    if (!showBack) {
-      setShowBack(true);
-    }
+    setShowBack(!showBack);
   };
 
   const handleResponse = (response: 'again' | 'hard' | 'good' | 'easy') => {
@@ -152,10 +150,6 @@ export default function StudyMode({ deckId, onExit }: StudyModeProps) {
               ) : (
                 <div className="w-full">
                   <div className="mb-6">
-                    <h3 className="text-lg text-gray-400 mb-2">Pergunta:</h3>
-                    <p className="text-xl text-white mb-4">{currentCard.front}</p>
-                    
-                    <h3 className="text-lg text-gray-400 mb-2">Resposta:</h3>
                     <p className="text-xl text-white mb-6">{currentCard.back}</p>
                   </div>
                   
