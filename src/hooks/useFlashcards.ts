@@ -6,44 +6,32 @@ export function useFlashcards() {
   const [decks, setDecks] = useState<Deck[]>([]);
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
 
-  console.log('useFlashcards hook initialized');
-
   // Load data from localStorage on mount
   useEffect(() => {
-    console.log('Loading data from localStorage...');
     const savedDecks = localStorage.getItem('flashcard-decks');
     const savedCards = localStorage.getItem('flashcard-cards');
     
-    console.log('Saved decks from localStorage:', savedDecks);
-    console.log('Saved cards from localStorage:', savedCards);
-    
     if (savedDecks) {
       const parsedDecks = JSON.parse(savedDecks);
-      console.log('Parsed decks:', parsedDecks);
       setDecks(parsedDecks);
     }
     
     if (savedCards) {
       const parsedCards = JSON.parse(savedCards);
-      console.log('Parsed cards:', parsedCards);
       setFlashcards(parsedCards);
     }
   }, []);
 
   // Save to localStorage whenever data changes
   useEffect(() => {
-    console.log('Saving decks to localStorage:', decks);
     localStorage.setItem('flashcard-decks', JSON.stringify(decks));
   }, [decks]);
 
   useEffect(() => {
-    console.log('Saving cards to localStorage:', flashcards);
     localStorage.setItem('flashcard-cards', JSON.stringify(flashcards));
   }, [flashcards]);
 
   const createDeck = (deckData: { name: string; description?: string }) => {
-    console.log('createDeck called with:', deckData);
-    
     const newDeck: Deck = {
       id: Date.now().toString(),
       name: deckData.name,
@@ -54,19 +42,11 @@ export function useFlashcards() {
       reviewCards: 0,
     };
 
-    console.log('New deck created:', newDeck);
-
-    setDecks(prev => {
-      const updated = [...prev, newDeck];
-      console.log('Updated decks array:', updated);
-      return updated;
-    });
-    
+    setDecks(prev => [...prev, newDeck]);
     return newDeck.id;
   };
 
   const deleteDeck = (deckId: string) => {
-    console.log('deleteDeck called with:', deckId);
     setDecks(prev => prev.filter(deck => deck.id !== deckId));
     setFlashcards(prev => prev.filter(card => card.deckId !== deckId));
   };
@@ -76,8 +56,6 @@ export function useFlashcards() {
   };
 
   const addCard = (deckId: string, cardData: { front: string; back: string }) => {
-    console.log('addCard called with:', deckId, cardData);
-    
     const newCard: Flashcard = {
       id: Date.now().toString(),
       front: cardData.front,
@@ -96,8 +74,7 @@ export function useFlashcards() {
 
     setFlashcards(prev => {
       const updated = [...prev, newCard];
-      // Update deck stats with the new card count
-      setTimeout(() => updateDeckStatsWithCards(deckId, updated), 0);
+      updateDeckStatsWithCards(deckId, updated);
       return updated;
     });
   };
@@ -107,7 +84,7 @@ export function useFlashcards() {
       const card = prev.find(c => c.id === cardId);
       const updated = prev.filter(c => c.id !== cardId);
       if (card) {
-        setTimeout(() => updateDeckStatsWithCards(card.deckId, updated), 0);
+        updateDeckStatsWithCards(card.deckId, updated);
       }
       return updated;
     });
@@ -160,10 +137,9 @@ export function useFlashcards() {
         return card;
       });
 
-      // Update deck stats with the updated cards
       const reviewedCard = updated.find(c => c.id === cardId);
       if (reviewedCard) {
-        setTimeout(() => updateDeckStatsWithCards(reviewedCard.deckId, updated), 0);
+        updateDeckStatsWithCards(reviewedCard.deckId, updated);
       }
       
       return updated;
@@ -187,7 +163,7 @@ export function useFlashcards() {
         return card;
       });
       
-      setTimeout(() => updateDeckStatsWithCards(deckId, updated), 0);
+      updateDeckStatsWithCards(deckId, updated);
       return updated;
     });
   };
@@ -214,8 +190,6 @@ export function useFlashcards() {
 
     return { totalDecks, totalCards, cardsToReview };
   };
-
-  console.log('useFlashcards hook returning - current decks:', decks);
 
   return {
     decks,
