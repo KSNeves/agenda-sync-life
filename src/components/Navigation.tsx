@@ -67,9 +67,9 @@ export default function Navigation({ currentView, onViewChange }: NavigationProp
   }, []);
 
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
-    { id: 'schedule', label: 'Schedule', icon: Clock },
-    { id: 'revision', label: 'Revision', icon: BookOpen },
+    { id: 'dashboard', label: t('navigation.dashboard'), icon: BarChart3 },
+    { id: 'schedule', label: t('navigation.schedule'), icon: Clock },
+    { id: 'revision', label: t('navigation.revision'), icon: BookOpen },
     { id: 'flashcards', label: 'Flashcards', icon: Brain },
   ];
 
