@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, useCallback } from 'react';
 
 interface Translation {
@@ -77,41 +78,64 @@ const translations = {
       light: 'Claro',
       dark: 'Escuro',
       system: 'Sistema',
-      appearance: 'Aparência',
-      'appearance.desc': 'Personalize a aparência da aplicação',
-      darkMode: 'Modo Escuro',
-      'darkMode.desc': 'Alternar entre tema claro e escuro',
-      'language.placeholder': 'Selecione um idioma',
-      notifications: 'Notificações',
-      'notifications.desc': 'Configure suas preferências de notificação',
-      pushNotifications: 'Notificações Push',
-      'pushNotifications.desc': 'Receber notificações no dispositivo',
-      studyReminders: 'Lembretes de Estudo',
-      'studyReminders.desc': 'Receber lembretes para estudar',
-      pomodoro: 'Pomodoro',
-      'pomodoro.desc': 'Configure os tempos do Pomodoro',
+      appearance: {
+        title: 'Aparência',
+        desc: 'Personalize a aparência da aplicação'
+      },
+      darkMode: {
+        title: 'Modo Escuro',
+        desc: 'Alternar entre tema claro e escuro'
+      },
+      language: {
+        placeholder: 'Selecione um idioma'
+      },
+      notifications: {
+        title: 'Notificações',
+        desc: 'Configure suas preferências de notificação'
+      },
+      pushNotifications: {
+        title: 'Notificações Push',
+        desc: 'Receber notificações no dispositivo'
+      },
+      studyReminders: {
+        title: 'Lembretes de Estudo',
+        desc: 'Receber lembretes para estudar'
+      },
+      pomodoro: {
+        title: 'Pomodoro',
+        desc: 'Configure os tempos do Pomodoro'
+      },
       focusTime: 'Tempo de Foco',
       shortBreak: 'Pausa Curta',
       longBreak: 'Pausa Longa',
       longBreakInterval: 'Intervalo da Pausa Longa',
-      autoStartBreaks: 'Iniciar Pausas Automaticamente',
-      'autoStartBreaks.desc': 'Iniciar pausas automaticamente após o tempo de foco',
-      resetData: 'Redefinir Dados',
-      'resetData.desc': 'Excluir dados da aplicação',
-      deleteSchedule: 'Excluir Agenda',
-      'deleteSchedule.btn': 'Excluir Agenda',
-      deleteAllData: 'Excluir Todos os Dados',
-      'deleteAllData.btn': 'Excluir Todos os Dados',
-      scheduleDeleted: 'Agenda excluída',
-      'scheduleDeleted.desc': 'Todos os eventos da agenda foram removidos',
-      allDataDeleted: 'Todos os dados excluídos',
-      'allDataDeleted.desc': 'Todos os dados da aplicação foram removidos',
-      changesSaved: 'Alterações salvas',
-      'changesSaved.desc': 'Suas configurações foram salvas com sucesso',
-      study: {
-        reminders: {
-          desc: 'Receber lembretes para estudar'
-        }
+      autoStartBreaks: {
+        title: 'Iniciar Pausas Automaticamente',
+        desc: 'Iniciar pausas automaticamente após o tempo de foco'
+      },
+      resetData: {
+        title: 'Redefinir Dados',
+        desc: 'Excluir dados da aplicação'
+      },
+      deleteSchedule: {
+        title: 'Excluir Agenda',
+        btn: 'Excluir Agenda'
+      },
+      deleteAllData: {
+        title: 'Excluir Todos os Dados',
+        btn: 'Excluir Todos os Dados'
+      },
+      scheduleDeleted: {
+        title: 'Agenda excluída',
+        desc: 'Todos os eventos da agenda foram removidos'
+      },
+      allDataDeleted: {
+        title: 'Todos os dados excluídos',
+        desc: 'Todos os dados da aplicação foram removidos'
+      },
+      changesSaved: {
+        title: 'Alterações salvas',
+        desc: 'Suas configurações foram salvas com sucesso'
       }
     },
     task: {
@@ -216,14 +240,22 @@ const translations = {
     },
     profile: {
       title: 'Perfil',
-      personalInfo: 'Informações Pessoais',
-      'personalInfo.desc': 'Gerencie suas informações pessoais e configurações de conta',
-      firstName: 'Nome',
-      'firstName.placeholder': 'Digite seu nome',
-      lastName: 'Sobrenome',
-      'lastName.placeholder': 'Digite seu sobrenome',
-      email: 'Email',
-      'email.placeholder': 'Digite seu email'
+      personalInfo: {
+        title: 'Informações Pessoais',
+        desc: 'Gerencie suas informações pessoais e configurações de conta'
+      },
+      firstName: {
+        title: 'Nome',
+        placeholder: 'Digite seu nome'
+      },
+      lastName: {
+        title: 'Sobrenome',
+        placeholder: 'Digite seu sobrenome'
+      },
+      email: {
+        title: 'Email',
+        placeholder: 'Digite seu email'
+      }
     },
     days: {
       sunday: 'Domingo',
