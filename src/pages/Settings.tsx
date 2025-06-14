@@ -71,9 +71,16 @@ export default function Settings({ onBack }: SettingsProps) {
                     <SelectValue placeholder={t('settings.language.placeholder')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="pt">{t('language.pt')}</SelectItem>
+                    <SelectItem value="ar">{t('language.ar')}</SelectItem>
+                    <SelectItem value="bn">{t('language.bn')}</SelectItem>
                     <SelectItem value="en">{t('language.en')}</SelectItem>
                     <SelectItem value="es">{t('language.es')}</SelectItem>
+                    <SelectItem value="fr">{t('language.fr')}</SelectItem>
+                    <SelectItem value="hi">{t('language.hi')}</SelectItem>
+                    <SelectItem value="it">{t('language.it')}</SelectItem>
+                    <SelectItem value="zh">{t('language.zh')}</SelectItem>
+                    <SelectItem value="pt">{t('language.pt')}</SelectItem>
+                    <SelectItem value="ru">{t('language.ru')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
