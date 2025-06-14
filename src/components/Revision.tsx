@@ -2,12 +2,14 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { RevisionItem } from '../types';
-import { Plus, Check, Clock, AlertCircle, X } from 'lucide-react';
+import { Plus, Check, AlertCircle, X } from 'lucide-react';
+import CreateRevisionModal from './CreateRevisionModal';
 
 export default function Revision() {
   const { state, dispatch } = useApp();
   const { revisionItems } = state;
   const [activeTab, setActiveTab] = useState<'pending' | 'completed' | 'priority'>('pending');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const filteredItems = revisionItems.filter(item => item.category === activeTab);
 
@@ -58,7 +60,7 @@ export default function Revision() {
         <div className="flex justify-between items-center px-6 py-6">
           <h1 className="text-3xl font-bold text-foreground">Revisão</h1>
           <button
-            onClick={() => setActiveTab('pending')}
+            onClick={() => setIsModalOpen(true)}
             className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
           >
             <Plus size={20} />
@@ -164,6 +166,12 @@ export default function Revision() {
           )}
         </div>
       </div>
+
+      {/* Create Revision Modal */}
+      <CreateRevisionModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+      />
     </div>
   );
 }
