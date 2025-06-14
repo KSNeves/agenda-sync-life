@@ -29,6 +29,7 @@ const translations = {
       cancel: 'Cancelar',
       edit: 'Editar',
       delete: 'Excluir',
+      optional: 'Opcional',
     },
     dashboard: {
       title: 'Painel',
@@ -151,6 +152,7 @@ const translations = {
     flashcards: {
       title: 'Flashcards',
       createDeck: 'Criar Baralho',
+      createNewDeck: 'Criar Novo Baralho',
       noDeckMessage: 'Nenhum baralho criado ainda.',
       createFirstDeck: 'Crie seu primeiro baralho de flashcards para começar a estudar!',
       cards: 'cartões',
@@ -158,7 +160,11 @@ const translations = {
       edit: 'Editar',
       delete: 'Excluir',
       import: 'Importar',
-      export: 'Exportar'
+      export: 'Exportar',
+      deckName: 'Nome do Baralho',
+      deckNamePlaceholder: 'Digite o nome do baralho',
+      deckDescription: 'Descrição do Baralho',
+      deckDescriptionPlaceholder: 'Digite uma descrição para o baralho'
     },
     profile: {
       title: 'Perfil',
@@ -188,6 +194,7 @@ const translations = {
       cancel: 'Cancel',
       edit: 'Edit',
       delete: 'Delete',
+      optional: 'Optional',
     },
     dashboard: {
       title: 'Dashboard',
@@ -310,6 +317,7 @@ const translations = {
     flashcards: {
       title: 'Flashcards',
       createDeck: 'Create Deck',
+      createNewDeck: 'Create New Deck',
       noDeckMessage: 'No decks created yet.',
       createFirstDeck: 'Create your first flashcard deck to start studying!',
       cards: 'cards',
@@ -317,7 +325,11 @@ const translations = {
       edit: 'Edit',
       delete: 'Delete',
       import: 'Import',
-      export: 'Export'
+      export: 'Export',
+      deckName: 'Deck Name',
+      deckNamePlaceholder: 'Enter deck name',
+      deckDescription: 'Deck Description',
+      deckDescriptionPlaceholder: 'Enter deck description'
     },
     profile: {
       title: 'Profile',
@@ -347,6 +359,7 @@ const translations = {
       cancel: 'Cancelar',
       edit: 'Editar',
       delete: 'Eliminar',
+      optional: 'Opcional',
     },
     dashboard: {
       title: 'Dashboard',
@@ -469,6 +482,7 @@ const translations = {
     flashcards: {
       title: 'Flashcards',
       createDeck: 'Crear Mazo',
+      createNewDeck: 'Crear Nuevo Mazo',
       noDeckMessage: 'No se han creado mazos aún.',
       createFirstDeck: '¡Crea tu primer mazo de flashcards para empezar a estudiar!',
       cards: 'cartas',
@@ -476,7 +490,11 @@ const translations = {
       edit: 'Editar',
       delete: 'Eliminar',
       import: 'Importar',
-      export: 'Exportar'
+      export: 'Exportar',
+      deckName: 'Nombre del Mazo',
+      deckNamePlaceholder: 'Ingresa el nombre del mazo',
+      deckDescription: 'Descripción del Mazo',
+      deckDescriptionPlaceholder: 'Ingresa una descripción para el mazo'
     },
     profile: {
       title: 'Perfil',
