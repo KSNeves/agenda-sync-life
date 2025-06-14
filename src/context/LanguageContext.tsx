@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 type Language = 'pt' | 'en' | 'es';
@@ -220,7 +219,19 @@ const translations = {
       deckName: 'Nome do Deck',
       deckNamePlaceholder: 'Digite o nome do deck...',
       deckDescription: 'Descrição do Deck',
-      deckDescriptionPlaceholder: 'Digite uma descrição opcional...'
+      deckDescriptionPlaceholder: 'Digite uma descrição opcional...',
+      addNewCard: 'Adicionar Novo Cartão',
+      frontCard: 'Frente do Cartão',
+      frontCardPlaceholder: 'Digite o conteúdo da frente do cartão...',
+      backCard: 'Verso do Cartão',
+      backCardPlaceholder: 'Digite o conteúdo do verso do cartão...',
+      addCard: 'Adicionar Cartão',
+      cardsToReview: 'cartões para revisar',
+      study: 'Estudar',
+      restartStudies: 'Reiniciar Estudos',
+      confirmRestartStudies: 'Tem certeza que deseja reiniciar todos os estudos deste deck?',
+      noCardsInCategory: 'Nenhum cartão nesta categoria',
+      interval: 'Intervalo'
     },
     event: {
       title: 'Título',
@@ -585,7 +596,19 @@ const translations = {
       deckName: 'Deck Name',
       deckNamePlaceholder: 'Enter deck name...',
       deckDescription: 'Deck Description',
-      deckDescriptionPlaceholder: 'Enter optional description...'
+      deckDescriptionPlaceholder: 'Enter optional description...',
+      addNewCard: 'Add New Card',
+      frontCard: 'Front Card',
+      frontCardPlaceholder: 'Enter front card content...',
+      backCard: 'Back Card',
+      backCardPlaceholder: 'Enter back card content...',
+      addCard: 'Add Card',
+      cardsToReview: 'cards to review',
+      study: 'Study',
+      restartStudies: 'Restart Studies',
+      confirmRestartStudies: 'Are you sure you want to restart all studies for this deck?',
+      noCardsInCategory: 'No cards in this category',
+      interval: 'Interval'
     },
     event: {
       title: 'Title',
@@ -950,7 +973,19 @@ const translations = {
       deckName: 'Nombre del Mazo',
       deckNamePlaceholder: 'Ingresa el nombre del mazo...',
       deckDescription: 'Descripción del Mazo',
-      deckDescriptionPlaceholder: 'Ingresa una descripción opcional...'
+      deckDescriptionPlaceholder: 'Ingresa una descripción opcional...',
+      addNewCard: 'Agregar Nueva Tarjeta',
+      frontCard: 'Frente de la Tarjeta',
+      frontCardPlaceholder: 'Ingresa el contenido del frente de la tarjeta...',
+      backCard: 'Reverso de la Tarjeta',
+      backCardPlaceholder: 'Ingresa el contenido del reverso de la tarjeta...',
+      addCard: 'Agregar Tarjeta',
+      cardsToReview: 'tarjetas para revisar',
+      study: 'Estudiar',
+      restartStudies: 'Reiniciar Estudios',
+      confirmRestartStudies: '¿Estás seguro de que quieres reiniciar todos los estudios de este mazo?',
+      noCardsInCategory: 'No hay tarjetas en esta categoría',
+      interval: 'Intervalo'
     },
     event: {
       title: 'Título',
