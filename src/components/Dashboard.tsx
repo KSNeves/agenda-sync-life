@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Task, RevisionItem } from '../types';
@@ -41,9 +42,15 @@ export default function Dashboard() {
     return categorizeRevision(item) === 'pending';
   });
 
-  const completedTasks = todayTasks.filter(task => task.completed).length;
-  const totalTasks = todayTasks.length;
-  const dailyProgress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+  // Calculate daily progress based on completed revisions
+  const completedRevisions = revisionItems.filter(item => 
+    item.category === 'completed' && 
+    item.completedAt && 
+    new Date(item.completedAt).toDateString() === today.toDateString()
+  ).length;
+  
+  const totalDailyTasks = todayRevisions.length + completedRevisions;
+  const dailyProgress = totalDailyTasks > 0 ? (completedRevisions / totalDailyTasks) * 100 : 0;
 
   // Weekly progress calculation
   const getWeekProgress = () => {
@@ -205,7 +212,7 @@ export default function Dashboard() {
               />
             </div>
             <div className="progress-stats">
-              <span className="progress-value">{completedTasks}/{totalTasks} tarefas</span>
+              <span className="progress-value">{completedRevisions}/{totalDailyTasks} tarefas</span>
               <span className="progress-goal">{dailyProgress.toFixed(0)}%</span>
             </div>
           </div>
