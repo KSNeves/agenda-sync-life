@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Plus, BookOpen, Clock, TrendingUp, Upload } from 'lucide-react';
+import { Plus, BookOpen, Clock, TrendingUp, Upload, Trash2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -10,7 +10,7 @@ import DeckView from './DeckView';
 import StudyMode from './StudyMode';
 
 export default function FlashcardDashboard() {
-  const { decks, getDecksStats, isLoaded } = useFlashcards();
+  const { decks, deleteDeck, getDecksStats, isLoaded } = useFlashcards();
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedDeck, setSelectedDeck] = useState<string | null>(null);
@@ -22,6 +22,13 @@ export default function FlashcardDashboard() {
     deck.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     deck.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleDeleteDeck = (e: React.MouseEvent, deckId: string) => {
+    e.stopPropagation(); // Prevent opening the deck
+    if (confirm('Tem certeza que deseja excluir este deck? Esta ação não pode ser desfeita.')) {
+      deleteDeck(deckId);
+    }
+  };
 
   console.log('🎯 Dashboard render - Total decks:', decks.length, 'Filtered decks:', filteredDecks.length, 'Is loaded:', isLoaded);
 
@@ -150,14 +157,26 @@ export default function FlashcardDashboard() {
               {filteredDecks.map(deck => (
                 <Card 
                   key={deck.id} 
-                  className="hover:shadow-md cursor-pointer transition-all"
+                  className="hover:shadow-md cursor-pointer transition-all relative group"
                   onClick={() => setSelectedDeck(deck.id)}
                 >
                   <CardHeader>
-                    <CardTitle className="text-lg">{deck.name}</CardTitle>
-                    {deck.description && (
-                      <p className="text-muted-foreground text-sm">{deck.description}</p>
-                    )}
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <CardTitle className="text-lg">{deck.name}</CardTitle>
+                        {deck.description && (
+                          <p className="text-muted-foreground text-sm">{deck.description}</p>
+                        )}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                        onClick={(e) => handleDeleteDeck(e, deck.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </CardHeader>
                   <CardContent>
                     <div className="flex justify-between text-sm text-muted-foreground">
