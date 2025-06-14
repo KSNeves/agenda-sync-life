@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 type Language = 'pt' | 'en' | 'es';
@@ -104,6 +105,15 @@ const translations = {
       lastYear: 'Ano Passado',
       optional: 'Opcional'
     },
+    days: {
+      sunday: 'Domingo',
+      monday: 'Segunda-feira',
+      tuesday: 'Terça-feira',
+      wednesday: 'Quarta-feira',
+      thursday: 'Quinta-feira',
+      friday: 'Sexta-feira',
+      saturday: 'Sábado'
+    },
     navigation: {
       dashboard: 'Painel',
       schedule: 'Agenda',
@@ -144,6 +154,20 @@ const translations = {
     revision: {
       title: 'Revisão',
       createNew: 'Nova Revisão',
+      createTitle: 'Criar Nova Revisão',
+      createDescription: 'Preencha os detalhes da sua nova revisão',
+      titleLabel: 'Título da Revisão',
+      titlePlaceholder: 'Digite o título da revisão...',
+      contentLabel: 'Conteúdo para Revisar',
+      contentPlaceholder: 'Descreva o que precisa ser revisado...',
+      subjectLabel: 'Matéria',
+      subjectPlaceholder: 'Digite a matéria...',
+      timeLabel: 'Tempo Estimado (minutos)',
+      timePlaceholder: '30',
+      nonStudyDaysLabel: 'Dias de Não Estudo',
+      nonStudyDaysDescription: 'Marque os dias em que você não estuda para que as revisões sejam reagendadas automaticamente.',
+      create: 'Criar Revisão',
+      cancel: 'Cancelar',
       forToday: 'Para Hoje',
       upcoming: 'Próximas',
       completed: 'Concluídas',
@@ -153,7 +177,8 @@ const translations = {
       noCompletedRevisions: 'Nenhuma revisão concluída',
       viewContent: 'Ver Conteúdo',
       complete: 'Concluir',
-      postpone: 'Adiar'
+      postpone: 'Adiar',
+      delete: 'Excluir'
     },
     flashcards: {
       title: 'Flashcards',
@@ -205,9 +230,26 @@ const translations = {
       location: 'Local',
       type: 'Tipo',
       color: 'Cor',
+      recurrence: 'Recorrência',
       recurring: 'Recorrente',
       allDay: 'Dia inteiro',
       reminder: 'Lembrete',
+      professor: 'Professor',
+      createTitle: 'Criar Evento',
+      editTitle: 'Editar Evento',
+      create: 'Criar',
+      save: 'Salvar',
+      cancel: 'Cancelar',
+      delete: 'Excluir',
+      deleteSeries: 'Excluir Série',
+      noRepeat: 'Não repetir',
+      daily: 'Diário',
+      weekly: 'Semanal',
+      monthly: 'Mensal',
+      yearly: 'Anual',
+      weekdays: 'Dias da Semana',
+      addToRevision: 'Adicionar à Revisão Espaçada',
+      addToRevisionDesc: 'Criar automaticamente um item de revisão para este evento',
       categories: {
         meeting: 'Reunião',
         appointment: 'Compromisso',
@@ -217,6 +259,15 @@ const translations = {
         work: 'Trabalho',
         study: 'Estudo',
         health: 'Saúde',
+        class: 'Aula',
+        exam: 'Exame',
+        other: 'Outro'
+      },
+      types: {
+        class: 'Aula',
+        study: 'Estudo',
+        exam: 'Exame',
+        personal: 'Pessoal',
         other: 'Outro'
       },
       colors: {
@@ -228,13 +279,6 @@ const translations = {
         pink: 'Rosa',
         yellow: 'Amarelo',
         gray: 'Cinza'
-      },
-      recurrence: {
-        none: 'Nenhuma',
-        daily: 'Diário',
-        weekly: 'Semanal',
-        monthly: 'Mensal',
-        yearly: 'Anual'
       },
       reminders: {
         none: 'Nenhum',
@@ -426,6 +470,15 @@ const translations = {
       lastYear: 'Last Year',
       optional: 'Optional'
     },
+    days: {
+      sunday: 'Sunday',
+      monday: 'Monday',
+      tuesday: 'Tuesday',
+      wednesday: 'Wednesday',
+      thursday: 'Thursday',
+      friday: 'Friday',
+      saturday: 'Saturday'
+    },
     navigation: {
       dashboard: 'Dashboard',
       schedule: 'Schedule',
@@ -466,6 +519,20 @@ const translations = {
     revision: {
       title: 'Revision',
       createNew: 'New Revision',
+      createTitle: 'Create New Revision',
+      createDescription: 'Fill in the details of your new revision',
+      titleLabel: 'Revision Title',
+      titlePlaceholder: 'Enter revision title...',
+      contentLabel: 'Content to Review',
+      contentPlaceholder: 'Describe what needs to be reviewed...',
+      subjectLabel: 'Subject',
+      subjectPlaceholder: 'Enter subject...',
+      timeLabel: 'Estimated Time (minutes)',
+      timePlaceholder: '30',
+      nonStudyDaysLabel: 'Non-Study Days',
+      nonStudyDaysDescription: 'Check the days you don\'t study so revisions are automatically rescheduled.',
+      create: 'Create Revision',
+      cancel: 'Cancel',
       forToday: 'For Today',
       upcoming: 'Upcoming',
       completed: 'Completed',
@@ -475,7 +542,8 @@ const translations = {
       noCompletedRevisions: 'No completed revisions',
       viewContent: 'View Content',
       complete: 'Complete',
-      postpone: 'Postpone'
+      postpone: 'Postpone',
+      delete: 'Delete'
     },
     flashcards: {
       title: 'Flashcards',
@@ -527,9 +595,26 @@ const translations = {
       location: 'Location',
       type: 'Type',
       color: 'Color',
+      recurrence: 'Recurrence',
       recurring: 'Recurring',
       allDay: 'All Day',
       reminder: 'Reminder',
+      professor: 'Professor',
+      createTitle: 'Create Event',
+      editTitle: 'Edit Event',
+      create: 'Create',
+      save: 'Save',
+      cancel: 'Cancel',
+      delete: 'Delete',
+      deleteSeries: 'Delete Series',
+      noRepeat: 'No repeat',
+      daily: 'Daily',
+      weekly: 'Weekly',
+      monthly: 'Monthly',
+      yearly: 'Yearly',
+      weekdays: 'Weekdays',
+      addToRevision: 'Add to Spaced Revision',
+      addToRevisionDesc: 'Automatically create a revision item for this event',
       categories: {
         meeting: 'Meeting',
         appointment: 'Appointment',
@@ -539,6 +624,15 @@ const translations = {
         work: 'Work',
         study: 'Study',
         health: 'Health',
+        class: 'Class',
+        exam: 'Exam',
+        other: 'Other'
+      },
+      types: {
+        class: 'Class',
+        study: 'Study',
+        exam: 'Exam',
+        personal: 'Personal',
         other: 'Other'
       },
       colors: {
@@ -550,13 +644,6 @@ const translations = {
         pink: 'Pink',
         yellow: 'Yellow',
         gray: 'Gray'
-      },
-      recurrence: {
-        none: 'None',
-        daily: 'Daily',
-        weekly: 'Weekly',
-        monthly: 'Monthly',
-        yearly: 'Yearly'
       },
       reminders: {
         none: 'None',
@@ -748,6 +835,15 @@ const translations = {
       lastYear: 'Año Pasado',
       optional: 'Opcional'
     },
+    days: {
+      sunday: 'Domingo',
+      monday: 'Lunes',
+      tuesday: 'Martes',
+      wednesday: 'Miércoles',
+      thursday: 'Jueves',
+      friday: 'Viernes',
+      saturday: 'Sábado'
+    },
     navigation: {
       dashboard: 'Panel',
       schedule: 'Agenda',
@@ -788,6 +884,20 @@ const translations = {
     revision: {
       title: 'Revisión',
       createNew: 'Nueva Revisión',
+      createTitle: 'Crear Nueva Revisión',
+      createDescription: 'Complete los detalles de su nueva revisión',
+      titleLabel: 'Título de la Revisión',
+      titlePlaceholder: 'Ingrese el título de la revisión...',
+      contentLabel: 'Contenido para Revisar',
+      contentPlaceholder: 'Describa lo que necesita ser revisado...',
+      subjectLabel: 'Materia',
+      subjectPlaceholder: 'Ingrese la materia...',
+      timeLabel: 'Tiempo Estimado (minutos)',
+      timePlaceholder: '30',
+      nonStudyDaysLabel: 'Días de No Estudio',
+      nonStudyDaysDescription: 'Marque los días en que no estudia para que las revisiones se reprogramen automáticamente.',
+      create: 'Crear Revisión',
+      cancel: 'Cancelar',
       forToday: 'Para Hoy',
       upcoming: 'Próximas',
       completed: 'Completadas',
@@ -797,7 +907,8 @@ const translations = {
       noCompletedRevisions: 'No hay revisiones completadas',
       viewContent: 'Ver Contenido',
       complete: 'Completar',
-      postpone: 'Posponer'
+      postpone: 'Posponer',
+      delete: 'Eliminar'
     },
     flashcards: {
       title: 'Tarjetas',
@@ -849,9 +960,26 @@ const translations = {
       location: 'Ubicación',
       type: 'Tipo',
       color: 'Color',
+      recurrence: 'Recurrencia',
       recurring: 'Recurrente',
       allDay: 'Todo el día',
       reminder: 'Recordatorio',
+      professor: 'Profesor',
+      createTitle: 'Crear Evento',
+      editTitle: 'Editar Evento',
+      create: 'Crear',
+      save: 'Guardar',
+      cancel: 'Cancelar',
+      delete: 'Eliminar',
+      deleteSeries: 'Eliminar Serie',
+      noRepeat: 'No repetir',
+      daily: 'Diario',
+      weekly: 'Semanal',
+      monthly: 'Mensual',
+      yearly: 'Anual',
+      weekdays: 'Días de la Semana',
+      addToRevision: 'Agregar a Revisión Espaciada',
+      addToRevisionDesc: 'Crear automáticamente un elemento de revisión para este evento',
       categories: {
         meeting: 'Reunión',
         appointment: 'Cita',
@@ -861,6 +989,15 @@ const translations = {
         work: 'Trabajo',
         study: 'Estudio',
         health: 'Salud',
+        class: 'Clase',
+        exam: 'Examen',
+        other: 'Otro'
+      },
+      types: {
+        class: 'Clase',
+        study: 'Estudio',
+        exam: 'Examen',
+        personal: 'Personal',
         other: 'Otro'
       },
       colors: {
@@ -872,13 +1009,6 @@ const translations = {
         pink: 'Rosa',
         yellow: 'Amarillo',
         gray: 'Gris'
-      },
-      recurrence: {
-        none: 'Ninguna',
-        daily: 'Diario',
-        weekly: 'Semanal',
-        monthly: 'Mensual',
-        yearly: 'Anual'
       },
       reminders: {
         none: 'Ninguno',
