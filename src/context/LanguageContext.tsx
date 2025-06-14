@@ -72,42 +72,70 @@ const translations = {
     },
     settings: {
       title: 'Configurações',
+      appearance: {
+        desc: 'Personalize a aparência da aplicação'
+      },
+      darkMode: {
+        desc: 'Alternar entre tema claro e escuro'
+      },
+      language: {
+        placeholder: 'Selecione um idioma'
+      },
+      notifications: {
+        desc: 'Configure suas preferências de notificação'
+      },
+      pushNotifications: {
+        desc: 'Receber notificações no dispositivo'
+      },
+      studyReminders: {
+        desc: 'Receber lembretes para estudar'
+      },
+      pomodoro: {
+        desc: 'Configure os tempos do Pomodoro'
+      },
+      autoStartBreaks: {
+        desc: 'Iniciar pausas automaticamente após o tempo de foco'
+      },
+      resetData: {
+        desc: 'Excluir dados da aplicação'
+      },
+      deleteSchedule: {
+        btn: 'Excluir Agenda'
+      },
+      deleteAllData: {
+        btn: 'Excluir Todos os Dados'
+      },
+      scheduleDeleted: {
+        desc: 'Todos os eventos da agenda foram removidos'
+      },
+      allDataDeleted: {
+        desc: 'Todos os dados da aplicação foram removidos'
+      },
+      changesSaved: {
+        desc: 'Suas configurações foram salvas com sucesso'
+      },
       theme: 'Tema',
       light: 'Claro',
       dark: 'Escuro',
       system: 'Sistema',
-      appearance: 'Aparência',
-      'appearance.desc': 'Personalize a aparência da aplicação',
-      darkMode: 'Modo Escuro',
-      'darkMode.desc': 'Alternar entre tema claro e escuro',
       language: 'Idioma',
-      'language.placeholder': 'Selecione um idioma',
       notifications: 'Notificações',
-      'notifications.desc': 'Configure suas preferências de notificação',
       pushNotifications: 'Notificações Push',
-      'pushNotifications.desc': 'Receber notificações no dispositivo',
       studyReminders: 'Lembretes de Estudo',
-      'studyReminders.desc': 'Receber lembretes para estudar',
       pomodoro: 'Pomodoro',
-      'pomodoro.desc': 'Configure os tempos do Pomodoro',
       focusTime: 'Tempo de Foco',
       shortBreak: 'Pausa Curta',
       longBreak: 'Pausa Longa',
       longBreakInterval: 'Intervalo da Pausa Longa',
       autoStartBreaks: 'Iniciar Pausas Automaticamente',
-      'autoStartBreaks.desc': 'Iniciar pausas automaticamente após o tempo de foco',
       resetData: 'Redefinir Dados',
-      'resetData.desc': 'Excluir dados da aplicação',
       deleteSchedule: 'Excluir Agenda',
-      'deleteSchedule.btn': 'Excluir Agenda',
       deleteAllData: 'Excluir Todos os Dados',
-      'deleteAllData.btn': 'Excluir Todos os Dados',
       scheduleDeleted: 'Agenda excluída',
-      'scheduleDeleted.desc': 'Todos os eventos da agenda foram removidos',
       allDataDeleted: 'Todos os dados excluídos',
-      'allDataDeleted.desc': 'Todos os dados da aplicação foram removidos',
       changesSaved: 'Alterações salvas',
-      'changesSaved.desc': 'Suas configurações foram salvas com sucesso'
+      appearance: 'Aparência',
+      darkMode: 'Modo Escuro'
     },
     task: {
       title: 'Tarefa',
@@ -211,14 +239,18 @@ const translations = {
     },
     profile: {
       title: 'Perfil',
-      personalInfo: 'Informações Pessoais',
-      'personalInfo.desc': 'Gerencie suas informações pessoais e configurações de conta',
-      firstName: 'Nome',
-      'firstName.placeholder': 'Digite seu nome',
-      lastName: 'Sobrenome',
-      'lastName.placeholder': 'Digite seu sobrenome',
-      email: 'Email',
-      'email.placeholder': 'Digite seu email'
+      personalInfo: {
+        desc: 'Gerencie suas informações pessoais e configurações de conta'
+      },
+      firstName: {
+        placeholder: 'Digite seu nome'
+      },
+      lastName: {
+        placeholder: 'Digite seu sobrenome'
+      },
+      email: {
+        placeholder: 'Digite seu email'
+      }
     },
     days: {
       sunday: 'Domingo',
@@ -281,42 +313,70 @@ const translations = {
     },
     settings: {
       title: 'Settings',
+      appearance: {
+        desc: 'Customize the application appearance'
+      },
+      darkMode: {
+        desc: 'Toggle between light and dark theme'
+      },
+      language: {
+        placeholder: 'Select a language'
+      },
+      notifications: {
+        desc: 'Configure your notification preferences'
+      },
+      pushNotifications: {
+        desc: 'Receive notifications on your device'
+      },
+      studyReminders: {
+        desc: 'Receive reminders to study'
+      },
+      pomodoro: {
+        desc: 'Configure Pomodoro timers'
+      },
+      autoStartBreaks: {
+        desc: 'Automatically start breaks after focus time'
+      },
+      resetData: {
+        desc: 'Delete application data'
+      },
+      deleteSchedule: {
+        btn: 'Delete Schedule'
+      },
+      deleteAllData: {
+        btn: 'Delete All Data'
+      },
+      scheduleDeleted: {
+        desc: 'All schedule events have been removed'
+      },
+      allDataDeleted: {
+        desc: 'All application data has been removed'
+      },
+      changesSaved: {
+        desc: 'Your settings have been saved successfully'
+      },
       language: 'Language',
       theme: 'Theme',
       light: 'Light',
       dark: 'Dark',
       system: 'System',
       appearance: 'Appearance',
-      'appearance.desc': 'Customize the application appearance',
       darkMode: 'Dark Mode',
-      'darkMode.desc': 'Toggle between light and dark theme',
-      'language.placeholder': 'Select a language',
       notifications: 'Notifications',
-      'notifications.desc': 'Configure your notification preferences',
       pushNotifications: 'Push Notifications',
-      'pushNotifications.desc': 'Receive notifications on your device',
       studyReminders: 'Study Reminders',
-      'studyReminders.desc': 'Receive reminders to study',
       pomodoro: 'Pomodoro',
-      'pomodoro.desc': 'Configure Pomodoro timers',
       focusTime: 'Focus Time',
       shortBreak: 'Short Break',
       longBreak: 'Long Break',
       longBreakInterval: 'Long Break Interval',
       autoStartBreaks: 'Auto Start Breaks',
-      'autoStartBreaks.desc': 'Automatically start breaks after focus time',
       resetData: 'Reset Data',
-      'resetData.desc': 'Delete application data',
       deleteSchedule: 'Delete Schedule',
-      'deleteSchedule.btn': 'Delete Schedule',
       deleteAllData: 'Delete All Data',
-      'deleteAllData.btn': 'Delete All Data',
       scheduleDeleted: 'Schedule deleted',
-      'scheduleDeleted.desc': 'All schedule events have been removed',
       allDataDeleted: 'All data deleted',
-      'allDataDeleted.desc': 'All application data has been removed',
-      changesSaved: 'Changes saved',
-      'changesSaved.desc': 'Your settings have been saved successfully'
+      changesSaved: 'Changes saved'
     },
     task: {
       title: 'Task',
@@ -420,14 +480,18 @@ const translations = {
     },
     profile: {
       title: 'Profile',
-      personalInfo: 'Personal Information',
-      'personalInfo.desc': 'Manage your personal information and account settings',
-      firstName: 'First Name',
-      'firstName.placeholder': 'Enter your first name',
-      lastName: 'Last Name',
-      'lastName.placeholder': 'Enter your last name',
-      email: 'Email',
-      'email.placeholder': 'Enter your email'
+      personalInfo: {
+        desc: 'Manage your personal information and account settings'
+      },
+      firstName: {
+        placeholder: 'Enter your first name'
+      },
+      lastName: {
+        placeholder: 'Enter your last name'
+      },
+      email: {
+        placeholder: 'Enter your email'
+      }
     },
     days: {
       sunday: 'Sunday',
@@ -490,47 +554,70 @@ const translations = {
     },
     settings: {
       title: 'Configuración',
+      appearance: {
+        desc: 'Personalizar la apariencia de la aplicación'
+      },
+      darkMode: {
+        desc: 'Alternar entre tema claro y oscuro'
+      },
+      language: {
+        placeholder: 'Seleccionar un idioma'
+      },
+      notifications: {
+        desc: 'Configurar las preferencias de notificación'
+      },
+      pushNotifications: {
+        desc: 'Recibir notificaciones en el dispositivo'
+      },
+      studyReminders: {
+        desc: 'Recibir recordatorios para estudiar'
+      },
+      pomodoro: {
+        desc: 'Configurar los temporizadores Pomodoro'
+      },
+      autoStartBreaks: {
+        desc: 'Iniciar pausas automáticamente después del tiempo de enfoque'
+      },
+      resetData: {
+        desc: 'Eliminar datos de la aplicación'
+      },
+      deleteSchedule: {
+        btn: 'Eliminar Agenda'
+      },
+      deleteAllData: {
+        btn: 'Eliminar Todos los Datos'
+      },
+      scheduleDeleted: {
+        desc: 'Todos los eventos de la agenda han sido eliminados'
+      },
+      allDataDeleted: {
+        desc: 'Todos los datos de la aplicación han sido eliminados'
+      },
+      changesSaved: {
+        desc: 'Sus configuraciones han sido guardadas exitosamente'
+      },
       language: 'Idioma',
       theme: 'Tema',
       light: 'Claro',
       dark: 'Oscuro',
       system: 'Sistema',
       appearance: 'Apariencia',
-      'appearance.desc': 'Personalizar la apariencia de la aplicación',
       darkMode: 'Modo Oscuro',
-      'darkMode.desc': 'Alternar entre tema claro y oscuro',
-      'language.placeholder': 'Seleccionar un idioma',
       notifications: 'Notificaciones',
-      'notifications.desc': 'Configurar las preferencias de notificación',
       pushNotifications: 'Notificaciones Push',
-      'pushNotifications.desc': 'Recibir notificaciones en el dispositivo',
       studyReminders: 'Recordatorios de Estudio',
-      'studyReminders.desc': 'Recibir recordatorios para estudiar',
       pomodoro: 'Pomodoro',
-      'pomodoro.desc': 'Configurar los temporizadores Pomodoro',
       focusTime: 'Tiempo de Enfoque',
       shortBreak: 'Pausa Corta',
       longBreak: 'Pausa Larga',
       longBreakInterval: 'Intervalo de Pausa Larga',
       autoStartBreaks: 'Iniciar Pausas Automáticamente',
-      'autoStartBreaks.desc': 'Iniciar pausas automáticamente después del tiempo de enfoque',
       resetData: 'Restablecer Datos',
-      'resetData.desc': 'Eliminar datos de la aplicación',
       deleteSchedule: 'Eliminar Agenda',
-      'deleteSchedule.btn': 'Eliminar Agenda',
       deleteAllData: 'Eliminar Todos los Datos',
-      'deleteAllData.btn': 'Eliminar Todos los Datos',
       scheduleDeleted: 'Agenda eliminada',
-      'scheduleDeleted.desc': 'Todos los eventos de la agenda han sido eliminados',
       allDataDeleted: 'Todos los datos eliminados',
-      'allDataDeleted.desc': 'Todos los datos de la aplicación han sido eliminados',
-      changesSaved: 'Cambios guardados',
-      'changesSaved.desc': 'Sus configuraciones han sido guardadas exitosamente',
-      study: {
-        reminders: {
-          desc: 'Recibir recordatorios para estudiar'
-        }
-      }
+      changesSaved: 'Cambios guardados'
     },
     task: {
       title: 'Tarea',
@@ -634,14 +721,18 @@ const translations = {
     },
     profile: {
       title: 'Perfil',
-      personalInfo: 'Información Personal',
-      'personalInfo.desc': 'Gestiona tu información personal y configuraciones de cuenta',
-      firstName: 'Nombre',
-      'firstName.placeholder': 'Ingresa tu nombre',
-      lastName: 'Apellido',
-      'lastName.placeholder': 'Ingresa tu apellido',
-      email: 'Email',
-      'email.placeholder': 'Ingresa tu email'
+      personalInfo: {
+        desc: 'Gestiona tu información personal y configuraciones de cuenta'
+      },
+      firstName: {
+        placeholder: 'Ingresa tu nombre'
+      },
+      lastName: {
+        placeholder: 'Ingresa tu apellido'
+      },
+      email: {
+        placeholder: 'Ingresa tu email'
+      }
     },
     days: {
       sunday: 'Domingo',
