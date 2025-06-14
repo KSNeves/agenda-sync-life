@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ArrowLeft, Bell, Palette, Timer, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -51,7 +52,7 @@ export default function Settings({ onBack }: SettingsProps) {
     dispatch({ type: 'CLEAR_EVENTS' });
     toast({
       title: t('settings.scheduleDeleted'),
-      description: t('settings.scheduleDeleted.desc'),
+      description: t('settings.deleteSchedule.desc'),
     });
   };
 
@@ -76,7 +77,7 @@ export default function Settings({ onBack }: SettingsProps) {
     
     toast({
       title: t('settings.allDataDeleted'),
-      description: t('settings.allDataDeleted.desc'),
+      description: t('settings.deleteAllData.desc'),
       variant: "destructive"
     });
   };
@@ -87,7 +88,7 @@ export default function Settings({ onBack }: SettingsProps) {
     localStorage.setItem('studyReminders', JSON.stringify(studyReminders));
     
     toast({
-      title: t('settings.changesSaved'),
+      title: t('settings.changesSaved.title'),
       description: t('settings.changesSaved.desc'),
     });
   };
@@ -109,7 +110,7 @@ export default function Settings({ onBack }: SettingsProps) {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Palette className="h-5 w-5" />
-                {t('settings.appearance')}
+                {t('settings.appearance.title')}
               </CardTitle>
               <CardDescription>
                 {t('settings.appearance.desc')}
@@ -118,7 +119,7 @@ export default function Settings({ onBack }: SettingsProps) {
             <CardContent className="space-y-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label htmlFor="darkMode">{t('settings.darkMode')}</Label>
+                  <Label htmlFor="darkMode">{t('settings.darkMode.title')}</Label>
                   <p className="text-sm text-muted-foreground">
                     {t('settings.darkMode.desc')}
                   </p>
@@ -130,7 +131,7 @@ export default function Settings({ onBack }: SettingsProps) {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="language">{t('settings.language')}</Label>
+                <Label htmlFor="language">{t('settings.language.title')}</Label>
                 <Select value={language} onValueChange={setLanguage}>
                   <SelectTrigger>
                     <SelectValue placeholder={t('settings.language.placeholder')} />
@@ -152,7 +153,7 @@ export default function Settings({ onBack }: SettingsProps) {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Bell className="h-5 w-5" />
-                {t('settings.notifications')}
+                {t('settings.notifications.title')}
               </CardTitle>
               <CardDescription>
                 {t('settings.notifications.desc')}
@@ -161,7 +162,7 @@ export default function Settings({ onBack }: SettingsProps) {
             <CardContent className="space-y-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label htmlFor="notifications">{t('settings.pushNotifications')}</Label>
+                  <Label htmlFor="notifications">{t('settings.pushNotifications.title')}</Label>
                   <p className="text-sm text-muted-foreground">
                     {t('settings.pushNotifications.desc')}
                   </p>
@@ -174,7 +175,7 @@ export default function Settings({ onBack }: SettingsProps) {
               </div>
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label htmlFor="studyReminders">{t('settings.studyReminders')}</Label>
+                  <Label htmlFor="studyReminders">{t('settings.studyReminders.title')}</Label>
                   <p className="text-sm text-muted-foreground">
                     {t('settings.studyReminders.desc')}
                   </p>
@@ -193,7 +194,7 @@ export default function Settings({ onBack }: SettingsProps) {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Timer className="h-5 w-5" />
-                {t('settings.pomodoro')}
+                {t('settings.pomodoro.title')}
               </CardTitle>
               <CardDescription>
                 {t('settings.pomodoro.desc')}
@@ -202,7 +203,7 @@ export default function Settings({ onBack }: SettingsProps) {
             <CardContent className="space-y-6">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="focusTime">{t('settings.focusTime')}</Label>
+                  <Label htmlFor="focusTime">{t('settings.pomodoro.focusTime')}</Label>
                   <Select 
                     value={settings.focusTime.toString()} 
                     onValueChange={(value) => updateSettings({ focusTime: parseInt(value) })}
@@ -220,7 +221,7 @@ export default function Settings({ onBack }: SettingsProps) {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="shortBreak">{t('settings.shortBreak')}</Label>
+                  <Label htmlFor="shortBreak">{t('settings.pomodoro.shortBreak')}</Label>
                   <Select 
                     value={settings.shortBreak.toString()} 
                     onValueChange={(value) => updateSettings({ shortBreak: parseInt(value) })}
@@ -238,7 +239,7 @@ export default function Settings({ onBack }: SettingsProps) {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="longBreak">{t('settings.longBreak')}</Label>
+                  <Label htmlFor="longBreak">{t('settings.pomodoro.longBreak')}</Label>
                   <Select 
                     value={settings.longBreak.toString()} 
                     onValueChange={(value) => updateSettings({ longBreak: parseInt(value) })}
@@ -256,7 +257,7 @@ export default function Settings({ onBack }: SettingsProps) {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="longBreakInterval">{t('settings.longBreakInterval')}</Label>
+                  <Label htmlFor="longBreakInterval">{t('settings.pomodoro.longBreakInterval')}</Label>
                   <Select 
                     value={settings.longBreakInterval.toString()} 
                     onValueChange={(value) => updateSettings({ longBreakInterval: parseInt(value) })}
@@ -276,7 +277,7 @@ export default function Settings({ onBack }: SettingsProps) {
               </div>
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label htmlFor="autoStartBreaks">{t('settings.autoStartBreaks')}</Label>
+                  <Label htmlFor="autoStartBreaks">{t('settings.autoStartBreaks.title')}</Label>
                   <p className="text-sm text-muted-foreground">
                     {t('settings.autoStartBreaks.desc')}
                   </p>
@@ -295,7 +296,7 @@ export default function Settings({ onBack }: SettingsProps) {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <RotateCcw className="h-5 w-5" />
-                {t('settings.resetData')}
+                {t('settings.resetData.title')}
               </CardTitle>
               <CardDescription>
                 {t('settings.resetData.desc')}
@@ -303,7 +304,7 @@ export default function Settings({ onBack }: SettingsProps) {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>{t('settings.deleteSchedule')}</Label>
+                <Label>{t('settings.deleteSchedule.title')}</Label>
                 <Button 
                   variant="outline" 
                   className="w-full bg-orange-500 hover:bg-orange-600 text-white"
@@ -313,7 +314,7 @@ export default function Settings({ onBack }: SettingsProps) {
                 </Button>
               </div>
               <div className="space-y-2">
-                <Label>{t('settings.deleteAllData')}</Label>
+                <Label>{t('settings.deleteAllData.title')}</Label>
                 <Button 
                   variant="destructive" 
                   className="w-full"

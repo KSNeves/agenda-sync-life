@@ -156,7 +156,7 @@ export default function Profile({ onBack }: ProfileProps) {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="h-5 w-5" />
-                {t('profile.personalInfo')}
+                {t('profile.personalInfo.title')}
               </CardTitle>
               <CardDescription>
                 {t('profile.personalInfo.desc')}
@@ -201,7 +201,7 @@ export default function Profile({ onBack }: ProfileProps) {
                   <Label htmlFor="firstName">{t('profile.firstName')}</Label>
                   <Input 
                     id="firstName" 
-                    placeholder={t('profile.firstName.placeholder')} 
+                    placeholder={`Digite seu ${t('profile.firstName').toLowerCase()}`} 
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                   />
@@ -210,7 +210,7 @@ export default function Profile({ onBack }: ProfileProps) {
                   <Label htmlFor="lastName">{t('profile.lastName')}</Label>
                   <Input 
                     id="lastName" 
-                    placeholder={t('profile.lastName.placeholder')} 
+                    placeholder={`Digite seu ${t('profile.lastName').toLowerCase()}`} 
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
                   />
@@ -221,7 +221,7 @@ export default function Profile({ onBack }: ProfileProps) {
                 <Input 
                   id="email" 
                   type="email" 
-                  placeholder={t('profile.email.placeholder')} 
+                  placeholder={`Digite seu ${t('profile.email').toLowerCase()}`} 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
