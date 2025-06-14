@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { AppProvider } from '../context/AppContext';
+import { PomodoroProvider } from '../context/PomodoroContext';
 import Navigation from '../components/Navigation';
 import Dashboard from '../components/Dashboard';
 import Calendar from '../components/Calendar';
@@ -37,15 +38,17 @@ const Index = () => {
 
   return (
     <AppProvider>
-      <div className="min-h-screen bg-background">
-        {currentView !== 'settings' && currentView !== 'profile' && (
-          <Navigation currentView={currentView} onViewChange={setCurrentView} />
-        )}
-        <main>
-          {renderCurrentView()}
-        </main>
-        <EventModal />
-      </div>
+      <PomodoroProvider>
+        <div className="min-h-screen bg-background">
+          {currentView !== 'settings' && currentView !== 'profile' && (
+            <Navigation currentView={currentView} onViewChange={setCurrentView} />
+          )}
+          <main>
+            {renderCurrentView()}
+          </main>
+          <EventModal />
+        </div>
+      </PomodoroProvider>
     </AppProvider>
   );
 };

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ArrowLeft, Bell, Shield, Palette, Timer, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../hooks/useTranslation';
+import { usePomodoro } from '../context/PomodoroContext';
 
 interface SettingsProps {
   onBack: () => void;
@@ -17,14 +19,11 @@ export default function Settings({ onBack }: SettingsProps) {
   const { isDarkMode, setDarkMode } = useTheme();
   const { language, setLanguage } = useLanguage();
   const { t } = useTranslation();
+  const { settings, updateSettings } = usePomodoro();
   
   const [notifications, setNotifications] = useState(true);
   const [autoBackup, setAutoBackup] = useState(true);
   const [studyReminders, setStudyReminders] = useState(true);
-  const [pomodoroTime, setPomodoroTime] = useState('25');
-  const [shortBreak, setShortBreak] = useState('5');
-  const [longBreak, setLongBreak] = useState('15');
-  const [autoStartBreaks, setAutoStartBreaks] = useState(false);
 
   const languageOptions = [
     { value: 'ar', label: 'العربية' },
@@ -147,10 +146,13 @@ export default function Settings({ onBack }: SettingsProps) {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="pomodoroTime">{t('settings.focusTime')}</Label>
-                  <Select value={pomodoroTime} onValueChange={setPomodoroTime}>
+                  <Label htmlFor="focusTime">{t('settings.focusTime')}</Label>
+                  <Select 
+                    value={settings.focusTime.toString()} 
+                    onValueChange={(value) => updateSettings({ focusTime: parseInt(value) })}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -166,7 +168,10 @@ export default function Settings({ onBack }: SettingsProps) {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="shortBreak">{t('settings.shortBreak')}</Label>
-                  <Select value={shortBreak} onValueChange={setShortBreak}>
+                  <Select 
+                    value={settings.shortBreak.toString()} 
+                    onValueChange={(value) => updateSettings({ shortBreak: parseInt(value) })}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -180,7 +185,10 @@ export default function Settings({ onBack }: SettingsProps) {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="longBreak">{t('settings.longBreak')}</Label>
-                  <Select value={longBreak} onValueChange={setLongBreak}>
+                  <Select 
+                    value={settings.longBreak.toString()} 
+                    onValueChange={(value) => updateSettings({ longBreak: parseInt(value) })}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -189,6 +197,24 @@ export default function Settings({ onBack }: SettingsProps) {
                       <SelectItem value="15">15</SelectItem>
                       <SelectItem value="20">20</SelectItem>
                       <SelectItem value="30">30</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="longBreakInterval">Repetições até pausa longa</Label>
+                  <Select 
+                    value={settings.longBreakInterval.toString()} 
+                    onValueChange={(value) => updateSettings({ longBreakInterval: parseInt(value) })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="2">2</SelectItem>
+                      <SelectItem value="3">3</SelectItem>
+                      <SelectItem value="4">4</SelectItem>
+                      <SelectItem value="5">5</SelectItem>
+                      <SelectItem value="6">6</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -202,8 +228,8 @@ export default function Settings({ onBack }: SettingsProps) {
                 </div>
                 <Switch
                   id="autoStartBreaks"
-                  checked={autoStartBreaks}
-                  onCheckedChange={setAutoStartBreaks}
+                  checked={settings.autoStartBreaks}
+                  onCheckedChange={(checked) => updateSettings({ autoStartBreaks: checked })}
                 />
               </div>
             </CardContent>

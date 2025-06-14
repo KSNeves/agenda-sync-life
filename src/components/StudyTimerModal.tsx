@@ -2,7 +2,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { Button } from './ui/button';
-import { Play, Pause } from 'lucide-react';
+import { Play, Pause, RotateCcw } from 'lucide-react';
+import { usePomodoro } from '../context/PomodoroContext';
 
 interface StudyTimerModalProps {
   isOpen: boolean;
@@ -10,18 +11,25 @@ interface StudyTimerModalProps {
   revisionTitle: string;
 }
 
+type TimerPhase = 'focus' | 'shortBreak' | 'longBreak';
+
 export default function StudyTimerModal({ isOpen, onClose, revisionTitle }: StudyTimerModalProps) {
-  const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes in seconds
+  const { settings } = usePomodoro();
+  const [timeLeft, setTimeLeft] = useState(settings.focusTime * 60);
   const [isRunning, setIsRunning] = useState(false);
+  const [phase, setPhase] = useState<TimerPhase>('focus');
+  const [cycles, setCycles] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Start the timer when modal opens
   useEffect(() => {
     if (isOpen) {
-      setTimeLeft(25 * 60);
+      setTimeLeft(settings.focusTime * 60);
       setIsRunning(true);
+      setPhase('focus');
+      setCycles(0);
     }
-  }, [isOpen]);
+  }, [isOpen, settings.focusTime]);
 
   // Timer logic
   useEffect(() => {
@@ -30,6 +38,7 @@ export default function StudyTimerModal({ isOpen, onClose, revisionTitle }: Stud
         setTimeLeft(prev => {
           if (prev <= 1) {
             setIsRunning(false);
+            handlePhaseComplete();
             return 0;
           }
           return prev - 1;
@@ -49,6 +58,35 @@ export default function StudyTimerModal({ isOpen, onClose, revisionTitle }: Stud
     };
   }, [isRunning, timeLeft]);
 
+  const handlePhaseComplete = () => {
+    if (phase === 'focus') {
+      const newCycles = cycles + 1;
+      setCycles(newCycles);
+      
+      // Verificar se é hora da pausa longa
+      if (newCycles >= settings.longBreakInterval) {
+        setPhase('longBreak');
+        setTimeLeft(settings.longBreak * 60);
+        setCycles(0); // Reset cycles after long break
+      } else {
+        setPhase('shortBreak');
+        setTimeLeft(settings.shortBreak * 60);
+      }
+      
+      if (settings.autoStartBreaks) {
+        setIsRunning(true);
+      }
+    } else {
+      // Após qualquer pausa, volta para foco
+      setPhase('focus');
+      setTimeLeft(settings.focusTime * 60);
+      
+      if (settings.autoStartBreaks) {
+        setIsRunning(true);
+      }
+    }
+  };
+
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
@@ -59,37 +97,95 @@ export default function StudyTimerModal({ isOpen, onClose, revisionTitle }: Stud
     setIsRunning(!isRunning);
   };
 
+  const handleReset = () => {
+    setIsRunning(false);
+    setPhase('focus');
+    setCycles(0);
+    setTimeLeft(settings.focusTime * 60);
+  };
+
   const handleClose = () => {
     setIsRunning(false);
-    setTimeLeft(25 * 60);
+    setPhase('focus');
+    setCycles(0);
+    setTimeLeft(settings.focusTime * 60);
     onClose();
   };
 
-  // Calculate progress percentage
-  const progressPercentage = (timeLeft / (25 * 60)) * 100;
+  // Calculate progress percentage based on current phase
+  const getMaxTime = () => {
+    switch (phase) {
+      case 'focus':
+        return settings.focusTime * 60;
+      case 'shortBreak':
+        return settings.shortBreak * 60;
+      case 'longBreak':
+        return settings.longBreak * 60;
+      default:
+        return settings.focusTime * 60;
+    }
+  };
+
+  const progressPercentage = (timeLeft / getMaxTime()) * 100;
+
+  const getPhaseText = () => {
+    switch (phase) {
+      case 'focus':
+        return 'Tempo de Foco';
+      case 'shortBreak':
+        return 'Pausa Curta';
+      case 'longBreak':
+        return 'Pausa Longa';
+      default:
+        return 'Tempo de Foco';
+    }
+  };
+
+  const getPhaseColor = () => {
+    switch (phase) {
+      case 'focus':
+        return '#ef4444'; // red
+      case 'shortBreak':
+        return '#10b981'; // green
+      case 'longBreak':
+        return '#3b82f6'; // blue
+      default:
+        return '#ef4444';
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl w-full">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
-            Estudando: {revisionTitle}
+            {revisionTitle}
           </DialogTitle>
         </DialogHeader>
 
         <div className="flex flex-col items-center justify-center py-12 space-y-8">
+          {/* Phase Indicator */}
+          <div className="text-center">
+            <div className="text-lg font-medium text-muted-foreground mb-2">
+              {getPhaseText()}
+            </div>
+            <div className="text-sm text-muted-foreground">
+              Ciclo {cycles + 1} de {settings.longBreakInterval}
+            </div>
+          </div>
+
           {/* Timer Display */}
-          <div className="text-8xl font-mono font-bold text-primary">
+          <div className="text-8xl font-mono font-bold" style={{ color: getPhaseColor() }}>
             {formatTime(timeLeft)}
           </div>
 
           {/* Progress Bar */}
           <div className="w-full max-w-md bg-gray-300 rounded-full h-4 overflow-hidden">
             <div 
-              className="h-full rounded-full transition-all duration-1000 ease-linear bg-gradient-to-r from-green-500 to-green-600"
+              className="h-full rounded-full transition-all duration-1000 ease-linear"
               style={{ 
                 width: `${progressPercentage}%`,
-                backgroundColor: progressPercentage > 50 ? '#10b981' : progressPercentage > 25 ? '#f59e0b' : '#ef4444'
+                backgroundColor: getPhaseColor()
               }}
             />
           </div>
@@ -109,17 +205,27 @@ export default function StudyTimerModal({ isOpen, onClose, revisionTitle }: Stud
               ) : (
                 <>
                   <Play className="w-5 h-5" />
-                  Continuar
+                  {timeLeft === 0 ? 'Próxima Fase' : 'Continuar'}
                 </>
               )}
+            </Button>
+            
+            <Button
+              onClick={handleReset}
+              variant="outline"
+              size="lg"
+              className="flex items-center gap-2"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Reiniciar
             </Button>
           </div>
 
           {/* Status */}
           <div className="text-center text-muted-foreground">
             {timeLeft === 0 ? (
-              <div className="text-green-600 font-semibold text-lg">
-                🎉 Tempo concluído! Parabéns!
+              <div className="font-semibold text-lg" style={{ color: getPhaseColor() }}>
+                🎉 {getPhaseText()} concluído!
               </div>
             ) : (
               <div>
