@@ -6,14 +6,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useTheme } from '../context/ThemeContext';
 
 interface SettingsProps {
   onBack: () => void;
 }
 
 export default function Settings({ onBack }: SettingsProps) {
+  const { isDarkMode, setDarkMode } = useTheme();
   const [notifications, setNotifications] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
   const [autoBackup, setAutoBackup] = useState(true);
   const [studyReminders, setStudyReminders] = useState(true);
   const [pomodoroTime, setPomodoroTime] = useState('25');
@@ -54,7 +55,7 @@ export default function Settings({ onBack }: SettingsProps) {
                 </div>
                 <Switch
                   id="darkMode"
-                  checked={darkMode}
+                  checked={isDarkMode}
                   onCheckedChange={setDarkMode}
                 />
               </div>
