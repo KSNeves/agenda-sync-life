@@ -85,7 +85,7 @@ export default function StudyTimerModal({ isOpen, onClose, revisionTitle }: Stud
             <div 
               className="bg-primary h-3 rounded-full transition-all duration-1000"
               style={{ 
-                width: `${((25 * 60 - timeLeft) / (25 * 60)) * 100}%` 
+                width: `${(timeLeft / (25 * 60)) * 100}%` 
               }}
             />
           </div>
