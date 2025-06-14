@@ -4,7 +4,7 @@ import { Plus, BookOpen, Clock, TrendingUp, Upload } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { useFlashcards } from '../../hooks/useFlashcards';
+import { useFlashcards } from '../../context/FlashcardsContext';
 import CreateDeckModal from './CreateDeckModal';
 import DeckView from './DeckView';
 import StudyMode from './StudyMode';
