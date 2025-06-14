@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ArrowLeft, Bell, Shield, Palette, Timer, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -26,6 +25,19 @@ export default function Settings({ onBack }: SettingsProps) {
   const [shortBreak, setShortBreak] = useState('5');
   const [longBreak, setLongBreak] = useState('15');
   const [autoStartBreaks, setAutoStartBreaks] = useState(false);
+
+  const languageOptions = [
+    { value: 'ar', label: 'العربية' },
+    { value: 'bn', label: 'বাংলা' },
+    { value: 'en', label: 'English' },
+    { value: 'es', label: 'Español' },
+    { value: 'fr', label: 'Français' },
+    { value: 'hi', label: 'हिन्दी' },
+    { value: 'it', label: 'Italiano' },
+    { value: 'pt', label: 'Português' },
+    { value: 'ru', label: 'Русский' },
+    { value: 'zh', label: '中文' },
+  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -71,16 +83,11 @@ export default function Settings({ onBack }: SettingsProps) {
                     <SelectValue placeholder={t('settings.language.placeholder')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="ar">{t('language.ar')}</SelectItem>
-                    <SelectItem value="bn">{t('language.bn')}</SelectItem>
-                    <SelectItem value="en">{t('language.en')}</SelectItem>
-                    <SelectItem value="es">{t('language.es')}</SelectItem>
-                    <SelectItem value="fr">{t('language.fr')}</SelectItem>
-                    <SelectItem value="hi">{t('language.hi')}</SelectItem>
-                    <SelectItem value="it">{t('language.it')}</SelectItem>
-                    <SelectItem value="zh">{t('language.zh')}</SelectItem>
-                    <SelectItem value="pt">{t('language.pt')}</SelectItem>
-                    <SelectItem value="ru">{t('language.ru')}</SelectItem>
+                    {languageOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
