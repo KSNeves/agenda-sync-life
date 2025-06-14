@@ -1,7 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import CalendarMonth from './CalendarMonth';
 
 export default function Schedule() {
   const { state, dispatch } = useApp();
@@ -9,6 +9,7 @@ export default function Schedule() {
 
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
 
   // Atualizar hora atual a cada minuto
   useEffect(() => {
@@ -22,12 +23,19 @@ export default function Schedule() {
   // Navegação da semana
   const navigateWeek = (direction: 'prev' | 'next') => {
     const newDate = new Date(currentWeek);
-    newDate.setDate(newDate.getDate() + (direction === 'next' ? 7 : -7));
+    if (viewMode === 'month') {
+      newDate.setMonth(newDate.getMonth() + (direction === 'next' ? 1 : -1));
+    } else {
+      newDate.setDate(newDate.getDate() + (direction === 'next' ? 7 : -7));
+    }
     setCurrentWeek(newDate);
+    dispatch({ type: 'SET_SELECTED_DATE', payload: newDate });
   };
 
   const goToToday = () => {
-    setCurrentWeek(new Date());
+    const today = new Date();
+    setCurrentWeek(today);
+    dispatch({ type: 'SET_SELECTED_DATE', payload: today });
   };
 
   // Calcular os dias da semana
@@ -47,6 +55,9 @@ export default function Schedule() {
 
   // Formatar título da semana
   const getWeekTitle = () => {
+    if (viewMode === 'month') {
+      return currentWeek.toLocaleDateString('pt-BR', { year: 'numeric', month: 'long' });
+    }
     const start = weekDays[0];
     const end = weekDays[6];
     return `${start.getDate()} - ${end.getDate()} de ${end.toLocaleDateString('pt-BR', { month: 'long' })} de ${end.getFullYear()}`;
@@ -126,6 +137,76 @@ export default function Schedule() {
 
   const currentTimePosition = getCurrentTimePosition();
 
+  // Se estiver no modo mês, renderizar o componente de mês
+  if (viewMode === 'month') {
+    return (
+      <div className="flex h-screen bg-background">
+        <div className="flex-1 flex flex-col">
+          {/* Header */}
+          <div className="bg-card/50 backdrop-blur-sm border-b border-border/50 p-6">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={createEvent}
+                  className="bg-primary text-primary-foreground px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary/90 transition-colors"
+                >
+                  <Plus size={16} />
+                  Criar Evento
+                </button>
+                <button
+                  onClick={goToToday}
+                  className="px-4 py-2 text-foreground hover:bg-secondary/50 rounded-lg transition-colors"
+                >
+                  Hoje
+                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => navigateWeek('prev')}
+                    className="p-2 hover:bg-secondary/50 rounded-lg transition-colors"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+                  <button
+                    onClick={() => navigateWeek('next')}
+                    className="p-2 hover:bg-secondary/50 rounded-lg transition-colors"
+                  >
+                    <ChevronRight size={20} />
+                  </button>
+                </div>
+                <h2 className="text-xl font-semibold text-foreground">
+                  {getWeekTitle()}
+                </h2>
+              </div>
+
+              <div className="flex border border-border/50 rounded-lg overflow-hidden bg-card/30">
+                <button 
+                  onClick={() => setViewMode('week')}
+                  className="px-4 py-2 text-muted-foreground hover:bg-accent/50 transition-colors"
+                >
+                  Dia
+                </button>
+                <button 
+                  onClick={() => setViewMode('week')}
+                  className={`px-4 py-2 ${viewMode === 'week' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/50'} transition-colors`}
+                >
+                  Semana
+                </button>
+                <button 
+                  onClick={() => setViewMode('month')}
+                  className={`px-4 py-2 ${viewMode === 'month' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/50'} transition-colors`}
+                >
+                  Mês
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <CalendarMonth />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-screen bg-background">
       {/* Área Principal - Sem Sidebar */}
@@ -167,13 +248,22 @@ export default function Schedule() {
             </div>
 
             <div className="flex border border-border/50 rounded-lg overflow-hidden bg-card/30">
-              <button className="px-4 py-2 text-muted-foreground hover:bg-accent/50 transition-colors">
+              <button 
+                onClick={() => setViewMode('week')}
+                className="px-4 py-2 text-muted-foreground hover:bg-accent/50 transition-colors"
+              >
                 Dia
               </button>
-              <button className="px-4 py-2 bg-accent text-accent-foreground">
+              <button 
+                onClick={() => setViewMode('week')}
+                className={`px-4 py-2 ${viewMode === 'week' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/50'} transition-colors`}
+              >
                 Semana
               </button>
-              <button className="px-4 py-2 text-muted-foreground hover:bg-accent/50 transition-colors">
+              <button 
+                onClick={() => setViewMode('month')}
+                className={`px-4 py-2 ${viewMode === 'month' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/50'} transition-colors`}
+              >
                 Mês
               </button>
             </div>
