@@ -1,12 +1,13 @@
 
 import React, { useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { Task } from '../types';
+import { Task, RevisionItem } from '../types';
 import { Play, Pause, Check, Clock, Calendar } from 'lucide-react';
+import { categorizeRevision } from '../utils/spacedRepetition';
 
 export default function Dashboard() {
   const { state, dispatch } = useApp();
-  const { tasks, events } = state;
+  const { tasks, events, revisionItems } = state;
 
   // Timer logic
   useEffect(() => {
@@ -26,9 +27,16 @@ export default function Dashboard() {
   }, [tasks, dispatch]);
 
   const today = new Date();
+  
+  // Get today's tasks (original task system)
   const todayTasks = tasks.filter(task => {
     const taskDate = new Date(task.createdAt);
     return taskDate.toDateString() === today.toDateString() && !task.postponed;
+  });
+
+  // Get today's revisions
+  const todayRevisions = revisionItems.filter(item => {
+    return categorizeRevision(item) === 'pending';
   });
 
   const completedTasks = todayTasks.filter(task => task.completed).length;
@@ -71,6 +79,31 @@ export default function Dashboard() {
     dispatch({ type: action.toUpperCase() + '_TASK' as any, payload: taskId });
   };
 
+  const handleRevisionAction = (revisionId: string, action: 'complete' | 'postpone') => {
+    const revision = revisionItems.find(item => item.id === revisionId);
+    if (!revision) return;
+
+    if (action === 'complete') {
+      dispatch({ 
+        type: 'UPDATE_REVISION_ITEM', 
+        payload: { ...revision, category: 'completed' }
+      });
+    } else if (action === 'postpone') {
+      const newDate = new Date();
+      newDate.setDate(newDate.getDate() + 1);
+      newDate.setHours(0, 0, 0, 0);
+      
+      dispatch({ 
+        type: 'UPDATE_REVISION_ITEM', 
+        payload: { 
+          ...revision, 
+          nextRevisionDate: newDate.getTime(),
+          category: 'priority'
+        }
+      });
+    }
+  };
+
   const addSampleTask = () => {
     const newTask: Task = {
       id: Date.now().toString(),
@@ -110,67 +143,32 @@ export default function Dashboard() {
         {/* Today's Tasks - First */}
         <div className="dashboard-widget">
           <h3 className="text-lg font-semibold mb-4">Tarefas de Hoje</h3>
-          {todayTasks.length === 0 ? (
+          {todayRevisions.length === 0 ? (
             <div className="empty-message">
-              Nenhuma tarefa para hoje. Adicione uma nova tarefa para começar!
+              Nenhuma revisão para hoje. Ótimo trabalho!
             </div>
           ) : (
             <div className="tasks-list">
-              {todayTasks.map(task => (
-                <div key={task.id} className={`task-item ${task.completed ? 'completed' : ''}`}>
+              {todayRevisions.map(revision => (
+                <div key={revision.id} className="task-item">
                   <div className="task-info">
-                    <div className="task-title">{task.title}</div>
-                    <div className="task-duration">{task.duration} minutos</div>
-                  </div>
-                  
-                  <div className="task-timer">
-                    <div className="timer-display">
-                      {formatTime(task.elapsedTime)}
-                    </div>
-                    
-                    {task.isRunning ? (
-                      <button
-                        onClick={() => handleTaskAction(task.id, 'pause')}
-                        className="timer-button pause"
-                      >
-                        <Pause size={16} />
-                      </button>
-                    ) : task.elapsedTime > 0 && !task.completed ? (
-                      <button
-                        onClick={() => handleTaskAction(task.id, 'resume')}
-                        className="timer-button resume"
-                      >
-                        <Play size={16} />
-                      </button>
-                    ) : null}
+                    <div className="task-title">{revision.title}</div>
+                    <div className="task-duration">30 min</div>
                   </div>
                   
                   <div className="task-actions">
-                    {!task.completed && !task.isRunning && task.elapsedTime === 0 && (
-                      <button
-                        onClick={() => handleTaskAction(task.id, 'start')}
-                        className="action-button start"
-                      >
-                        <Play size={16} />
-                      </button>
-                    )}
-                    
-                    {!task.completed && (
-                      <>
-                        <button
-                          onClick={() => handleTaskAction(task.id, 'postpone')}
-                          className="action-button postpone"
-                        >
-                          <Clock size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleTaskAction(task.id, 'complete')}
-                          className="action-button complete"
-                        >
-                          <Check size={16} />
-                        </button>
-                      </>
-                    )}
+                    <button
+                      onClick={() => handleRevisionAction(revision.id, 'complete')}
+                      className="action-button complete"
+                    >
+                      Concluir
+                    </button>
+                    <button
+                      onClick={() => handleRevisionAction(revision.id, 'postpone')}
+                      className="action-button postpone"
+                    >
+                      Adiar
+                    </button>
                   </div>
                 </div>
               ))}
