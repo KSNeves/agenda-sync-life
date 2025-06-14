@@ -230,7 +230,7 @@ export default function EventModal() {
             </div>
           </div>
 
-          <div className="recurrence-options">
+          <div className="recurrence-options" style={{ marginTop: '24px' }}>
             <div className="form-group">
               <label>Recorrência</label>
               <select

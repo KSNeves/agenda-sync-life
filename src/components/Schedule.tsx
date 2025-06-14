@@ -56,13 +56,13 @@ export default function Schedule() {
     const startHour = startTime.getHours() + startTime.getMinutes() / 60;
     const endHour = endTime.getHours() + endTime.getMinutes() / 60;
     
-    // Ajustar para começar às 6:00
-    const topPosition = ((startHour - 6) / 14) * 100; // 14 horas (6 às 20)
+    // Ajustar para começar às 6:00 e terminar às 20:00 (14 horas total)
+    const topPosition = ((startHour - 6) / 14) * 100;
     const height = ((endHour - startHour) / 14) * 100;
     
     return {
       top: `${Math.max(0, topPosition)}%`,
-      height: `${Math.max(5, height)}%`, // Altura mínima de 5%
+      height: `${Math.max(2, height)}%`, // Altura mínima de 2% para eventos muito curtos
     };
   };
 
