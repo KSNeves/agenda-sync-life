@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface LanguageContextType {
@@ -73,6 +74,16 @@ const translations = {
     'settings.pushNotifications': 'Notificações push',
     'settings.saveChanges': 'Salvar alterações',
     'settings.changesSaved': 'Alterações salvas com sucesso!',
+    'settings.study': 'Estudos',
+    'settings.study.reminders': 'Lembretes de Estudo',
+    'settings.study.reminders.desc': 'Receba lembretes para suas sessões de estudo',
+    'settings.study.autoBackup': 'Backup Automático',
+    'settings.study.autoBackup.desc': 'Faça backup automático dos seus dados',
+    'settings.appearance': 'Aparência',
+    'settings.appearance.theme': 'Tema',
+    'settings.appearance.darkMode': 'Modo Escuro',
+    'settings.appearance.lightMode': 'Modo Claro',
+    'settings.appearance.systemMode': 'Seguir Sistema',
     
     'profile.title': 'Perfil',
     'profile.personalInfo': 'Informações Pessoais',
@@ -152,6 +163,16 @@ const translations = {
     'settings.pushNotifications': 'Push notifications',
     'settings.saveChanges': 'Save changes',
     'settings.changesSaved': 'Changes saved successfully!',
+    'settings.study': 'Study',
+    'settings.study.reminders': 'Study Reminders',
+    'settings.study.reminders.desc': 'Get reminders for your study sessions',
+    'settings.study.autoBackup': 'Auto Backup',
+    'settings.study.autoBackup.desc': 'Automatically backup your data',
+    'settings.appearance': 'Appearance',
+    'settings.appearance.theme': 'Theme',
+    'settings.appearance.darkMode': 'Dark Mode',
+    'settings.appearance.lightMode': 'Light Mode',
+    'settings.appearance.systemMode': 'Follow System',
     
     'profile.title': 'Profile',
     'profile.personalInfo': 'Personal Information',
@@ -231,6 +252,16 @@ const translations = {
     'settings.pushNotifications': 'Notificaciones push',
     'settings.saveChanges': 'Guardar cambios',
     'settings.changesSaved': '¡Cambios guardados con éxito!',
+    'settings.study': 'Estudios',
+    'settings.study.reminders': 'Recordatorios de Estudio',
+    'settings.study.reminders.desc': 'Recibe recordatorios para tus sesiones de estudio',
+    'settings.study.autoBackup': 'Respaldo Automático',
+    'settings.study.autoBackup.desc': 'Respalda automáticamente tus datos',
+    'settings.appearance': 'Apariencia',
+    'settings.appearance.theme': 'Tema',
+    'settings.appearance.darkMode': 'Modo Oscuro',
+    'settings.appearance.lightMode': 'Modo Claro',
+    'settings.appearance.systemMode': 'Seguir Sistema',
     
     'profile.title': 'Perfil',
     'profile.personalInfo': 'Información Personal',
@@ -259,19 +290,32 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     setLanguageState(lang);
     localStorage.setItem('language', lang);
     
-    // Force a small delay to ensure state is updated
+    // Force re-render of all components
     setTimeout(() => {
       console.log('🌐 Language change completed:', lang);
-    }, 100);
+      // Trigger a small state update to force component re-renders
+      setLanguageState(prevLang => prevLang);
+    }, 50);
   };
 
   const t = (key: string): string => {
     const languageTranslations = translations[language as keyof typeof translations];
-    const translation = languageTranslations?.[key as keyof typeof languageTranslations];
+    
+    if (!languageTranslations) {
+      console.warn(`🌐 Language not found: ${language}, falling back to 'pt'`);
+      const fallbackTranslations = translations['pt'];
+      const translation = fallbackTranslations?.[key as keyof typeof fallbackTranslations];
+      return translation || key;
+    }
+    
+    const translation = languageTranslations[key as keyof typeof languageTranslations];
     
     if (!translation) {
       console.warn(`🌐 Translation missing for key: ${key} in language: ${language}`);
-      return key;
+      // Try fallback to Portuguese
+      const fallbackTranslations = translations['pt'];
+      const fallbackTranslation = fallbackTranslations?.[key as keyof typeof fallbackTranslations];
+      return fallbackTranslation || key;
     }
     
     return translation;
