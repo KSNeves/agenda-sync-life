@@ -7,6 +7,8 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface SettingsProps {
   onBack: () => void;
@@ -14,6 +16,9 @@ interface SettingsProps {
 
 export default function Settings({ onBack }: SettingsProps) {
   const { isDarkMode, setDarkMode } = useTheme();
+  const { language, setLanguage } = useLanguage();
+  const { t } = useTranslation();
+  
   const [notifications, setNotifications] = useState(true);
   const [autoBackup, setAutoBackup] = useState(true);
   const [studyReminders, setStudyReminders] = useState(true);
@@ -30,7 +35,7 @@ export default function Settings({ onBack }: SettingsProps) {
           <Button variant="ghost" size="icon" onClick={onBack}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h1 className="text-2xl font-bold">Configurações</h1>
+          <h1 className="text-2xl font-bold">{t('settings.title')}</h1>
         </div>
 
         <div className="space-y-6">
@@ -39,18 +44,18 @@ export default function Settings({ onBack }: SettingsProps) {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Palette className="h-5 w-5" />
-                Aparência
+                {t('settings.appearance')}
               </CardTitle>
               <CardDescription>
-                Personalize a aparência do aplicativo
+                {t('settings.appearance.desc')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label htmlFor="darkMode">Modo Escuro</Label>
+                  <Label htmlFor="darkMode">{t('settings.darkMode')}</Label>
                   <p className="text-sm text-muted-foreground">
-                    Ativar tema escuro
+                    {t('settings.darkMode.desc')}
                   </p>
                 </div>
                 <Switch
@@ -60,15 +65,15 @@ export default function Settings({ onBack }: SettingsProps) {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="language">Idioma</Label>
-                <Select defaultValue="pt">
+                <Label htmlFor="language">{t('settings.language')}</Label>
+                <Select value={language} onValueChange={setLanguage}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione o idioma" />
+                    <SelectValue placeholder={t('settings.language.placeholder')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="pt">Português</SelectItem>
-                    <SelectItem value="en">English</SelectItem>
-                    <SelectItem value="es">Español</SelectItem>
+                    <SelectItem value="pt">{t('language.pt')}</SelectItem>
+                    <SelectItem value="en">{t('language.en')}</SelectItem>
+                    <SelectItem value="es">{t('language.es')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -80,18 +85,18 @@ export default function Settings({ onBack }: SettingsProps) {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Bell className="h-5 w-5" />
-                Notificações
+                {t('settings.notifications')}
               </CardTitle>
               <CardDescription>
-                Configure como você quer receber notificações
+                {t('settings.notifications.desc')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label htmlFor="notifications">Notificações Push</Label>
+                  <Label htmlFor="notifications">{t('settings.pushNotifications')}</Label>
                   <p className="text-sm text-muted-foreground">
-                    Receba notificações no navegador
+                    {t('settings.pushNotifications.desc')}
                   </p>
                 </div>
                 <Switch
@@ -102,9 +107,9 @@ export default function Settings({ onBack }: SettingsProps) {
               </div>
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label htmlFor="studyReminders">Lembretes de Estudo</Label>
+                  <Label htmlFor="studyReminders">{t('settings.studyReminders')}</Label>
                   <p className="text-sm text-muted-foreground">
-                    Receba lembretes para suas sessões de estudo
+                    {t('settings.studyReminders.desc')}
                   </p>
                 </div>
                 <Switch
@@ -121,16 +126,16 @@ export default function Settings({ onBack }: SettingsProps) {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Timer className="h-5 w-5" />
-                Configurações do Pomodoro
+                {t('settings.pomodoro')}
               </CardTitle>
               <CardDescription>
-                Configure os tempos do seu timer Pomodoro
+                {t('settings.pomodoro.desc')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="pomodoroTime">Tempo de Foco (min)</Label>
+                  <Label htmlFor="pomodoroTime">{t('settings.focusTime')}</Label>
                   <Select value={pomodoroTime} onValueChange={setPomodoroTime}>
                     <SelectTrigger>
                       <SelectValue />
@@ -146,7 +151,7 @@ export default function Settings({ onBack }: SettingsProps) {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="shortBreak">Pausa Curta (min)</Label>
+                  <Label htmlFor="shortBreak">{t('settings.shortBreak')}</Label>
                   <Select value={shortBreak} onValueChange={setShortBreak}>
                     <SelectTrigger>
                       <SelectValue />
@@ -160,7 +165,7 @@ export default function Settings({ onBack }: SettingsProps) {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="longBreak">Pausa Longa (min)</Label>
+                  <Label htmlFor="longBreak">{t('settings.longBreak')}</Label>
                   <Select value={longBreak} onValueChange={setLongBreak}>
                     <SelectTrigger>
                       <SelectValue />
@@ -176,9 +181,9 @@ export default function Settings({ onBack }: SettingsProps) {
               </div>
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label htmlFor="autoStartBreaks">Iniciar Pausas Automaticamente</Label>
+                  <Label htmlFor="autoStartBreaks">{t('settings.autoStartBreaks')}</Label>
                   <p className="text-sm text-muted-foreground">
-                    Iniciar pausas automaticamente após cada sessão
+                    {t('settings.autoStartBreaks.desc')}
                   </p>
                 </div>
                 <Switch
@@ -195,18 +200,18 @@ export default function Settings({ onBack }: SettingsProps) {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Shield className="h-5 w-5" />
-                Privacidade e Segurança
+                {t('settings.privacy')}
               </CardTitle>
               <CardDescription>
-                Configure suas preferências de privacidade
+                {t('settings.privacy.desc')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label htmlFor="autoBackup">Backup Automático</Label>
+                  <Label htmlFor="autoBackup">{t('settings.autoBackup')}</Label>
                   <p className="text-sm text-muted-foreground">
-                    Salvar dados automaticamente na nuvem
+                    {t('settings.autoBackup.desc')}
                   </p>
                 </div>
                 <Switch
@@ -216,9 +221,9 @@ export default function Settings({ onBack }: SettingsProps) {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Alterar Senha</Label>
+                <Label>{t('settings.changePassword')}</Label>
                 <Button variant="outline" className="w-full">
-                  Alterar Senha
+                  {t('settings.changePassword')}
                 </Button>
               </div>
             </CardContent>
@@ -229,29 +234,29 @@ export default function Settings({ onBack }: SettingsProps) {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <RotateCcw className="h-5 w-5" />
-                Redefinir Dados
+                {t('settings.resetData')}
               </CardTitle>
               <CardDescription>
-                Redefina ou exporte seus dados do aplicativo
+                {t('settings.resetData.desc')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Exportar Dados</Label>
+                <Label>{t('settings.exportData')}</Label>
                 <Button variant="outline" className="w-full">
-                  Baixar Dados em JSON
+                  {t('settings.exportData.btn')}
                 </Button>
               </div>
               <div className="space-y-2">
-                <Label>Redefinir Configurações</Label>
+                <Label>{t('settings.resetSettings')}</Label>
                 <Button variant="outline" className="w-full">
-                  Restaurar Padrões
+                  {t('settings.resetSettings.btn')}
                 </Button>
               </div>
               <div className="space-y-2">
-                <Label>Apagar Todos os Dados</Label>
+                <Label>{t('settings.deleteAllData')}</Label>
                 <Button variant="destructive" className="w-full">
-                  Apagar Tudo Permanentemente
+                  {t('settings.deleteAllData.btn')}
                 </Button>
               </div>
             </CardContent>
@@ -259,9 +264,9 @@ export default function Settings({ onBack }: SettingsProps) {
 
           {/* Botões de ação */}
           <div className="flex gap-4 pt-6">
-            <Button className="flex-1">Salvar Alterações</Button>
+            <Button className="flex-1">{t('common.save')}</Button>
             <Button variant="outline" onClick={onBack}>
-              Cancelar
+              {t('common.cancel')}
             </Button>
           </div>
         </div>

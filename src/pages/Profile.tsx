@@ -6,12 +6,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface ProfileProps {
   onBack: () => void;
 }
 
 export default function Profile({ onBack }: ProfileProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto p-6">
@@ -20,7 +23,7 @@ export default function Profile({ onBack }: ProfileProps) {
           <Button variant="ghost" size="icon" onClick={onBack}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h1 className="text-2xl font-bold">Perfil</h1>
+          <h1 className="text-2xl font-bold">{t('profile.title')}</h1>
         </div>
 
         <div className="space-y-6">
@@ -29,39 +32,39 @@ export default function Profile({ onBack }: ProfileProps) {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="h-5 w-5" />
-                Informações Pessoais
+                {t('profile.personalInfo')}
               </CardTitle>
               <CardDescription>
-                Configure suas informações pessoais
+                {t('profile.personalInfo.desc')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="firstName">Nome</Label>
-                  <Input id="firstName" placeholder="Seu nome" />
+                  <Label htmlFor="firstName">{t('profile.firstName')}</Label>
+                  <Input id="firstName" placeholder={t('profile.firstName.placeholder')} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="lastName">Sobrenome</Label>
-                  <Input id="lastName" placeholder="Seu sobrenome" />
+                  <Label htmlFor="lastName">{t('profile.lastName')}</Label>
+                  <Input id="lastName" placeholder={t('profile.lastName.placeholder')} />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="seu@email.com" />
+                <Label htmlFor="email">{t('profile.email')}</Label>
+                <Input id="email" type="email" placeholder={t('profile.email.placeholder')} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="bio">Bio</Label>
-                <Textarea id="bio" placeholder="Fale um pouco sobre você..." />
+                <Label htmlFor="bio">{t('profile.bio')}</Label>
+                <Textarea id="bio" placeholder={t('profile.bio.placeholder')} />
               </div>
             </CardContent>
           </Card>
 
           {/* Botões de ação */}
           <div className="flex gap-4 pt-6">
-            <Button className="flex-1">Salvar Alterações</Button>
+            <Button className="flex-1">{t('common.save')}</Button>
             <Button variant="outline" onClick={onBack}>
-              Cancelar
+              {t('common.cancel')}
             </Button>
           </div>
         </div>
