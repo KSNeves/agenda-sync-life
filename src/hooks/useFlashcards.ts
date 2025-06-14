@@ -5,6 +5,7 @@ import { Flashcard, Deck } from '../types/flashcard.types';
 export function useFlashcards() {
   const [decks, setDecks] = useState<Deck[]>([]);
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   // Load data from localStorage on mount
   useEffect(() => {
@@ -12,33 +13,48 @@ export function useFlashcards() {
     const savedDecks = localStorage.getItem('flashcard-decks');
     const savedCards = localStorage.getItem('flashcard-cards');
     
-    if (savedDecks) {
-      const parsedDecks = JSON.parse(savedDecks);
-      console.log('📚 Loaded decks from localStorage:', parsedDecks);
-      setDecks(parsedDecks);
-    } else {
-      console.log('📚 No decks found in localStorage');
+    try {
+      if (savedDecks) {
+        const parsedDecks = JSON.parse(savedDecks);
+        console.log('📚 Loaded decks from localStorage:', parsedDecks);
+        setDecks(parsedDecks);
+      } else {
+        console.log('📚 No decks found in localStorage');
+        setDecks([]);
+      }
+      
+      if (savedCards) {
+        const parsedCards = JSON.parse(savedCards);
+        console.log('🃏 Loaded cards from localStorage:', parsedCards);
+        setFlashcards(parsedCards);
+      } else {
+        console.log('🃏 No cards found in localStorage');
+        setFlashcards([]);
+      }
+    } catch (error) {
+      console.error('Error loading data from localStorage:', error);
+      setDecks([]);
+      setFlashcards([]);
     }
     
-    if (savedCards) {
-      const parsedCards = JSON.parse(savedCards);
-      console.log('🃏 Loaded cards from localStorage:', parsedCards);
-      setFlashcards(parsedCards);
-    } else {
-      console.log('🃏 No cards found in localStorage');
-    }
+    setIsLoaded(true);
   }, []);
 
-  // Save to localStorage whenever data changes
+  // Save decks to localStorage whenever they change
   useEffect(() => {
-    console.log('💾 Saving decks to localStorage:', decks);
-    localStorage.setItem('flashcard-decks', JSON.stringify(decks));
-  }, [decks]);
+    if (isLoaded) {
+      console.log('💾 Saving decks to localStorage:', decks);
+      localStorage.setItem('flashcard-decks', JSON.stringify(decks));
+    }
+  }, [decks, isLoaded]);
 
+  // Save cards to localStorage whenever they change
   useEffect(() => {
-    console.log('💾 Saving cards to localStorage:', flashcards);
-    localStorage.setItem('flashcard-cards', JSON.stringify(flashcards));
-  }, [flashcards]);
+    if (isLoaded) {
+      console.log('💾 Saving cards to localStorage:', flashcards);
+      localStorage.setItem('flashcard-cards', JSON.stringify(flashcards));
+    }
+  }, [flashcards, isLoaded]);
 
   const createDeck = (deckData: { name: string; description?: string }) => {
     console.log('🆕 Creating new deck:', deckData);
@@ -56,8 +72,8 @@ export function useFlashcards() {
     console.log('🆕 New deck object:', newDeck);
     console.log('📚 Current decks before adding:', decks);
 
-    setDecks(prev => {
-      const updated = [...prev, newDeck];
+    setDecks(currentDecks => {
+      const updated = [...currentDecks, newDeck];
       console.log('📚 Updated decks array:', updated);
       return updated;
     });
@@ -222,5 +238,6 @@ export function useFlashcards() {
     reviewCard,
     restartStudies,
     getDecksStats,
+    isLoaded,
   };
 }

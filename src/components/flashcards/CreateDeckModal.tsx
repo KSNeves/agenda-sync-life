@@ -15,15 +15,10 @@ interface CreateDeckModalProps {
 export default function CreateDeckModal({ isOpen, onClose }: CreateDeckModalProps) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const { createDeck, decks } = useFlashcards();
+  const { createDeck } = useFlashcards();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    console.log('=== SUBMIT FORM ===');
-    console.log('Name:', name);
-    console.log('Description:', description);
-    console.log('Decks before creation:', decks);
     
     if (name.trim()) {
       console.log('Creating deck with name:', name.trim());
@@ -35,7 +30,6 @@ export default function CreateDeckModal({ isOpen, onClose }: CreateDeckModalProp
         });
         
         console.log('Deck created with ID:', newDeckId);
-        console.log('Decks after creation:', decks);
         
         setName('');
         setDescription('');
@@ -43,8 +37,6 @@ export default function CreateDeckModal({ isOpen, onClose }: CreateDeckModalProp
       } catch (error) {
         console.error('Error creating deck:', error);
       }
-    } else {
-      console.log('Name is empty, not creating deck');
     }
   };
 

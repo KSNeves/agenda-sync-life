@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Plus, BookOpen, Clock, TrendingUp, Upload } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -10,7 +10,7 @@ import DeckView from './DeckView';
 import StudyMode from './StudyMode';
 
 export default function FlashcardDashboard() {
-  const { decks, getDecksStats } = useFlashcards();
+  const { decks, getDecksStats, isLoaded } = useFlashcards();
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedDeck, setSelectedDeck] = useState<string | null>(null);
@@ -18,18 +18,23 @@ export default function FlashcardDashboard() {
 
   const stats = getDecksStats();
   
-  // Log decks whenever they change
-  useEffect(() => {
-    console.log('🎯 Dashboard - Decks updated:', decks);
-    console.log('🎯 Dashboard - Decks count:', decks.length);
-  }, [decks]);
-  
   const filteredDecks = decks.filter(deck =>
     deck.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     deck.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  console.log('🎯 Dashboard render - Total decks:', decks.length, 'Filtered decks:', filteredDecks.length);
+  console.log('🎯 Dashboard render - Total decks:', decks.length, 'Filtered decks:', filteredDecks.length, 'Is loaded:', isLoaded);
+
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Carregando flashcards...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (studyMode) {
     return (
