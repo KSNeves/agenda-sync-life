@@ -40,13 +40,16 @@ export default function Revision() {
   };
 
   const postponeItem = (item: RevisionItem) => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(0, 0, 0, 0);
+    // Se a revisão é para hoje ou passado, adia para amanhã
+    // Se a revisão é futura, adia por mais um dia a partir da data programada
+    const currentRevisionDate = new Date(item.nextRevisionDate);
+    const newDate = new Date(currentRevisionDate);
+    newDate.setDate(currentRevisionDate.getDate() + 1);
+    newDate.setHours(0, 0, 0, 0);
 
     const updatedItem: RevisionItem = {
       ...item,
-      nextRevisionDate: tomorrow.getTime(),
+      nextRevisionDate: newDate.getTime(),
       category: 'priority', // Vai para próximas
     };
 
