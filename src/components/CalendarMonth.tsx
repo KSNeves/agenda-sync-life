@@ -49,11 +49,11 @@ export default function CalendarMonth() {
   const weekdays = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
 
   return (
-    <div className="flex-1 bg-gray-900 text-white">
+    <div className="flex-1 bg-background text-foreground">
       {/* Header dos dias da semana */}
-      <div className="grid grid-cols-7 bg-gray-800 border-b border-gray-700">
+      <div className="grid grid-cols-7 bg-card/30 border-b border-border/50">
         {weekdays.map(day => (
-          <div key={day} className="p-4 text-center text-sm font-medium text-gray-300 border-r border-gray-700 last:border-r-0">
+          <div key={day} className="p-4 text-center text-sm font-medium text-muted-foreground border-r border-border/50 last:border-r-0">
             {day}
           </div>
         ))}
@@ -71,9 +71,9 @@ export default function CalendarMonth() {
             <div
               key={index}
               className={`
-                min-h-[120px] p-2 border-r border-b border-gray-700 last:border-r-0 
-                hover:bg-gray-800 cursor-pointer transition-colors relative
-                ${isOtherMonth ? 'bg-gray-900 text-gray-600' : 'bg-gray-850'}
+                min-h-[120px] p-2 border-r border-b border-border/20 last:border-r-0 
+                hover:bg-secondary/20 cursor-pointer transition-colors relative
+                ${isOtherMonth ? 'bg-background text-muted-foreground' : 'bg-card/10'}
               `}
               onClick={() => handleDayClick(date)}
             >
@@ -83,10 +83,10 @@ export default function CalendarMonth() {
                   className={`
                     text-lg font-medium
                     ${isToday 
-                      ? 'bg-green-500 text-white w-8 h-8 rounded-full flex items-center justify-center' 
+                      ? 'bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center' 
                       : isOtherMonth 
-                        ? 'text-gray-600' 
-                        : 'text-white'
+                        ? 'text-muted-foreground' 
+                        : 'text-foreground'
                     }
                   `}
                 >
@@ -134,7 +134,7 @@ export default function CalendarMonth() {
                 })}
 
                 {dayEvents.length > 3 && (
-                  <div className="text-xs text-gray-400 font-medium">
+                  <div className="text-xs text-muted-foreground font-medium">
                     +{dayEvents.length - 3} mais
                   </div>
                 )}
@@ -143,7 +143,7 @@ export default function CalendarMonth() {
               {/* Indicador de eventos quando não há espaço */}
               {hasEvents && dayEvents.length <= 3 && (
                 <div className="absolute bottom-1 right-1">
-                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                  <div className="w-2 h-2 bg-primary rounded-full"></div>
                 </div>
               )}
             </div>
