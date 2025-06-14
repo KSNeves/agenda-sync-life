@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -352,6 +351,51 @@
   .event-type-exam { @apply bg-red-600/30 border-red-500/50; }
   .event-type-personal { @apply bg-purple-600/30 border-purple-500/50; }
   .event-type-other { @apply bg-gray-600/30 border-gray-500/50; }
+  
+  /* Schedule/Cronograma Styles */
+  .schedule-container {
+    @apply flex h-screen bg-background;
+  }
+  
+  .schedule-sidebar {
+    @apply w-64 bg-card/50 backdrop-blur-sm border-r border-border/50 p-6;
+  }
+  
+  .schedule-nav-item {
+    @apply px-4 py-3 rounded-lg font-medium cursor-pointer transition-colors;
+  }
+  
+  .schedule-nav-item.active {
+    @apply bg-primary/20 text-primary;
+  }
+  
+  .schedule-nav-item:not(.active) {
+    @apply text-muted-foreground hover:bg-secondary/50;
+  }
+  
+  .schedule-header {
+    @apply bg-card/50 backdrop-blur-sm border-b border-border/50 p-6;
+  }
+  
+  .schedule-grid-header {
+    @apply grid grid-cols-8 border-b border-border/50 bg-card/30;
+  }
+  
+  .schedule-day-header {
+    @apply p-4 text-center border-r border-border/50 last:border-r-0;
+  }
+  
+  .schedule-time-slot {
+    @apply relative h-16 border-r border-border/20 last:border-r-0 hover:bg-secondary/20 cursor-pointer transition-colors;
+  }
+  
+  .schedule-time-label {
+    @apply w-20 p-2 text-right text-sm text-muted-foreground border-r border-border/50;
+  }
+  
+  .schedule-event {
+    @apply absolute left-1 right-1 rounded p-1 text-xs font-medium cursor-pointer hover:shadow-lg transition-all duration-200;
+  }
   
   /* Responsive adjustments */
   @media (max-width: 768px) {
