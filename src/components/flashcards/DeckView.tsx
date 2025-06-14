@@ -51,9 +51,61 @@ export default function DeckView({ deckId, onBack, onStudy }: DeckViewProps) {
     deleteCard(cardId);
   };
 
+  // Categorizar cards por status
+  const unlearned = cards.filter(card => card.reviewCount === 0);
+  const reviewing = cards.filter(card => card.reviewCount > 0 && card.nextReview <= Date.now());
+  const learned = cards.filter(card => card.reviewCount > 0 && card.nextReview > Date.now());
+
+  const CardColumn = ({ title, cards, color }: { title: string; cards: any[]; color: string }) => (
+    <div className="flex-1">
+      <div className={`rounded-t-lg p-4 ${color}`}>
+        <h3 className="font-semibold text-white">{title}</h3>
+        <p className="text-white/80 text-sm">{cards.length} cards</p>
+      </div>
+      <div className="border border-t-0 rounded-b-lg p-4 bg-card min-h-[300px]">
+        <div className="space-y-3">
+          {cards.length === 0 ? (
+            <p className="text-muted-foreground text-center py-8">
+              Nenhum card nesta categoria
+            </p>
+          ) : (
+            cards.map(card => (
+              <Card key={card.id} className="border-l-4 border-l-primary">
+                <CardContent className="p-3">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <p className="font-medium text-sm mb-1">{card.front}</p>
+                      <p className="text-muted-foreground text-xs">{card.back}</p>
+                    </div>
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground">
+                        <Edit className="w-3 h-3" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-6 w-6 text-destructive hover:text-destructive/80"
+                        onClick={() => handleDeleteCard(card.id)}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-2">
+                    Revisões: {card.reviewCount}
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-background text-foreground p-6">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
           <Button variant="ghost" onClick={onBack}>
@@ -111,54 +163,23 @@ export default function DeckView({ deckId, onBack, onStudy }: DeckViewProps) {
           </CardContent>
         </Card>
 
-        {/* Cards List */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Cards no Deck ({cards.length})</h2>
-          
-          {cards.length === 0 ? (
-            <Card>
-              <CardContent className="p-8 text-center">
-                <p className="text-muted-foreground">
-                  Nenhum card neste deck. Adicione seu primeiro card acima!
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            cards.map(card => (
-              <Card key={card.id}>
-                <CardHeader className="pb-2">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <CardTitle className="text-lg mb-2">
-                        {card.front}
-                      </CardTitle>
-                      <p className="text-muted-foreground">
-                        {card.back}
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="text-destructive hover:text-destructive/80"
-                        onClick={() => handleDeleteCard(card.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-2">
-                  <div className="text-xs text-muted-foreground">
-                    Revisões: {card.reviewCount} | Criado em: {new Date(card.createdAt).toLocaleDateString()}
-                  </div>
-                </CardContent>
-              </Card>
-            ))
-          )}
+        {/* Cards Columns */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <CardColumn 
+            title="Cards não aprendidos" 
+            cards={unlearned} 
+            color="bg-red-500"
+          />
+          <CardColumn 
+            title="Cards em revisão" 
+            cards={reviewing} 
+            color="bg-yellow-500"
+          />
+          <CardColumn 
+            title="Cards aprendidos" 
+            cards={learned} 
+            color="bg-green-500"
+          />
         </div>
       </div>
     </div>
