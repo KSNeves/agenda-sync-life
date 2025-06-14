@@ -1,3 +1,4 @@
+
 export interface Flashcard {
   id: string;
   front: string;
@@ -10,9 +11,6 @@ export interface Flashcard {
   easeFactor: number; // Para algoritmo de repetição espaçada
   interval: number; // Dias até próxima revisão
   nextReview: number; // Timestamp da próxima revisão
-  status: 'unlearned' | 'reviewing' | 'learned'; // Status do card
-  targetReviews: number; // Número de revisões necessárias para considerar aprendido
-  currentStreak: number; // Número atual de revisões consecutivas
 }
 
 export interface Deck {
