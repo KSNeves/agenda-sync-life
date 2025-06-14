@@ -21,22 +21,21 @@ export default function CreateDeckModal({ isOpen, onClose }: CreateDeckModalProp
     e.preventDefault();
     
     if (name.trim()) {
-      console.log('Creating deck with name:', name.trim());
+      console.log('🔥 Creating deck with name:', name.trim());
       
-      try {
-        const newDeckId = createDeck({
-          name: name.trim(),
-          description: description.trim() || undefined,
-        });
-        
-        console.log('Deck created with ID:', newDeckId);
-        
-        setName('');
-        setDescription('');
-        onClose();
-      } catch (error) {
-        console.error('Error creating deck:', error);
-      }
+      const newDeckId = createDeck({
+        name: name.trim(),
+        description: description.trim() || undefined,
+      });
+      
+      console.log('✅ Deck created with ID:', newDeckId);
+      
+      // Reset form
+      setName('');
+      setDescription('');
+      
+      // Close modal
+      onClose();
     }
   };
 

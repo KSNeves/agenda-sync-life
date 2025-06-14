@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Flashcard, Deck } from '../types/flashcard.types';
 
@@ -70,12 +69,12 @@ export function useFlashcards() {
     };
 
     console.log('🆕 New deck object:', newDeck);
-    console.log('📚 Current decks before adding:', decks);
 
-    setDecks(currentDecks => {
-      const updated = [...currentDecks, newDeck];
-      console.log('📚 Updated decks array:', updated);
-      return updated;
+    // Use functional update to ensure we get the latest state
+    setDecks(prevDecks => {
+      const updatedDecks = [...prevDecks, newDeck];
+      console.log('📚 Updated decks array:', updatedDecks);
+      return updatedDecks;
     });
     
     return newDeck.id;
