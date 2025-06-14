@@ -58,6 +58,17 @@ export default function Schedule() {
   const weekDays = getWeekDays();
   const hours = Array.from({ length: 19 }, (_, i) => i + 5); // 5:00 às 23:00
 
+  // Array com traduções dos dias da semana abreviados
+  const dayNamesShort = [
+    t('event.weekdays.sun'),
+    t('event.weekdays.mon'), 
+    t('event.weekdays.tue'),
+    t('event.weekdays.wed'),
+    t('event.weekdays.thu'),
+    t('event.weekdays.fri'),
+    t('event.weekdays.sat')
+  ];
+
   // Formatar título da semana
   const getWeekTitle = () => {
     if (viewMode === 'month') {
@@ -329,13 +340,12 @@ export default function Schedule() {
             <div className="grid grid-cols-8 border-b border-border/50 bg-card/30">
               <div className="w-20"></div>
               {weekDays.map((day, index) => {
-                const dayNames = ['DOM.', 'SEG.', 'TER.', 'QUA.', 'QUI.', 'SEX.', 'SÁB.'];
                 const isToday = day.toDateString() === new Date().toDateString();
                 
                 return (
                   <div key={index} className={`p-4 text-center border-r border-border/50 last:border-r-0 ${isToday ? 'bg-blue-50' : ''}`}>
                     <div className={`text-xs font-medium mb-1 ${isToday ? 'text-blue-600' : 'text-muted-foreground'}`}>
-                      {dayNames[index]}
+                      {dayNamesShort[index]}
                     </div>
                     <div className={`text-2xl font-semibold ${isToday ? 'text-blue-600 bg-blue-100 rounded-full w-10 h-10 flex items-center justify-center mx-auto' : 'text-foreground'}`}>
                       {day.getDate()}
