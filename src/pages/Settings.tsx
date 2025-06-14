@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ArrowLeft, Bell, Shield, Palette } from 'lucide-react';
+import { ArrowLeft, Bell, Shield, Palette, Timer, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -16,6 +16,10 @@ export default function Settings({ onBack }: SettingsProps) {
   const [darkMode, setDarkMode] = useState(false);
   const [autoBackup, setAutoBackup] = useState(true);
   const [studyReminders, setStudyReminders] = useState(true);
+  const [pomodoroTime, setPomodoroTime] = useState('25');
+  const [shortBreak, setShortBreak] = useState('5');
+  const [longBreak, setLongBreak] = useState('15');
+  const [autoStartBreaks, setAutoStartBreaks] = useState(false);
 
   return (
     <div className="min-h-screen bg-background">
@@ -29,47 +33,6 @@ export default function Settings({ onBack }: SettingsProps) {
         </div>
 
         <div className="space-y-6">
-          {/* Notificações */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Bell className="h-5 w-5" />
-                Notificações
-              </CardTitle>
-              <CardDescription>
-                Configure como você quer receber notificações
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="notifications">Notificações Push</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Receba notificações no navegador
-                  </p>
-                </div>
-                <Switch
-                  id="notifications"
-                  checked={notifications}
-                  onCheckedChange={setNotifications}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="studyReminders">Lembretes de Estudo</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Receba lembretes para suas sessões de estudo
-                  </p>
-                </div>
-                <Switch
-                  id="studyReminders"
-                  checked={studyReminders}
-                  onCheckedChange={setStudyReminders}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Aparência */}
           <Card>
             <CardHeader>
@@ -111,6 +74,121 @@ export default function Settings({ onBack }: SettingsProps) {
             </CardContent>
           </Card>
 
+          {/* Notificações */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Bell className="h-5 w-5" />
+                Notificações
+              </CardTitle>
+              <CardDescription>
+                Configure como você quer receber notificações
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="notifications">Notificações Push</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Receba notificações no navegador
+                  </p>
+                </div>
+                <Switch
+                  id="notifications"
+                  checked={notifications}
+                  onCheckedChange={setNotifications}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="studyReminders">Lembretes de Estudo</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Receba lembretes para suas sessões de estudo
+                  </p>
+                </div>
+                <Switch
+                  id="studyReminders"
+                  checked={studyReminders}
+                  onCheckedChange={setStudyReminders}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Configurações do Pomodoro */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Timer className="h-5 w-5" />
+                Configurações do Pomodoro
+              </CardTitle>
+              <CardDescription>
+                Configure os tempos do seu timer Pomodoro
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="pomodoroTime">Tempo de Foco (min)</Label>
+                  <Select value={pomodoroTime} onValueChange={setPomodoroTime}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="15">15</SelectItem>
+                      <SelectItem value="20">20</SelectItem>
+                      <SelectItem value="25">25</SelectItem>
+                      <SelectItem value="30">30</SelectItem>
+                      <SelectItem value="45">45</SelectItem>
+                      <SelectItem value="60">60</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="shortBreak">Pausa Curta (min)</Label>
+                  <Select value={shortBreak} onValueChange={setShortBreak}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="3">3</SelectItem>
+                      <SelectItem value="5">5</SelectItem>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="15">15</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="longBreak">Pausa Longa (min)</Label>
+                  <Select value={longBreak} onValueChange={setLongBreak}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="15">15</SelectItem>
+                      <SelectItem value="20">20</SelectItem>
+                      <SelectItem value="30">30</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="autoStartBreaks">Iniciar Pausas Automaticamente</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Iniciar pausas automaticamente após cada sessão
+                  </p>
+                </div>
+                <Switch
+                  id="autoStartBreaks"
+                  checked={autoStartBreaks}
+                  onCheckedChange={setAutoStartBreaks}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Privacidade e Segurança */}
           <Card>
             <CardHeader>
@@ -140,6 +218,39 @@ export default function Settings({ onBack }: SettingsProps) {
                 <Label>Alterar Senha</Label>
                 <Button variant="outline" className="w-full">
                   Alterar Senha
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Redefinir Dados */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <RotateCcw className="h-5 w-5" />
+                Redefinir Dados
+              </CardTitle>
+              <CardDescription>
+                Redefina ou exporte seus dados do aplicativo
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Exportar Dados</Label>
+                <Button variant="outline" className="w-full">
+                  Baixar Dados em JSON
+                </Button>
+              </div>
+              <div className="space-y-2">
+                <Label>Redefinir Configurações</Label>
+                <Button variant="outline" className="w-full">
+                  Restaurar Padrões
+                </Button>
+              </div>
+              <div className="space-y-2">
+                <Label>Apagar Todos os Dados</Label>
+                <Button variant="destructive" className="w-full">
+                  Apagar Tudo Permanentemente
                 </Button>
               </div>
             </CardContent>
