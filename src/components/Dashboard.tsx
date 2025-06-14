@@ -174,7 +174,7 @@ export default function Dashboard() {
     dispatch({ type: 'ADD_TASK', payload: newTask });
   };
 
-  // Usar tradução para a data atual com fallback seguro
+  // Usar tradução para a data atual
   const formatCurrentDate = () => {
     const options: Intl.DateTimeFormatOptions = { 
       weekday: 'long', 
@@ -183,16 +183,9 @@ export default function Dashboard() {
       day: 'numeric' 
     };
     
-    // Usar locale baseado no idioma selecionado com fallback
-    const localeKey = t('common.locale');
-    const locale = localeKey === 'common.locale' ? 'pt-BR' : localeKey; // fallback se tradução falhar
-    
-    try {
-      return today.toLocaleDateString(locale, options);
-    } catch (error) {
-      // Fallback para pt-BR se o locale for inválido
-      return today.toLocaleDateString('pt-BR', options);
-    }
+    // Usar locale baseado no idioma selecionado
+    const locale = t('common.locale'); // Vamos adicionar esta chave de tradução
+    return today.toLocaleDateString(locale, options);
   };
 
   return (

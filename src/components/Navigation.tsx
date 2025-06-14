@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { BarChart3, Clock, BookOpen, Brain, User, ChevronDown, Settings, LogOut, Globe } from 'lucide-react';
 import {
@@ -25,8 +26,6 @@ interface UserProfile {
   email: string;
   profileImage: string | null;
 }
-
-type Language = 'pt' | 'en';
 
 export default function Navigation({ currentView, onViewChange }: NavigationProps) {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -75,8 +74,9 @@ export default function Navigation({ currentView, onViewChange }: NavigationProp
   ];
 
   const languages = [
-    { code: 'pt' as Language, name: 'Português', flag: '🇧🇷' },
-    { code: 'en' as Language, name: 'English', flag: '🇺🇸' },
+    { code: 'pt', name: 'Português', flag: '🇧🇷' },
+    { code: 'en', name: 'English', flag: '🇺🇸' },
+    { code: 'es', name: 'Español', flag: '🇪🇸' },
   ];
 
   const handleProfileAction = (action: string) => {
@@ -94,7 +94,7 @@ export default function Navigation({ currentView, onViewChange }: NavigationProp
     }
   };
 
-  const handleLanguageChange = (languageCode: Language) => {
+  const handleLanguageChange = (languageCode: string) => {
     setLanguage(languageCode);
   };
 
