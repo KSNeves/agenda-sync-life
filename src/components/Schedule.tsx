@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
@@ -220,60 +221,60 @@ export default function Schedule() {
   // Se estiver no modo dia, renderizar o componente de dia
   if (viewMode === 'day') {
     return (
-      <div className="flex h-screen bg-gray-900 text-white">
+      <div className="flex h-screen bg-background">
         <div className="flex-1 flex flex-col">
           {/* Header */}
-          <div className="bg-gray-800 border-b border-gray-700 p-6">
+          <div className="bg-card/50 backdrop-blur-sm border-b border-border/50 p-6">
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-4">
                 <button
                   onClick={createEvent}
-                  className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-700 transition-colors"
+                  className="bg-primary text-primary-foreground px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary/90 transition-colors"
                 >
                   <Plus size={16} />
                   Criar Evento
                 </button>
                 <button
                   onClick={goToToday}
-                  className="px-4 py-2 text-white hover:bg-gray-700 rounded-lg transition-colors"
+                  className="px-4 py-2 text-foreground hover:bg-secondary/50 rounded-lg transition-colors"
                 >
                   Hoje
                 </button>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => navigateWeek('prev')}
-                    className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+                    className="p-2 hover:bg-secondary/50 rounded-lg transition-colors"
                   >
                     <ChevronLeft size={20} />
                   </button>
                   <button
                     onClick={() => navigateWeek('next')}
-                    className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+                    className="p-2 hover:bg-secondary/50 rounded-lg transition-colors"
                   >
                     <ChevronRight size={20} />
                   </button>
                 </div>
-                <h2 className="text-xl font-semibold text-white">
+                <h2 className="text-xl font-semibold text-foreground">
                   {getWeekTitle()}
                 </h2>
               </div>
 
-              <div className="flex border border-gray-600 rounded-lg overflow-hidden bg-gray-800">
+              <div className="flex border border-border/50 rounded-lg overflow-hidden bg-card/30">
                 <button 
                   onClick={() => setViewMode('day')}
-                  className={`px-4 py-2 ${viewMode === 'day' ? 'bg-gray-600 text-white' : 'text-gray-300 hover:bg-gray-700'} transition-colors`}
+                  className={`px-4 py-2 ${viewMode === 'day' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/50'} transition-colors`}
                 >
                   Dia
                 </button>
                 <button 
                   onClick={() => setViewMode('week')}
-                  className={`px-4 py-2 ${viewMode === 'week' ? 'bg-gray-600 text-white' : 'text-gray-300 hover:bg-gray-700'} transition-colors`}
+                  className={`px-4 py-2 ${viewMode === 'week' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/50'} transition-colors`}
                 >
                   Semana
                 </button>
                 <button 
                   onClick={() => setViewMode('month')}
-                  className={`px-4 py-2 ${viewMode === 'month' ? 'bg-gray-600 text-white' : 'text-gray-300 hover:bg-gray-700'} transition-colors`}
+                  className={`px-4 py-2 ${viewMode === 'month' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/50'} transition-colors`}
                 >
                   Mês
                 </button>
@@ -340,9 +341,9 @@ export default function Schedule() {
 
               {/* Grade de linhas de hora */}
               {hours.map((hour) => (
-                <div key={hour} className="flex border-b border-gray-700 h-16">
+                <div key={hour} className="flex border-b border-border/20 h-16">
                   {/* Coluna de Horário */}
-                  <div className="w-20 flex items-start justify-end pr-2 pt-0 text-sm text-gray-400 border-r border-gray-700">
+                  <div className="w-20 flex items-start justify-end pr-2 pt-0 text-sm text-muted-foreground border-r border-border/50">
                     <span className="-mt-2">
                       {hour.toString().padStart(2, '0')}:00
                     </span>
@@ -350,7 +351,7 @@ export default function Schedule() {
                   
                   {/* Área do Dia */}
                   <div
-                    className="flex-1 hover:bg-gray-800 cursor-pointer transition-colors"
+                    className="flex-1 hover:bg-secondary/20 cursor-pointer transition-colors"
                     onClick={() => {
                       const startTime = new Date(currentWeek);
                       startTime.setHours(hour, 0, 0, 0);
