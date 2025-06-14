@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
@@ -49,20 +50,25 @@ export default function Schedule() {
     });
   };
 
-  // Calcular posição do evento
+  // Calcular posição do evento com base no horário exato
   const getEventPosition = (event: any) => {
     const startTime = new Date(event.startTime);
     const endTime = new Date(event.endTime);
-    const startHour = startTime.getHours() + startTime.getMinutes() / 60;
-    const endHour = endTime.getHours() + endTime.getMinutes() / 60;
     
-    // Ajustar para começar às 6:00 e terminar às 20:00 (14 horas total)
-    const topPosition = ((startHour - 6) / 14) * 100;
-    const height = ((endHour - startHour) / 14) * 100;
+    // Converter para minutos desde o início do dia (6:00)
+    const startMinutes = startTime.getHours() * 60 + startTime.getMinutes();
+    const endMinutes = endTime.getHours() * 60 + endTime.getMinutes();
+    const dayStartMinutes = 6 * 60; // 6:00 em minutos
+    const dayEndMinutes = 20 * 60; // 20:00 em minutos
+    const totalDayMinutes = dayEndMinutes - dayStartMinutes; // 14 horas = 840 minutos
+    
+    // Calcular posição relativa ao início do calendário (6:00)
+    const topPosition = ((startMinutes - dayStartMinutes) / totalDayMinutes) * 100;
+    const height = ((endMinutes - startMinutes) / totalDayMinutes) * 100;
     
     return {
       top: `${Math.max(0, topPosition)}%`,
-      height: `${Math.max(2, height)}%`, // Altura mínima de 2% para eventos muito curtos
+      height: `${Math.max(1, height)}%`, // Altura mínima de 1% para eventos muito curtos
     };
   };
 
@@ -190,38 +196,41 @@ export default function Schedule() {
                         dispatch({ type: 'OPEN_EVENT_MODAL', payload: null });
                       }}
                     >
-                      {/* Eventos */}
-                      {getEventsForDay(day).map(event => {
-                        const eventStart = new Date(event.startTime);
-                        const eventHour = eventStart.getHours();
+                      {/* Renderizar todos os eventos do dia nesta coluna, não apenas por hora */}
+                      {hourIndex === 0 && getEventsForDay(day).map(event => {
+                        const position = getEventPosition(event);
+                        const eventStyle = getEventStyle(event);
+                        const startTime = new Date(event.startTime);
+                        const endTime = new Date(event.endTime);
                         
-                        if (eventHour === hour) {
-                          const position = getEventPosition(event);
-                          const eventStyle = getEventStyle(event);
-                          return (
-                            <div
-                              key={event.id}
-                              className="absolute left-1 right-1 rounded-lg p-2 text-xs font-medium cursor-pointer hover:shadow-xl transition-all duration-200 z-10 border-2"
-                              style={{
-                                ...position,
-                                ...eventStyle,
-                              }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                dispatch({ type: 'OPEN_EVENT_MODAL', payload: event });
-                              }}
-                            >
-                              <div className="truncate font-semibold text-white">{event.title}</div>
-                              <div className="truncate opacity-90 text-xs text-white">
-                                {eventStart.toLocaleTimeString('pt-BR', { 
-                                  hour: '2-digit', 
-                                  minute: '2-digit' 
-                                })}
-                              </div>
+                        return (
+                          <div
+                            key={event.id}
+                            className="absolute left-1 right-1 rounded-lg p-2 text-xs font-medium cursor-pointer hover:shadow-xl transition-all duration-200 z-10 border-2"
+                            style={{
+                              ...position,
+                              ...eventStyle,
+                              // Ajustar a posição para cobrir toda a grade de 15 horas (6:00-20:00)
+                              top: `calc(${position.top} * 15)`, // 15 é o número de linhas de hora
+                              height: `calc(${position.height} * 15)`,
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              dispatch({ type: 'OPEN_EVENT_MODAL', payload: event });
+                            }}
+                          >
+                            <div className="truncate font-semibold text-white">{event.title}</div>
+                            <div className="truncate opacity-90 text-xs text-white">
+                              {startTime.toLocaleTimeString('pt-BR', { 
+                                hour: '2-digit', 
+                                minute: '2-digit' 
+                              })} - {endTime.toLocaleTimeString('pt-BR', { 
+                                hour: '2-digit', 
+                                minute: '2-digit' 
+                              })}
                             </div>
-                          );
-                        }
-                        return null;
+                          </div>
+                        );
                       })}
                     </div>
                   ))}
