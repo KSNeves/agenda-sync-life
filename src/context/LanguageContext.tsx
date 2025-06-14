@@ -6,6 +6,7 @@ interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
   translations: Record<string, any>;
+  t: (path: string) => string;
 }
 
 const translations = {
@@ -280,11 +281,27 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('language', lang);
   };
 
+  const t = (path: string): string => {
+    const keys = path.split('.');
+    let value = translations[language];
+    
+    for (const key of keys) {
+      if (value && typeof value === 'object') {
+        value = value[key];
+      } else {
+        return path; // Return the path if translation not found
+      }
+    }
+    
+    return typeof value === 'string' ? value : path;
+  };
+
   return (
     <LanguageContext.Provider value={{ 
       language, 
       setLanguage, 
-      translations: translations[language] 
+      translations: translations[language],
+      t
     }}>
       {children}
     </LanguageContext.Provider>
