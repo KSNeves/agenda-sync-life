@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { CalendarEvent, RevisionItem } from '../types';
 import { X } from 'lucide-react';
 import { Checkbox } from './ui/checkbox';
+import { useTranslation } from '../hooks/useTranslation';
 
 const eventColors = [
   { name: 'Azul', value: 'blue', bg: 'bg-blue-500', preview: '#3b82f6' },
@@ -18,6 +18,7 @@ const eventColors = [
 
 export default function EventModal() {
   const { state, dispatch } = useApp();
+  const { t } = useTranslation();
   const { isEventModalOpen, selectedEvent } = state;
 
   const [formData, setFormData] = useState({
@@ -226,14 +227,14 @@ export default function EventModal() {
 
       const revisionContent = [
         formData.title,
-        formData.description && `Descrição: ${formData.description}`,
-        formData.location && `Local: ${formData.location}`,
-        formData.professor && `Professor: ${formData.professor}`,
+        formData.description && `${t('event.description')}: ${formData.description}`,
+        formData.location && `${t('event.location')}: ${formData.location}`,
+        formData.professor && `${t('event.professor')}: ${formData.professor}`,
       ].filter(Boolean).join('\n\n');
 
       const revisionItem: RevisionItem = {
         id: Date.now().toString(),
-        title: `Revisão: ${formData.title}`,
+        title: `${t('revision.title')}: ${formData.title}`,
         description: revisionContent,
         category: 'pending',
         createdAt: Date.now(),
@@ -286,14 +287,22 @@ export default function EventModal() {
 
   if (!isEventModalOpen) return null;
 
-  const weekdays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+  const weekdays = [
+    t('event.weekdays.sun'),
+    t('event.weekdays.mon'),
+    t('event.weekdays.tue'),
+    t('event.weekdays.wed'),
+    t('event.weekdays.thu'),
+    t('event.weekdays.fri'),
+    t('event.weekdays.sat'),
+  ];
 
   return (
     <div className="event-modal-overlay" onClick={handleClose}>
       <div className="event-modal" onClick={(e) => e.stopPropagation()}>
         <div className="event-modal-header">
           <h2 className="text-xl font-bold">
-            {selectedEvent ? 'Editar Evento' : 'Criar Evento'}
+            {selectedEvent ? t('event.editTitle') : t('event.createTitle')}
           </h2>
           <button onClick={handleClose} className="close-button">
             <X size={20} />
@@ -302,7 +311,7 @@ export default function EventModal() {
 
         <form onSubmit={handleSubmit} className="event-modal-content">
           <div className="form-group">
-            <label>Título</label>
+            <label>{t('event.title')}</label>
             <input
               type="text"
               value={formData.title}
@@ -313,7 +322,7 @@ export default function EventModal() {
 
           <div className="form-row">
             <div className="form-group">
-              <label>Data/Hora de Início</label>
+              <label>{t('event.startTime')}</label>
               <input
                 type="datetime-local"
                 value={formData.startTime}
@@ -322,7 +331,7 @@ export default function EventModal() {
               />
             </div>
             <div className="form-group">
-              <label>Data/Hora de Fim</label>
+              <label>{t('event.endTime')}</label>
               <input
                 type="datetime-local"
                 value={formData.endTime}
@@ -333,7 +342,7 @@ export default function EventModal() {
           </div>
 
           <div className="form-group">
-            <label>Descrição</label>
+            <label>{t('event.description')}</label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
@@ -343,20 +352,20 @@ export default function EventModal() {
 
           <div className="form-row">
             <div className="form-group">
-              <label>Tipo</label>
+              <label>{t('event.type')}</label>
               <select
                 value={formData.type}
                 onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value as CalendarEvent['type'] }))}
               >
-                <option value="class">Aula</option>
-                <option value="study">Estudo</option>
-                <option value="exam">Prova</option>
-                <option value="personal">Pessoal</option>
-                <option value="other">Outro</option>
+                <option value="class">{t('event.types.class')}</option>
+                <option value="study">{t('event.types.study')}</option>
+                <option value="exam">{t('event.types.exam')}</option>
+                <option value="personal">{t('event.types.personal')}</option>
+                <option value="other">{t('event.types.other')}</option>
               </select>
             </div>
             <div className="form-group">
-              <label>Local</label>
+              <label>{t('event.location')}</label>
               <input
                 type="text"
                 value={formData.location}
@@ -367,7 +376,7 @@ export default function EventModal() {
 
           {formData.type === 'class' && (
             <div className="form-group">
-              <label>Professor</label>
+              <label>{t('event.professor')}</label>
               <input
                 type="text"
                 value={formData.professor}
@@ -377,7 +386,7 @@ export default function EventModal() {
           )}
 
           <div className="form-group">
-            <label>Cor do Evento</label>
+            <label>{t('event.color')}</label>
             <div className="color-selector">
               {eventColors.map((color) => (
                 <button
@@ -397,7 +406,7 @@ export default function EventModal() {
           {/* Seção de recorrência */}
           <div className="recurrence-options" style={{ marginTop: '32px' }}>
             <div className="form-group">
-              <label>Recorrência</label>
+              <label>{t('event.recurrence')}</label>
               <select
                 value={formData.recurrence.type}
                 onChange={(e) => setFormData(prev => ({
@@ -405,17 +414,17 @@ export default function EventModal() {
                   recurrence: { ...prev.recurrence, type: e.target.value as any }
                 }))}
               >
-                <option value="none">Não repetir</option>
-                <option value="daily">Diariamente</option>
-                <option value="weekly">Semanalmente</option>
-                <option value="monthly">Mensalmente</option>
-                <option value="yearly">Anualmente</option>
+                <option value="none">{t('event.noRepeat')}</option>
+                <option value="daily">{t('event.daily')}</option>
+                <option value="weekly">{t('event.weekly')}</option>
+                <option value="monthly">{t('event.monthly')}</option>
+                <option value="yearly">{t('event.yearly')}</option>
               </select>
             </div>
 
             {formData.recurrence.type === 'weekly' && (
               <div className="form-group">
-                <label>Dias da Semana</label>
+                <label>{t('event.weekdays')}</label>
                 <div className="weekday-selector">
                   {weekdays.map((day, index) => (
                     <button
@@ -444,10 +453,10 @@ export default function EventModal() {
               />
               <div>
                 <label htmlFor="addToRevision" className="text-sm font-medium cursor-pointer">
-                  Adicionar à Revisão Espaçada
+                  {t('event.addToRevision')}
                 </label>
                 <p className="text-xs text-gray-500 mt-1">
-                  Criará automaticamente uma revisão para este evento na data programada
+                  {t('event.addToRevisionDesc')}
                 </p>
               </div>
             </div>
@@ -460,7 +469,7 @@ export default function EventModal() {
                 onClick={handleDelete}
                 className="delete-button"
               >
-                {selectedEvent.recurrence?.type !== 'none' || selectedEvent.id.includes('_') ? 'Excluir Série' : 'Excluir'}
+                {selectedEvent.recurrence?.type !== 'none' || selectedEvent.id.includes('_') ? t('event.deleteSeries') : t('event.delete')}
               </button>
             )}
             <div className="flex gap-2">
@@ -469,13 +478,13 @@ export default function EventModal() {
                 onClick={handleClose}
                 className="cancel-button"
               >
-                Cancelar
+                {t('event.cancel')}
               </button>
               <button
                 type="submit"
                 className="save-button"
               >
-                {selectedEvent ? 'Salvar' : 'Criar'}
+                {selectedEvent ? t('event.save') : t('event.create')}
               </button>
             </div>
           </div>
