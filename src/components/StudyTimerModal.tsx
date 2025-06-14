@@ -65,6 +65,9 @@ export default function StudyTimerModal({ isOpen, onClose, revisionTitle }: Stud
     onClose();
   };
 
+  // Calculate progress percentage
+  const progressPercentage = (timeLeft / (25 * 60)) * 100;
+
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl w-full">
@@ -81,11 +84,12 @@ export default function StudyTimerModal({ isOpen, onClose, revisionTitle }: Stud
           </div>
 
           {/* Progress Bar */}
-          <div className="w-full max-w-md bg-gray-200 rounded-full h-3">
+          <div className="w-full max-w-md bg-gray-300 rounded-full h-4 overflow-hidden">
             <div 
-              className="bg-primary h-3 rounded-full transition-all duration-1000"
+              className="h-full rounded-full transition-all duration-1000 ease-linear bg-gradient-to-r from-green-500 to-green-600"
               style={{ 
-                width: `${(timeLeft / (25 * 60)) * 100}%` 
+                width: `${progressPercentage}%`,
+                backgroundColor: progressPercentage > 50 ? '#10b981' : progressPercentage > 25 ? '#f59e0b' : '#ef4444'
               }}
             />
           </div>
