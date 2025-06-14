@@ -6,6 +6,7 @@ import { Input } from '../ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { useFlashcards } from '../../context/FlashcardsContext';
 import CreateDeckModal from './CreateDeckModal';
+import ImportDeckModal from './ImportDeckModal';
 import DeckView from './DeckView';
 import StudyMode from './StudyMode';
 
@@ -13,6 +14,7 @@ export default function FlashcardDashboard() {
   const { decks, deleteDeck, getDecksStats, isLoaded } = useFlashcards();
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [selectedDeck, setSelectedDeck] = useState<string | null>(null);
   const [studyMode, setStudyMode] = useState<string | null>(null);
 
@@ -85,6 +87,7 @@ export default function FlashcardDashboard() {
             <Button 
               variant="outline" 
               className="flex items-center gap-2"
+              onClick={() => setIsImportModalOpen(true)}
             >
               <Upload className="w-4 h-4" />
               Importar Deck (CSV)
@@ -196,6 +199,11 @@ export default function FlashcardDashboard() {
             console.log('🎯 Closing create modal');
             setIsCreateModalOpen(false);
           }}
+        />
+
+        <ImportDeckModal
+          isOpen={isImportModalOpen}
+          onClose={() => setIsImportModalOpen(false)}
         />
       </div>
     </div>
