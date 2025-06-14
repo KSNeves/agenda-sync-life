@@ -1,13 +1,15 @@
-
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Task, RevisionItem } from '../types';
 import { Play, Pause, Check, Clock, Calendar, PlayCircle, CheckCircle, ClockIcon } from 'lucide-react';
 import { categorizeRevision } from '../utils/spacedRepetition';
+import StudyTimerModal from './StudyTimerModal';
 
 export default function Dashboard() {
   const { state, dispatch } = useApp();
   const { tasks, events, revisionItems } = state;
+  const [isStudyModalOpen, setIsStudyModalOpen] = useState(false);
+  const [selectedRevisionTitle, setSelectedRevisionTitle] = useState('');
 
   // Timer logic
   useEffect(() => {
@@ -84,8 +86,8 @@ export default function Dashboard() {
     if (!revision) return;
 
     if (action === 'start') {
-      // Para agora, apenas mostra no console. Futuramente pode abrir modal de estudo
-      console.log('Iniciando revisão:', revision.title);
+      setSelectedRevisionTitle(revision.title);
+      setIsStudyModalOpen(true);
     } else if (action === 'complete') {
       dispatch({ 
         type: 'UPDATE_REVISION_ITEM', 
@@ -230,6 +232,12 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      <StudyTimerModal
+        isOpen={isStudyModalOpen}
+        onClose={() => setIsStudyModalOpen(false)}
+        revisionTitle={selectedRevisionTitle}
+      />
     </div>
   );
 }
