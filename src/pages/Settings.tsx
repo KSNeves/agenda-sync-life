@@ -1,12 +1,10 @@
 
 import React, { useState } from 'react';
-import { ArrowLeft, User, Bell, Shield, Palette, Globe } from 'lucide-react';
+import { ArrowLeft, Bell, Shield, Palette } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface SettingsProps {
@@ -31,39 +29,6 @@ export default function Settings({ onBack }: SettingsProps) {
         </div>
 
         <div className="space-y-6">
-          {/* Perfil */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Perfil
-              </CardTitle>
-              <CardDescription>
-                Configure suas informações pessoais
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">Nome</Label>
-                  <Input id="firstName" placeholder="Seu nome" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Sobrenome</Label>
-                  <Input id="lastName" placeholder="Seu sobrenome" />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="seu@email.com" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="bio">Bio</Label>
-                <Textarea id="bio" placeholder="Fale um pouco sobre você..." />
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Notificações */}
           <Card>
             <CardHeader>
