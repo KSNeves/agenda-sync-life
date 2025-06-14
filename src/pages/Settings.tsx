@@ -38,6 +38,19 @@ export default function Settings({ onBack }: SettingsProps) {
     { value: 'zh', label: '中文' },
   ];
 
+  // Generate time options in 5-minute intervals
+  const generateTimeOptions = (min: number, max: number) => {
+    const options = [];
+    for (let i = min; i <= max; i += 5) {
+      options.push({ value: i.toString(), label: `${i}` });
+    }
+    return options;
+  };
+
+  const focusTimeOptions = generateTimeOptions(5, 120); // 5 to 120 minutes
+  const shortBreakOptions = generateTimeOptions(5, 30); // 5 to 30 minutes
+  const longBreakOptions = generateTimeOptions(5, 60); // 5 to 60 minutes
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto p-6">
@@ -134,7 +147,7 @@ export default function Settings({ onBack }: SettingsProps) {
             </CardContent>
           </Card>
 
-          {/* Configurações do Pomodoro */}
+          {/* Configurações do Pomodoro - Updated with more time options */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -157,12 +170,11 @@ export default function Settings({ onBack }: SettingsProps) {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="15">15</SelectItem>
-                      <SelectItem value="20">20</SelectItem>
-                      <SelectItem value="25">25</SelectItem>
-                      <SelectItem value="30">30</SelectItem>
-                      <SelectItem value="45">45</SelectItem>
-                      <SelectItem value="60">60</SelectItem>
+                      {focusTimeOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -176,10 +188,11 @@ export default function Settings({ onBack }: SettingsProps) {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="3">3</SelectItem>
-                      <SelectItem value="5">5</SelectItem>
-                      <SelectItem value="10">10</SelectItem>
-                      <SelectItem value="15">15</SelectItem>
+                      {shortBreakOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -193,10 +206,11 @@ export default function Settings({ onBack }: SettingsProps) {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="10">10</SelectItem>
-                      <SelectItem value="15">15</SelectItem>
-                      <SelectItem value="20">20</SelectItem>
-                      <SelectItem value="30">30</SelectItem>
+                      {longBreakOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -269,7 +283,6 @@ export default function Settings({ onBack }: SettingsProps) {
             </CardContent>
           </Card>
 
-          {/* Redefinir Dados */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -302,7 +315,6 @@ export default function Settings({ onBack }: SettingsProps) {
             </CardContent>
           </Card>
 
-          {/* Botões de ação */}
           <div className="flex gap-4 pt-6">
             <Button className="flex-1">{t('common.save')}</Button>
             <Button variant="outline" onClick={onBack}>
