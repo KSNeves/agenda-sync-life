@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { Globe, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,11 +23,14 @@ function LoginRegisterContent() {
   const [lastName, setLastName] = useState('');
   const { language, setLanguage, t } = useLoginLanguage();
   const { signIn, signUp, loading, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
 
   // Redirect if already authenticated
-  if (isAuthenticated) {
-    return <Navigate to="/" replace />;
-  }
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const languages = [
     { code: 'pt' as const, name: 'Português', flag: '🇧🇷' },
@@ -43,14 +46,26 @@ function LoginRegisterContent() {
     }
 
     if (isLogin) {
-      await signIn(email, password);
+      const { error } = await signIn(email, password);
+      if (!error) {
+        navigate('/', { replace: true });
+      }
     } else {
       if (!firstName || !lastName) {
         return;
       }
-      await signUp(email, password, firstName, lastName);
+      const { error } = await signUp(email, password, firstName, lastName);
+      if (!error) {
+        // For signup, user might need to verify email first
+        // So we don't redirect immediately
+      }
     }
   };
+
+  // Don't render the form if user is authenticated
+  if (isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-gray-900 flex items-center justify-center p-4">
