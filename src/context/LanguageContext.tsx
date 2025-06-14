@@ -30,6 +30,7 @@ const translations = {
       edit: 'Editar',
       delete: 'Excluir',
       optional: 'Opcional',
+      back: 'Voltar',
     },
     dashboard: {
       title: 'Painel',
@@ -151,6 +152,7 @@ const translations = {
     },
     flashcards: {
       title: 'Flashcards',
+      subtitle: 'Sistema de repetição espaçada para memorização eficiente',
       createDeck: 'Criar Baralho',
       createNewDeck: 'Criar Novo Baralho',
       noDeckMessage: 'Nenhum baralho criado ainda.',
@@ -161,10 +163,52 @@ const translations = {
       delete: 'Excluir',
       import: 'Importar',
       export: 'Exportar',
+      importDeck: 'Importar Baralho',
       deckName: 'Nome do Baralho',
       deckNamePlaceholder: 'Digite o nome do baralho',
       deckDescription: 'Descrição do Baralho',
-      deckDescriptionPlaceholder: 'Digite uma descrição para o baralho'
+      deckDescriptionPlaceholder: 'Digite uma descrição para o baralho',
+      loading: 'Carregando...',
+      confirmDelete: 'Tem certeza que deseja excluir este baralho?',
+      totalDecks: 'Total de Baralhos',
+      totalCards: 'Total de Cards',
+      toReview: 'Para Revisar',
+      toReviewShort: 'revisar',
+      searchDecks: 'Buscar baralhos...',
+      myDecks: 'Meus Baralhos',
+      noDecksFound: 'Nenhum baralho encontrado.',
+      noDecksCreate: 'Nenhum baralho criado ainda.',
+      cardsToReview: 'cards para revisar',
+      deckNotFound: 'Baralho não encontrado',
+      noCardsToReview: 'Nenhum card para revisar',
+      exit: 'Sair',
+      of: 'de',
+      studied: 'Estudados',
+      restart: 'Reiniciar',
+      reviews: 'Revisões',
+      ease: 'Facilidade',
+      clickToReveal: 'Clique para revelar',
+      howWasAnswer: 'Como foi sua resposta?',
+      forgot: 'Esqueci',
+      hard: 'Difícil',
+      good: 'Bom',
+      easy: 'Fácil',
+      studyComplete: 'Estudo completo!',
+      studiedCards: 'Cards estudados',
+      learning: 'Aprendendo',
+      reviewing: 'Revisando',
+      learned: 'Aprendido',
+      unknown: 'Desconhecido',
+      confirmRestartStudies: 'Tem certeza que deseja reiniciar todos os estudos? Isso irá resetar o progresso de todos os cards.',
+      noCardsInCategory: 'Nenhum card nesta categoria',
+      addNewCard: 'Adicionar Novo Card',
+      frontCard: 'Frente do Card',
+      frontCardPlaceholder: 'Digite a pergunta ou termo...',
+      backCard: 'Verso do Card',
+      backCardPlaceholder: 'Digite a resposta ou definição...',
+      addCard: 'Adicionar Card',
+      restartStudies: 'Reiniciar Estudos',
+      interval: 'Intervalo'
     },
     profile: {
       title: 'Perfil',
@@ -195,6 +239,7 @@ const translations = {
       edit: 'Edit',
       delete: 'Delete',
       optional: 'Optional',
+      back: 'Back',
     },
     dashboard: {
       title: 'Dashboard',
@@ -316,6 +361,7 @@ const translations = {
     },
     flashcards: {
       title: 'Flashcards',
+      subtitle: 'Spaced repetition system for efficient memorization',
       createDeck: 'Create Deck',
       createNewDeck: 'Create New Deck',
       noDeckMessage: 'No decks created yet.',
@@ -326,10 +372,52 @@ const translations = {
       delete: 'Delete',
       import: 'Import',
       export: 'Export',
+      importDeck: 'Import Deck',
       deckName: 'Deck Name',
       deckNamePlaceholder: 'Enter deck name',
       deckDescription: 'Deck Description',
-      deckDescriptionPlaceholder: 'Enter deck description'
+      deckDescriptionPlaceholder: 'Enter deck description',
+      loading: 'Loading...',
+      confirmDelete: 'Are you sure you want to delete this deck?',
+      totalDecks: 'Total Decks',
+      totalCards: 'Total Cards',
+      toReview: 'To Review',
+      toReviewShort: 'to review',
+      searchDecks: 'Search decks...',
+      myDecks: 'My Decks',
+      noDecksFound: 'No decks found.',
+      noDecksCreate: 'No decks created yet.',
+      cardsToReview: 'cards to review',
+      deckNotFound: 'Deck not found',
+      noCardsToReview: 'No cards to review',
+      exit: 'Exit',
+      of: 'of',
+      studied: 'Studied',
+      restart: 'Restart',
+      reviews: 'Reviews',
+      ease: 'Ease',
+      clickToReveal: 'Click to reveal',
+      howWasAnswer: 'How was your answer?',
+      forgot: 'Forgot',
+      hard: 'Hard',
+      good: 'Good',
+      easy: 'Easy',
+      studyComplete: 'Study complete!',
+      studiedCards: 'Studied cards',
+      learning: 'Learning',
+      reviewing: 'Reviewing',
+      learned: 'Learned',
+      unknown: 'Unknown',
+      confirmRestartStudies: 'Are you sure you want to restart all studies? This will reset the progress of all cards.',
+      noCardsInCategory: 'No cards in this category',
+      addNewCard: 'Add New Card',
+      frontCard: 'Front Card',
+      frontCardPlaceholder: 'Enter question or term...',
+      backCard: 'Back Card',
+      backCardPlaceholder: 'Enter answer or definition...',
+      addCard: 'Add Card',
+      restartStudies: 'Restart Studies',
+      interval: 'Interval'
     },
     profile: {
       title: 'Profile',
@@ -360,6 +448,7 @@ const translations = {
       edit: 'Editar',
       delete: 'Eliminar',
       optional: 'Opcional',
+      back: 'Volver',
     },
     dashboard: {
       title: 'Dashboard',
@@ -481,6 +570,7 @@ const translations = {
     },
     flashcards: {
       title: 'Flashcards',
+      subtitle: 'Sistema de repetición espaciada para memorización eficiente',
       createDeck: 'Crear Mazo',
       createNewDeck: 'Crear Nuevo Mazo',
       noDeckMessage: 'No se han creado mazos aún.',
@@ -491,10 +581,52 @@ const translations = {
       delete: 'Eliminar',
       import: 'Importar',
       export: 'Exportar',
+      importDeck: 'Importar Mazo',
       deckName: 'Nombre del Mazo',
       deckNamePlaceholder: 'Ingresa el nombre del mazo',
       deckDescription: 'Descripción del Mazo',
-      deckDescriptionPlaceholder: 'Ingresa una descripción para el mazo'
+      deckDescriptionPlaceholder: 'Ingresa una descripción para el mazo',
+      loading: 'Cargando...',
+      confirmDelete: '¿Estás seguro de que quieres eliminar este mazo?',
+      totalDecks: 'Total de Mazos',
+      totalCards: 'Total de Cartas',
+      toReview: 'Para Revisar',
+      toReviewShort: 'revisar',
+      searchDecks: 'Buscar mazos...',
+      myDecks: 'Mis Mazos',
+      noDecksFound: 'No se encontraron mazos.',
+      noDecksCreate: 'No se han creado mazos aún.',
+      cardsToReview: 'cartas para revisar',
+      deckNotFound: 'Mazo no encontrado',
+      noCardsToReview: 'No hay cartas para revisar',
+      exit: 'Salir',
+      of: 'de',
+      studied: 'Estudiadas',
+      restart: 'Reiniciar',
+      reviews: 'Revisiones',
+      ease: 'Facilidad',
+      clickToReveal: 'Clic para revelar',
+      howWasAnswer: '¿Cómo fue tu respuesta?',
+      forgot: 'Olvidé',
+      hard: 'Difícil',
+      good: 'Bueno',
+      easy: 'Fácil',
+      studyComplete: '¡Estudio completo!',
+      studiedCards: 'Cartas estudiadas',
+      learning: 'Aprendiendo',
+      reviewing: 'Revisando',
+      learned: 'Aprendido',
+      unknown: 'Desconocido',
+      confirmRestartStudies: '¿Estás seguro de que quieres reiniciar todos los estudios? Esto restablecerá el progreso de todas las cartas.',
+      noCardsInCategory: 'No hay cartas en esta categoría',
+      addNewCard: 'Agregar Nueva Carta',
+      frontCard: 'Frente de la Carta',
+      frontCardPlaceholder: 'Ingresa pregunta o término...',
+      backCard: 'Reverso de la Carta',
+      backCardPlaceholder: 'Ingresa respuesta o definición...',
+      addCard: 'Agregar Carta',
+      restartStudies: 'Reiniciar Estudios',
+      interval: 'Intervalo'
     },
     profile: {
       title: 'Perfil',
@@ -523,37 +655,41 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   const [language, setLanguage] = useState<string>('pt');
 
   const t = useCallback((key: string): string => {
-    console.log('Translation requested for key:', key, 'Language:', language);
+    console.log('🔍 Translation requested for key:', key, 'Language:', language);
     
     const keys = key.split('.');
     const currentTranslations = translations[language as keyof typeof translations];
     
     if (!currentTranslations) {
-      console.log('No translations found for language:', language);
+      console.log('❌ No translations found for language:', language);
       return key;
     }
     
     let value: string | Translation = currentTranslations;
   
     for (const k of keys) {
+      console.log('🔎 Processing key part:', k, 'Current value type:', typeof value);
+      
       if (typeof value === 'string') {
-        console.log('Value is string, but still have keys to process:', k);
+        console.log('❌ Value is string, but still have keys to process:', k);
         return key;
       }
+      
       if (value && typeof value === 'object' && k in value) {
         value = value[k];
+        console.log('✅ Found key:', k, 'New value:', typeof value === 'string' ? value : 'object');
       } else {
-        console.log('Key not found:', k, 'in value:', value);
+        console.log('❌ Key not found:', k, 'Available keys:', Object.keys(value || {}));
         return key;
       }
     }
   
     if (typeof value === 'string') {
-      console.log('Translation found:', value);
+      console.log('✅ Translation found:', value);
       return value;
     }
   
-    console.log('Final value is not string:', value);
+    console.log('❌ Final value is not string:', value);
     return key;
   }, [language]);
 
