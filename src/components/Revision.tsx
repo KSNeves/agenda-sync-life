@@ -2,15 +2,18 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { RevisionItem } from '../types';
-import { Plus, Check, AlertCircle, X, Clock, Calendar, Hash } from 'lucide-react';
-import { categorizeRevision, isRevisionDue } from '../utils/spacedRepetition';
+import { Plus, Calendar, Clock, Hash } from 'lucide-react';
+import { categorizeRevision } from '../utils/spacedRepetition';
 import CreateRevisionModal from './CreateRevisionModal';
+import ViewRevisionModal from './ViewRevisionModal';
 
 export default function Revision() {
   const { state, dispatch } = useApp();
   const { revisionItems } = state;
   const [activeTab, setActiveTab] = useState<'pending' | 'completed' | 'priority'>('pending');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [selectedRevision, setSelectedRevision] = useState<RevisionItem | null>(null);
 
   // Atualiza categorias dos itens baseado na data atual
   useEffect(() => {
@@ -34,6 +37,25 @@ export default function Revision() {
     };
 
     dispatch({ type: 'UPDATE_REVISION_ITEM', payload: updatedItem });
+  };
+
+  const postponeItem = (item: RevisionItem) => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+
+    const updatedItem: RevisionItem = {
+      ...item,
+      nextRevisionDate: tomorrow.getTime(),
+      category: 'priority', // Vai para próximas
+    };
+
+    dispatch({ type: 'UPDATE_REVISION_ITEM', payload: updatedItem });
+  };
+
+  const viewRevisionContent = (item: RevisionItem) => {
+    setSelectedRevision(item);
+    setIsViewModalOpen(true);
   };
 
   const deleteItem = (id: string) => {
@@ -165,8 +187,11 @@ export default function Revision() {
                       </div>
                     </div>
                     
-                    <div className="flex gap-2">
-                      <button className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs font-medium transition-colors">
+                    <div className="flex gap-2 flex-wrap">
+                      <button 
+                        onClick={() => viewRevisionContent(item)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs font-medium transition-colors"
+                      >
                         Ver Conteúdo
                       </button>
                       
@@ -182,7 +207,10 @@ export default function Revision() {
                       </button>
                       
                       {activeTab !== 'completed' && (
-                        <button className="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-2 py-1 rounded text-xs font-medium transition-colors">
+                        <button 
+                          onClick={() => postponeItem(item)}
+                          className="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-2 py-1 rounded text-xs font-medium transition-colors"
+                        >
                           Adiar
                         </button>
                       )}
@@ -206,6 +234,13 @@ export default function Revision() {
       <CreateRevisionModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
+      />
+
+      {/* View Revision Modal */}
+      <ViewRevisionModal 
+        isOpen={isViewModalOpen} 
+        onClose={() => setIsViewModalOpen(false)}
+        revision={selectedRevision}
       />
     </div>
   );
