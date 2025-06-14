@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 
@@ -7,6 +8,16 @@ export default function Schedule() {
   const { events, selectedDate } = state;
 
   const [currentWeek, setCurrentWeek] = useState(new Date());
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Atualizar hora atual a cada minuto
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000); // Atualiza a cada minuto
+
+    return () => clearInterval(interval);
+  }, []);
 
   // Navegação da semana
   const navigateWeek = (direction: 'prev' | 'next') => {
@@ -32,7 +43,7 @@ export default function Schedule() {
   };
 
   const weekDays = getWeekDays();
-  const hours = Array.from({ length: 15 }, (_, i) => i + 6); // 6:00 às 20:00
+  const hours = Array.from({ length: 19 }, (_, i) => i + 5); // 5:00 às 23:00
 
   // Formatar título da semana
   const getWeekTitle = () => {
@@ -54,11 +65,10 @@ export default function Schedule() {
     const startTime = new Date(event.startTime);
     const endTime = new Date(event.endTime);
     
-    // Converter para minutos desde 6:00
+    // Converter para minutos desde 5:00
     const startMinutes = startTime.getHours() * 60 + startTime.getMinutes();
     const endMinutes = endTime.getHours() * 60 + endTime.getMinutes();
-    const dayStartMinutes = 6 * 60; // 6:00 em minutos
-    const totalVisibleMinutes = 14 * 60; // 14 horas visíveis (6:00-20:00)
+    const dayStartMinutes = 5 * 60; // 5:00 em minutos
     const hourHeightPx = 64; // altura de cada linha de hora em pixels
     
     // Calcular posição em pixels
@@ -67,8 +77,25 @@ export default function Schedule() {
     
     return {
       top: `${Math.max(0, topPx)}px`,
-      height: `${Math.max(4, heightPx)}px`, // Altura mínima de 4px
+      height: `${Math.max(4, heightPx)}px`,
     };
+  };
+
+  // Calcular posição da linha de hora atual
+  const getCurrentTimePosition = () => {
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const dayStartMinutes = 5 * 60; // 5:00 em minutos
+    const dayEndMinutes = 23 * 60; // 23:00 em minutos
+    const hourHeightPx = 64;
+    
+    // Só mostrar a linha se estiver dentro do horário visível
+    if (currentMinutes < dayStartMinutes || currentMinutes > dayEndMinutes) {
+      return null;
+    }
+    
+    const topPx = ((currentMinutes - dayStartMinutes) / 60) * hourHeightPx;
+    return topPx;
   };
 
   // Função para obter a cor do evento
@@ -96,6 +123,8 @@ export default function Schedule() {
   const createEvent = () => {
     dispatch({ type: 'OPEN_EVENT_MODAL', payload: null });
   };
+
+  const currentTimePosition = getCurrentTimePosition();
 
   return (
     <div className="flex h-screen bg-background">
@@ -174,8 +203,26 @@ export default function Schedule() {
               })}
             </div>
 
-            {/* Grade de Horários - Corrigida para alinhamento */}
+            {/* Grade de Horários */}
             <div className="relative">
+              {/* Linha da hora atual */}
+              {currentTimePosition !== null && (
+                <div
+                  className="absolute left-0 right-0 z-30 border-t-2 border-red-500 shadow-lg"
+                  style={{
+                    top: `${currentTimePosition}px`,
+                  }}
+                >
+                  <div className="absolute -left-2 -top-2 w-4 h-4 bg-red-500 rounded-full shadow-lg"></div>
+                  <div className="absolute right-2 -top-3 bg-red-500 text-white text-xs px-2 py-1 rounded shadow-lg">
+                    {currentTime.toLocaleTimeString('pt-BR', { 
+                      hour: '2-digit', 
+                      minute: '2-digit' 
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* Container para eventos */}
               <div className="absolute inset-0 z-10 grid grid-cols-8">
                 <div className="w-20"></div>
@@ -221,10 +268,10 @@ export default function Schedule() {
                 })}
               </div>
 
-              {/* Grade de linhas de hora - Corrigida para alinhamento */}
+              {/* Grade de linhas de hora */}
               {hours.map((hour, hourIndex) => (
                 <div key={hour} className="grid grid-cols-8 border-b border-border/20 h-16">
-                  {/* Coluna de Horário - Ajustada para alinhar com a linha */}
+                  {/* Coluna de Horário */}
                   <div className="w-20 flex items-start justify-end pr-2 pt-0 text-sm text-muted-foreground border-r border-border/50">
                     <span className="-mt-2">
                       {hour.toString().padStart(2, '0')}:00
