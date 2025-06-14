@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { Button } from './ui/button';
 import { Play, Pause, RotateCcw } from 'lucide-react';
 import { usePomodoro } from '../context/PomodoroContext';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface StudyTimerModalProps {
   isOpen: boolean;
@@ -15,6 +16,7 @@ type TimerPhase = 'focus' | 'shortBreak' | 'longBreak';
 
 export default function StudyTimerModal({ isOpen, onClose, revisionTitle }: StudyTimerModalProps) {
   const { settings } = usePomodoro();
+  const { t } = useTranslation();
   const [timeLeft, setTimeLeft] = useState(settings.focusTime * 60);
   const [isRunning, setIsRunning] = useState(false);
   const [phase, setPhase] = useState<TimerPhase>('focus');
@@ -133,13 +135,13 @@ export default function StudyTimerModal({ isOpen, onClose, revisionTitle }: Stud
   const getPhaseText = () => {
     switch (phase) {
       case 'focus':
-        return 'Tempo de Foco';
+        return t('timer.focusTime');
       case 'shortBreak':
-        return 'Pausa Curta';
+        return t('timer.shortBreak');
       case 'longBreak':
-        return 'Pausa Longa';
+        return t('timer.longBreak');
       default:
-        return 'Tempo de Foco';
+        return t('timer.focusTime');
     }
   };
 
@@ -172,7 +174,7 @@ export default function StudyTimerModal({ isOpen, onClose, revisionTitle }: Stud
               {getPhaseText()}
             </div>
             <div className="text-sm text-muted-foreground">
-              Ciclo {cycles + 1} de {settings.longBreakInterval}
+              {t('timer.cycle')} {cycles + 1} {t('timer.of')} {settings.longBreakInterval}
             </div>
           </div>
 
@@ -202,12 +204,12 @@ export default function StudyTimerModal({ isOpen, onClose, revisionTitle }: Stud
               {isRunning ? (
                 <>
                   <Pause className="w-5 h-5" />
-                  Pausar
+                  {t('timer.pause')}
                 </>
               ) : (
                 <>
                   <Play className="w-5 h-5" />
-                  {timeLeft === 0 ? 'Próxima Fase' : 'Continuar'}
+                  {timeLeft === 0 ? t('timer.nextPhase') : t('timer.continue')}
                 </>
               )}
             </Button>
@@ -219,7 +221,7 @@ export default function StudyTimerModal({ isOpen, onClose, revisionTitle }: Stud
               className="flex items-center gap-2"
             >
               <RotateCcw className="w-4 h-4" />
-              Reiniciar
+              {t('timer.restart')}
             </Button>
           </div>
 
@@ -227,16 +229,16 @@ export default function StudyTimerModal({ isOpen, onClose, revisionTitle }: Stud
           <div className="text-center text-muted-foreground">
             {timeLeft === 0 ? (
               <div className="font-semibold text-lg" style={{ color: getPhaseColor() }}>
-                🎉 {getPhaseText()} concluído!
+                🎉 {getPhaseText()} {t('timer.completed')}
                 {settings.autoStartBreaks && phase === 'focus' && (
                   <div className="text-sm mt-1">
-                    {cycles >= settings.longBreakInterval ? 'Pausa longa' : 'Pausa curta'} iniciando automaticamente...
+                    {cycles >= settings.longBreakInterval ? t('timer.longBreak') : t('timer.shortBreak')} {t('timer.autoStarting')}
                   </div>
                 )}
               </div>
             ) : (
               <div>
-                {isRunning ? 'Timer em execução...' : 'Timer pausado'}
+                {isRunning ? t('timer.running') : t('timer.paused')}
               </div>
             )}
           </div>
@@ -244,7 +246,7 @@ export default function StudyTimerModal({ isOpen, onClose, revisionTitle }: Stud
           {/* Auto-start indicator */}
           {settings.autoStartBreaks && (
             <div className="text-xs text-muted-foreground bg-muted px-3 py-1 rounded-full">
-              ⚡ Pausas automáticas ativadas
+              {t('timer.autoBreaksEnabled')}
             </div>
           )}
         </div>

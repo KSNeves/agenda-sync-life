@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useCallback } from 'react';
 
 interface Translation {
@@ -43,6 +42,22 @@ const translations = {
       complete: 'Concluir',
       postpone: 'Adiar',
       tasks: 'tarefas'
+    },
+    timer: {
+      focusTime: 'Tempo de Foco',
+      shortBreak: 'Pausa Curta',
+      longBreak: 'Pausa Longa',
+      cycle: 'Ciclo',
+      of: 'de',
+      pause: 'Pausar',
+      continue: 'Continuar',
+      nextPhase: 'Próxima Fase',
+      restart: 'Reiniciar',
+      completed: 'concluído!',
+      running: 'Timer em execução...',
+      paused: 'Timer pausado',
+      autoBreaksEnabled: '⚡ Pausas automáticas ativadas',
+      autoStarting: 'iniciando automaticamente...'
     },
     event: {
       title: 'Evento',
@@ -305,6 +320,22 @@ const translations = {
       postpone: 'Postpone',
       tasks: 'tasks'
     },
+    timer: {
+      focusTime: 'Focus Time',
+      shortBreak: 'Short Break',
+      longBreak: 'Long Break',
+      cycle: 'Cycle',
+      of: 'of',
+      pause: 'Pause',
+      continue: 'Continue',
+      nextPhase: 'Next Phase',
+      restart: 'Restart',
+      completed: 'completed!',
+      running: 'Timer running...',
+      paused: 'Timer paused',
+      autoBreaksEnabled: '⚡ Auto breaks enabled',
+      autoStarting: 'starting automatically...'
+    },
     event: {
       title: 'Event',
       description: 'Description',
@@ -565,6 +596,22 @@ const translations = {
       complete: 'Completar',
       postpone: 'Posponer',
       tasks: 'tareas'
+    },
+    timer: {
+      focusTime: 'Tiempo de Enfoque',
+      shortBreak: 'Pausa Corta',
+      longBreak: 'Pausa Larga',
+      cycle: 'Ciclo',
+      of: 'de',
+      pause: 'Pausar',
+      continue: 'Continuar',
+      nextPhase: 'Siguiente Fase',
+      restart: 'Reiniciar',
+      completed: 'completado!',
+      running: 'Timer en ejecución...',
+      paused: 'Timer pausado',
+      autoBreaksEnabled: '⚡ Pausas automáticas activadas',
+      autoStarting: 'iniciando automáticamente...'
     },
     event: {
       title: 'Evento',
