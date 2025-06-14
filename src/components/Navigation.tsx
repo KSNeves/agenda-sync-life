@@ -1,14 +1,19 @@
 
 import React, { useState, useEffect } from 'react';
-import { BarChart3, Clock, BookOpen, Brain, User, ChevronDown, Settings, LogOut } from 'lucide-react';
+import { BarChart3, Clock, BookOpen, Brain, User, ChevronDown, Settings, LogOut, Globe } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useLanguage } from '../context/LanguageContext';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface NavigationProps {
   currentView: string;
@@ -24,6 +29,8 @@ interface UserProfile {
 
 export default function Navigation({ currentView, onViewChange }: NavigationProps) {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const { language, setLanguage } = useLanguage();
+  const { t } = useTranslation();
 
   // Load user profile from localStorage and listen for changes
   useEffect(() => {
@@ -66,6 +73,12 @@ export default function Navigation({ currentView, onViewChange }: NavigationProp
     { id: 'flashcards', label: 'Flashcards', icon: Brain },
   ];
 
+  const languages = [
+    { code: 'pt', name: 'Português', flag: '🇧🇷' },
+    { code: 'en', name: 'English', flag: '🇺🇸' },
+    { code: 'es', name: 'Español', flag: '🇪🇸' },
+  ];
+
   const handleProfileAction = (action: string) => {
     console.log(`Profile action: ${action}`);
     switch (action) {
@@ -79,6 +92,10 @@ export default function Navigation({ currentView, onViewChange }: NavigationProp
         // Implementar logout
         break;
     }
+  };
+
+  const handleLanguageChange = (languageCode: string) => {
+    setLanguage(languageCode);
   };
 
   return (
@@ -125,16 +142,35 @@ export default function Navigation({ currentView, onViewChange }: NavigationProp
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuItem onClick={() => handleProfileAction('profile')}>
                   <User size={16} className="mr-2" />
-                  Perfil
+                  {t('navigation.profile')}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleProfileAction('settings')}>
                   <Settings size={16} className="mr-2" />
-                  Configurações
+                  {t('navigation.settings')}
                 </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <Globe size={16} className="mr-2" />
+                    {t('navigation.language')}
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    {languages.map((lang) => (
+                      <DropdownMenuItem
+                        key={lang.code}
+                        onClick={() => handleLanguageChange(lang.code)}
+                        className={language === lang.code ? 'bg-accent' : ''}
+                      >
+                        <span className="mr-2">{lang.flag}</span>
+                        {lang.name}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => handleProfileAction('logout')}>
                   <LogOut size={16} className="mr-2" />
-                  Sair da conta
+                  {t('navigation.logout')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

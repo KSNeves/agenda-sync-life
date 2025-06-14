@@ -80,7 +80,7 @@ const translations = {
         personal: 'Pessoal',
         other: 'Outro'
       },
-      weekdays: {
+      weekdayLabels: {
         sun: 'Dom',
         mon: 'Seg',
         tue: 'Ter',
@@ -267,6 +267,12 @@ const translations = {
         desc: 'Gerencie suas informações pessoais e configurações de conta'
       }
     },
+    navigation: {
+      profile: 'Perfil',
+      settings: 'Configurações',
+      logout: 'Sair da conta',
+      language: 'Idioma'
+    },
     days: {
       sunday: 'Domingo',
       monday: 'Segunda-feira',
@@ -335,7 +341,7 @@ const translations = {
         personal: 'Personal',
         other: 'Other'
       },
-      weekdays: {
+      weekdayLabels: {
         sun: 'Sun',
         mon: 'Mon',
         tue: 'Tue',
@@ -522,6 +528,12 @@ const translations = {
         desc: 'Manage your personal information and account settings'
       }
     },
+    navigation: {
+      profile: 'Profile',
+      settings: 'Settings',
+      logout: 'Logout',
+      language: 'Language'
+    },
     days: {
       sunday: 'Sunday',
       monday: 'Monday',
@@ -590,7 +602,7 @@ const translations = {
         personal: 'Personal',
         other: 'Otro'
       },
-      weekdays: {
+      weekdayLabels: {
         sun: 'Dom',
         mon: 'Lun',
         tue: 'Mar',
@@ -776,6 +788,12 @@ const translations = {
         title: 'Información Personal',
         desc: 'Gestiona tu información personal y configuraciones de cuenta'
       }
+    },
+    navigation: {
+      profile: 'Perfil',
+      settings: 'Configuración',
+      logout: 'Cerrar sesión',
+      language: 'Idioma'
     },
     days: {
       sunday: 'Domingo',
