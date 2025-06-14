@@ -40,12 +40,12 @@ function LoginRegisterContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-background to-slate-900 flex items-center justify-center p-4">
       {/* Language Selector */}
       <div className="absolute top-4 right-4">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="bg-white/80 backdrop-blur-sm border-white/20">
+            <Button variant="outline" size="sm" className="bg-card/80 backdrop-blur-sm border-border/50">
               <Globe size={16} className="mr-2" />
               {t('auth.language')}
             </Button>
@@ -66,9 +66,9 @@ function LoginRegisterContent() {
       </div>
 
       {/* Main Card */}
-      <Card className="w-full max-w-md bg-white/80 backdrop-blur-sm border-white/20 shadow-xl">
+      <Card className="w-full max-w-md bg-card/80 backdrop-blur-sm border-border/50 shadow-xl">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             {isLogin ? t('auth.welcomeBack') : t('auth.createAccount')}
           </CardTitle>
           <CardDescription className="text-muted-foreground">
@@ -129,7 +129,7 @@ function LoginRegisterContent() {
               />
             </div>
 
-            <Button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+            <Button type="submit" className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90">
               {isLogin ? t('auth.login') : t('auth.register')}
             </Button>
           </form>
@@ -140,7 +140,7 @@ function LoginRegisterContent() {
               <button
                 type="button"
                 onClick={() => setIsLogin(!isLogin)}
-                className="text-blue-600 hover:text-blue-700 font-medium hover:underline"
+                className="text-primary hover:text-primary/80 font-medium hover:underline"
               >
                 {t('auth.clickHere')}
               </button>
