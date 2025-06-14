@@ -228,7 +228,7 @@ export default function Schedule() {
       <div className="flex h-screen bg-background">
         <div className="flex-1 flex flex-col">
           {renderHeader()}
-          <CalendarMonth />
+          <CalendarMonth dayNamesShort={dayNamesShort} />
         </div>
       </div>
     );

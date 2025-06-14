@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Task, RevisionItem } from '../types';
@@ -71,6 +72,16 @@ export default function Dashboard() {
   // Weekly progress calculation - baseado em revisões
   const getWeekProgress = () => {
     const weekDays = [];
+    const dayNamesShort = [
+      t('event.weekdays.sun'),
+      t('event.weekdays.mon'), 
+      t('event.weekdays.tue'),
+      t('event.weekdays.wed'),
+      t('event.weekdays.thu'),
+      t('event.weekdays.fri'),
+      t('event.weekdays.sat')
+    ];
+
     for (let i = 0; i < 7; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() - today.getDay() + i);
@@ -82,7 +93,7 @@ export default function Dashboard() {
       if (savedData) {
         // Usar dados salvos
         weekDays.push({
-          day: date.toLocaleDateString('pt-BR', { weekday: 'short' }),
+          day: dayNamesShort[i],
           progress: savedData.total > 0 ? (savedData.completed / savedData.total) * 100 : 0,
           completed: savedData.completed,
           total: savedData.total
@@ -90,7 +101,7 @@ export default function Dashboard() {
       } else if (date.toDateString() === today.toDateString()) {
         // Para hoje, usar dados em tempo real
         weekDays.push({
-          day: date.toLocaleDateString('pt-BR', { weekday: 'short' }),
+          day: dayNamesShort[i],
           progress: totalDailyTasks > 0 ? (completedRevisionsToday / totalDailyTasks) * 100 : 0,
           completed: completedRevisionsToday,
           total: totalDailyTasks
@@ -98,7 +109,7 @@ export default function Dashboard() {
       } else {
         // Para dias futuros ou dias sem dados, mostrar vazio
         weekDays.push({
-          day: date.toLocaleDateString('pt-BR', { weekday: 'short' }),
+          day: dayNamesShort[i],
           progress: 0,
           completed: 0,
           total: 0

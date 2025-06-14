@@ -1,8 +1,12 @@
-
 import React from 'react';
 import { useApp } from '../context/AppContext';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-export default function CalendarMonth() {
+interface CalendarMonthProps {
+  dayNamesShort: string[];
+}
+
+export default function CalendarMonth({ dayNamesShort }: CalendarMonthProps) {
   const { state, dispatch } = useApp();
   const { selectedDate, events } = state;
 
@@ -49,106 +53,110 @@ export default function CalendarMonth() {
   const weekdays = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
 
   return (
-    <div className="flex-1 bg-background text-foreground">
-      {/* Header dos dias da semana */}
-      <div className="grid grid-cols-7 bg-card/30 border-b border-border/50">
-        {weekdays.map(day => (
-          <div key={day} className="p-4 text-center text-sm font-medium text-muted-foreground border-r border-border/50 last:border-r-0">
-            {day}
-          </div>
-        ))}
-      </div>
-
-      {/* Grade do calendário */}
-      <div className="grid grid-cols-7 flex-1">
-        {calendarDays.map((dayData, index) => {
-          const { date, isOtherMonth } = dayData;
-          const isToday = date.toDateString() === today.toDateString();
-          const dayEvents = getEventsForDay(date);
-          const hasEvents = dayEvents.length > 0;
-
-          return (
-            <div
-              key={index}
-              className={`
-                min-h-[120px] p-2 border-r border-b border-border/20 last:border-r-0 
-                hover:bg-secondary/20 cursor-pointer transition-colors relative
-                ${isOtherMonth ? 'bg-background text-muted-foreground' : 'bg-card/10'}
-              `}
-              onClick={() => handleDayClick(date)}
-            >
-              {/* Número do dia */}
-              <div className="flex justify-start mb-1">
-                <span 
-                  className={`
-                    text-lg font-medium
-                    ${isToday 
-                      ? 'bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center' 
-                      : isOtherMonth 
-                        ? 'text-muted-foreground' 
-                        : 'text-foreground'
-                    }
-                  `}
-                >
-                  {date.getDate()}
-                </span>
+    <div className="flex-1 overflow-auto">
+      <div className="min-w-[800px]">
+        {/* Header dos Dias */}
+        <div className="grid grid-cols-7 border-b border-border/50 bg-card/30">
+          {dayNamesShort.map((dayName, index) => (
+            <div key={index} className="p-4 text-center border-r border-border/50 last:border-r-0">
+              <div className="text-xs font-medium text-muted-foreground">
+                {dayName}
               </div>
+            </div>
+          ))}
+        </div>
 
-              {/* Eventos do dia */}
-              <div className="space-y-1">
-                {dayEvents.slice(0, 3).map(event => {
-                  const startTime = new Date(event.startTime);
-                  const colorMap: { [key: string]: string } = {
-                    blue: 'bg-blue-500',
-                    green: 'bg-green-500',
-                    red: 'bg-red-500',
-                    purple: 'bg-purple-500',
-                    orange: 'bg-orange-500',
-                    pink: 'bg-pink-500',
-                    yellow: 'bg-yellow-500',
-                    gray: 'bg-gray-500',
-                  };
-                  const bgColor = colorMap[event.customColor || 'blue'] || 'bg-blue-500';
+        {/* Grade do calendário */}
+        <div className="grid grid-cols-7 flex-1">
+          {calendarDays.map((dayData, index) => {
+            const { date, isOtherMonth } = dayData;
+            const isToday = date.toDateString() === today.toDateString();
+            const dayEvents = getEventsForDay(date);
+            const hasEvents = dayEvents.length > 0;
 
-                  return (
-                    <div
-                      key={event.id}
-                      className={`
-                        ${bgColor} text-white text-xs p-1 rounded truncate
-                        hover:opacity-80 cursor-pointer
-                      `}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        dispatch({ type: 'OPEN_EVENT_MODAL', payload: event });
-                      }}
-                    >
-                      <div className="font-medium truncate">{event.title}</div>
-                      <div className="text-xs opacity-90">
-                        {startTime.toLocaleTimeString('pt-BR', { 
-                          hour: '2-digit', 
-                          minute: '2-digit' 
-                        })}
+            return (
+              <div
+                key={index}
+                className={`
+                  min-h-[120px] p-2 border-r border-b border-border/20 last:border-r-0 
+                  hover:bg-secondary/20 cursor-pointer transition-colors relative
+                  ${isOtherMonth ? 'bg-background text-muted-foreground' : 'bg-card/10'}
+                `}
+                onClick={() => handleDayClick(date)}
+              >
+                {/* Número do dia */}
+                <div className="flex justify-start mb-1">
+                  <span 
+                    className={`
+                      text-lg font-medium
+                      ${isToday 
+                        ? 'bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center' 
+                        : isOtherMonth 
+                          ? 'text-muted-foreground' 
+                          : 'text-foreground'
+                      }
+                    `}
+                  >
+                    {date.getDate()}
+                  </span>
+                </div>
+
+                {/* Eventos do dia */}
+                <div className="space-y-1">
+                  {dayEvents.slice(0, 3).map(event => {
+                    const startTime = new Date(event.startTime);
+                    const colorMap: { [key: string]: string } = {
+                      blue: 'bg-blue-500',
+                      green: 'bg-green-500',
+                      red: 'bg-red-500',
+                      purple: 'bg-purple-500',
+                      orange: 'bg-orange-500',
+                      pink: 'bg-pink-500',
+                      yellow: 'bg-yellow-500',
+                      gray: 'bg-gray-500',
+                    };
+                    const bgColor = colorMap[event.customColor || 'blue'] || 'bg-blue-500';
+
+                    return (
+                      <div
+                        key={event.id}
+                        className={`
+                          ${bgColor} text-white text-xs p-1 rounded truncate
+                          hover:opacity-80 cursor-pointer
+                        `}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          dispatch({ type: 'OPEN_EVENT_MODAL', payload: event });
+                        }}
+                      >
+                        <div className="font-medium truncate">{event.title}</div>
+                        <div className="text-xs opacity-90">
+                          {startTime.toLocaleTimeString('pt-BR', { 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
 
-                {dayEvents.length > 3 && (
-                  <div className="text-xs text-muted-foreground font-medium">
-                    +{dayEvents.length - 3} mais
+                  {dayEvents.length > 3 && (
+                    <div className="text-xs text-muted-foreground font-medium">
+                      +{dayEvents.length - 3} mais
+                    </div>
+                  )}
+                </div>
+
+                {/* Indicador de eventos quando não há espaço */}
+                {hasEvents && dayEvents.length <= 3 && (
+                  <div className="absolute bottom-1 right-1">
+                    <div className="w-2 h-2 bg-primary rounded-full"></div>
                   </div>
                 )}
               </div>
-
-              {/* Indicador de eventos quando não há espaço */}
-              {hasEvents && dayEvents.length <= 3 && (
-                <div className="absolute bottom-1 right-1">
-                  <div className="w-2 h-2 bg-primary rounded-full"></div>
-                </div>
-              )}
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
   );
