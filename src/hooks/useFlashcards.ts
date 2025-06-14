@@ -121,18 +121,20 @@ export function useFlashcards() {
   };
 
   const updateDeckStats = (deckId: string) => {
-    const deckCards = flashcards.filter(card => card.deckId === deckId);
-    const cardCount = deckCards.length;
-    const newCards = deckCards.filter(card => card.reviewCount === 0).length;
-    const reviewCards = deckCards.filter(card => 
-      card.reviewCount > 0 && card.nextReview <= Date.now()
-    ).length;
+    setTimeout(() => {
+      const deckCards = flashcards.filter(card => card.deckId === deckId);
+      const cardCount = deckCards.length;
+      const newCards = deckCards.filter(card => card.reviewCount === 0).length;
+      const reviewCards = deckCards.filter(card => 
+        card.reviewCount > 0 && card.nextReview <= Date.now()
+      ).length;
 
-    setDecks(prev => prev.map(deck => 
-      deck.id === deckId 
-        ? { ...deck, cardCount, newCards, reviewCards }
-        : deck
-    ));
+      setDecks(prev => prev.map(deck => 
+        deck.id === deckId 
+          ? { ...deck, cardCount, newCards, reviewCards }
+          : deck
+      ));
+    }, 100);
   };
 
   const getDecksStats = () => {
