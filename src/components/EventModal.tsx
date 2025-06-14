@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { CalendarEvent } from '../types';
@@ -36,11 +35,21 @@ export default function EventModal() {
 
   useEffect(() => {
     if (selectedEvent) {
+      // Corrigido: formatação correta do datetime-local
+      const formatDateTimeLocal = (date: Date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+      };
+
       setFormData({
         title: selectedEvent.title,
         description: selectedEvent.description || '',
-        startTime: new Date(selectedEvent.startTime).toISOString().slice(0, 16),
-        endTime: new Date(selectedEvent.endTime).toISOString().slice(0, 16),
+        startTime: formatDateTimeLocal(new Date(selectedEvent.startTime)),
+        endTime: formatDateTimeLocal(new Date(selectedEvent.endTime)),
         type: selectedEvent.type,
         location: selectedEvent.location || '',
         professor: selectedEvent.professor || '',
@@ -58,11 +67,20 @@ export default function EventModal() {
       const endTime = new Date(startTime);
       endTime.setHours(startTime.getHours() + 1);
 
+      const formatDateTimeLocal = (date: Date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+      };
+
       setFormData({
         title: '',
         description: '',
-        startTime: startTime.toISOString().slice(0, 16),
-        endTime: endTime.toISOString().slice(0, 16),
+        startTime: formatDateTimeLocal(startTime),
+        endTime: formatDateTimeLocal(endTime),
         type: 'other',
         location: '',
         professor: '',
@@ -230,7 +248,8 @@ export default function EventModal() {
             </div>
           </div>
 
-          <div className="recurrence-options" style={{ marginTop: '24px' }}>
+          {/* Espaço adicionado entre cores e recorrência */}
+          <div className="recurrence-options" style={{ marginTop: '32px' }}>
             <div className="form-group">
               <label>Recorrência</label>
               <select

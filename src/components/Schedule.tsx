@@ -59,14 +59,15 @@ export default function Schedule() {
     const endMinutes = endTime.getHours() * 60 + endTime.getMinutes();
     const dayStartMinutes = 6 * 60; // 6:00 em minutos
     const totalVisibleMinutes = 14 * 60; // 14 horas visíveis (6:00-20:00)
+    const hourHeightPx = 64; // altura de cada linha de hora em pixels
     
-    // Calcular posição relativa
-    const topPercentage = ((startMinutes - dayStartMinutes) / totalVisibleMinutes) * 100;
-    const heightPercentage = ((endMinutes - startMinutes) / totalVisibleMinutes) * 100;
+    // Calcular posição em pixels
+    const topPx = ((startMinutes - dayStartMinutes) / 60) * hourHeightPx;
+    const heightPx = ((endMinutes - startMinutes) / 60) * hourHeightPx;
     
     return {
-      top: `${Math.max(0, topPercentage)}%`,
-      height: `${Math.max(0.5, heightPercentage)}%`, // Altura mínima
+      top: `${Math.max(0, topPx)}px`,
+      height: `${Math.max(4, heightPx)}px`, // Altura mínima de 4px
     };
   };
 
@@ -173,9 +174,9 @@ export default function Schedule() {
               })}
             </div>
 
-            {/* Grade de Horários */}
+            {/* Grade de Horários - Corrigida para alinhamento */}
             <div className="relative">
-              {/* Container para eventos - posicionado absolutamente sobre toda a grade */}
+              {/* Container para eventos */}
               <div className="absolute inset-0 z-10 grid grid-cols-8">
                 <div className="w-20"></div>
                 {weekDays.map((day, dayIndex) => {
@@ -192,7 +193,7 @@ export default function Schedule() {
                         return (
                           <div
                             key={event.id}
-                            className="absolute left-1 right-1 rounded-lg p-2 text-xs font-medium cursor-pointer hover:shadow-xl transition-all duration-200 border-2"
+                            className="absolute left-1 right-1 rounded-lg p-2 text-xs font-medium cursor-pointer hover:shadow-xl transition-all duration-200 border-2 z-20"
                             style={{
                               ...position,
                               ...eventStyle,
@@ -220,19 +221,21 @@ export default function Schedule() {
                 })}
               </div>
 
-              {/* Grade de linhas de hora */}
+              {/* Grade de linhas de hora - Corrigida para alinhamento */}
               {hours.map((hour, hourIndex) => (
-                <div key={hour} className="grid grid-cols-8 border-b border-border/20">
-                  {/* Coluna de Horário */}
-                  <div className="w-20 p-2 text-right text-sm text-muted-foreground border-r border-border/50">
-                    {hour.toString().padStart(2, '0')}:00
+                <div key={hour} className="grid grid-cols-8 border-b border-border/20 h-16">
+                  {/* Coluna de Horário - Ajustada para alinhar com a linha */}
+                  <div className="w-20 flex items-start justify-end pr-2 pt-0 text-sm text-muted-foreground border-r border-border/50">
+                    <span className="-mt-2">
+                      {hour.toString().padStart(2, '0')}:00
+                    </span>
                   </div>
                   
                   {/* Colunas dos Dias */}
                   {weekDays.map((day, dayIndex) => (
                     <div
                       key={dayIndex}
-                      className="relative h-16 border-r border-border/20 last:border-r-0 hover:bg-secondary/20 cursor-pointer transition-colors"
+                      className="relative border-r border-border/20 last:border-r-0 hover:bg-secondary/20 cursor-pointer transition-colors"
                       onClick={() => {
                         const startTime = new Date(day);
                         startTime.setHours(hour, 0, 0, 0);
