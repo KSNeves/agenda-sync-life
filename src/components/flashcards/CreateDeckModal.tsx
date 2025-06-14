@@ -34,9 +34,9 @@ export default function CreateDeckModal({ isOpen, onClose }: CreateDeckModalProp
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <Card className="bg-gray-800 border-gray-700 w-full max-w-md mx-4">
+      <Card className="w-full max-w-md mx-4">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-white">Criar Novo Deck</CardTitle>
+          <CardTitle>Criar Novo Deck</CardTitle>
           <Button variant="ghost" size="icon" onClick={onClose}>
             <X className="w-4 h-4" />
           </Button>
@@ -44,26 +44,24 @@ export default function CreateDeckModal({ isOpen, onClose }: CreateDeckModalProp
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium mb-2">
                 Nome do Deck
               </label>
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Ex: Inglês - Vocabulário"
-                className="bg-gray-700 border-gray-600 text-white"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium mb-2">
                 Descrição (opcional)
               </label>
               <Textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Descreva sobre o que é este deck..."
-                className="bg-gray-700 border-gray-600 text-white"
                 rows={3}
               />
             </div>
