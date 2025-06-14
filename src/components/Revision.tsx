@@ -132,55 +132,55 @@ export default function Revision() {
               </div>
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-3">
               {filteredItems.map(item => (
-                <div key={item.id} className="bg-card border border-border rounded-lg p-6 hover:shadow-lg transition-shadow relative">
+                <div key={item.id} className="bg-card border border-border rounded-lg p-4 hover:shadow-md transition-shadow relative">
                   {/* Priority Badge */}
                   {item.category === 'priority' && (
-                    <div className="absolute top-4 right-4 bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">
+                    <div className="absolute top-3 right-3 bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">
                       Prioridade
                     </div>
                   )}
                   
                   {/* Main Content */}
-                  <div className="space-y-4">
-                    {/* Title */}
-                    <h3 className="text-xl font-bold text-foreground">{item.title}</h3>
-                    
-                    {/* Description */}
-                    {item.description && (
-                      <p className="text-muted-foreground text-base leading-relaxed">
-                        {item.description}
-                      </p>
-                    )}
-                    
-                    {/* Revision Details */}
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Calendar size={16} />
-                        <span>Agendado para: {formatScheduledDate(item.createdAt)}</span>
+                  <div className="space-y-3">
+                    {/* Title and Info Row */}
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-foreground mb-1">{item.title}</h3>
+                        {item.description && (
+                          <p className="text-muted-foreground text-sm leading-relaxed line-clamp-2">
+                            {item.description}
+                          </p>
+                        )}
                       </div>
-                      
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Clock size={16} />
-                        <span>Tempo estimado: 30 min</span>
+                    </div>
+                    
+                    {/* Meta Info Row */}
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <Calendar size={12} />
+                        <span>{formatScheduledDate(item.createdAt)}</span>
                       </div>
-                      
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Hash size={16} />
-                        <span>Revisão #{getRevisionNumber(item)}</span>
+                      <div className="flex items-center gap-1">
+                        <Clock size={12} />
+                        <span>30 min</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Hash size={12} />
+                        <span>#{getRevisionNumber(item)}</span>
                       </div>
                     </div>
                     
                     {/* Action Buttons */}
-                    <div className="flex gap-3 pt-4">
-                      <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                    <div className="flex gap-2 pt-1">
+                      <button className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors">
                         Ver Conteúdo
                       </button>
                       
                       <button
                         onClick={() => toggleItemCompletion(item)}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
                           item.category === 'completed'
                             ? 'bg-green-600 hover:bg-green-700 text-white'
                             : 'bg-green-100 hover:bg-green-200 text-green-800'
@@ -190,14 +190,14 @@ export default function Revision() {
                       </button>
                       
                       {activeTab !== 'completed' && (
-                        <button className="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                        <button className="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-3 py-1.5 rounded text-xs font-medium transition-colors">
                           Adiar
                         </button>
                       )}
                       
                       <button
                         onClick={() => deleteItem(item.id)}
-                        className="bg-red-100 hover:bg-red-200 text-red-800 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                        className="bg-red-100 hover:bg-red-200 text-red-800 px-3 py-1.5 rounded text-xs font-medium transition-colors"
                       >
                         Excluir
                       </button>
