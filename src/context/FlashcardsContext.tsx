@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Flashcard, Deck } from '../types/flashcard.types';
 import { calculateNextReview } from '../utils/ankiAlgorithm';
@@ -9,6 +8,7 @@ interface FlashcardsContextType {
   isLoaded: boolean;
   createDeck: (deckData: { name: string; description?: string }) => string;
   deleteDeck: (deckId: string) => void;
+  deleteAllDecks: () => void;
   getDeck: (deckId: string) => Deck | undefined;
   addCard: (deckId: string, cardData: { front: string; back: string }) => void;
   deleteCard: (cardId: string) => void;
@@ -103,6 +103,12 @@ export function FlashcardsProvider({ children }: { children: ReactNode }) {
   const deleteDeck = (deckId: string) => {
     setDecks(prev => prev.filter(deck => deck.id !== deckId));
     setFlashcards(prev => prev.filter(card => card.deckId !== deckId));
+  };
+
+  const deleteAllDecks = () => {
+    console.log('🗑️ Deleting all decks and flashcards...');
+    setDecks([]);
+    setFlashcards([]);
   };
 
   const getDeck = (deckId: string) => {
@@ -232,6 +238,7 @@ export function FlashcardsProvider({ children }: { children: ReactNode }) {
       flashcards,
       createDeck,
       deleteDeck,
+      deleteAllDecks,
       getDeck,
       addCard,
       deleteCard,

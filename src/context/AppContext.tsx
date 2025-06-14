@@ -27,6 +27,7 @@ type AppAction =
   | { type: 'UPDATE_EVENT'; payload: CalendarEvent }
   | { type: 'DELETE_EVENT'; payload: string }
   | { type: 'DELETE_RECURRING_EVENTS'; payload: string }
+  | { type: 'CLEAR_EVENTS' }
   | { type: 'SET_CALENDAR_VIEW'; payload: CalendarView }
   | { type: 'SET_SELECTED_DATE'; payload: Date }
   | { type: 'SET_CURRENT_DATE'; payload: Date }
@@ -34,7 +35,8 @@ type AppAction =
   | { type: 'CLOSE_EVENT_MODAL' }
   | { type: 'ADD_REVISION_ITEM'; payload: RevisionItem }
   | { type: 'UPDATE_REVISION_ITEM'; payload: RevisionItem }
-  | { type: 'DELETE_REVISION_ITEM'; payload: string };
+  | { type: 'DELETE_REVISION_ITEM'; payload: string }
+  | { type: 'CLEAR_REVISIONS' };
 
 const initialState: AppState = {
   tasks: [],
@@ -151,6 +153,9 @@ function appReducer(state: AppState, action: AppAction): AppState {
         }),
       };
     
+    case 'CLEAR_EVENTS':
+      return { ...state, events: [] };
+    
     case 'SET_CALENDAR_VIEW':
       return { ...state, calendarView: action.payload };
     
@@ -214,6 +219,9 @@ function appReducer(state: AppState, action: AppAction): AppState {
         ...state,
         revisionItems: state.revisionItems.filter(item => item.id !== action.payload),
       };
+    
+    case 'CLEAR_REVISIONS':
+      return { ...state, revisionItems: [] };
     
     default:
       return state;
