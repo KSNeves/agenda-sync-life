@@ -1,4 +1,3 @@
-
 export interface Task {
   id: string;
   title: string;
@@ -36,6 +35,9 @@ export interface RevisionItem {
   category: 'pending' | 'completed' | 'priority';
   createdAt: number;
   completedAt?: number;
+  revisionCount: number; // Quantas revisões já foram feitas
+  nextRevisionDate: number; // Timestamp da próxima revisão
+  intervalDays: number; // Intervalo atual em dias
 }
 
 export type CalendarView = 'day' | 'week' | 'month';

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 import { Task, CalendarEvent, RevisionItem, CalendarView } from '../types';
+import { calculateNextRevisionDate, categorizeRevision } from '../utils/spacedRepetition';
 
 interface AppState {
   tasks: Task[];
@@ -166,14 +167,43 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, isEventModalOpen: false, selectedEvent: null };
     
     case 'ADD_REVISION_ITEM':
-      return { ...state, revisionItems: [...state.revisionItems, action.payload] };
+      const { nextDate, intervalDays } = calculateNextRevisionDate(0, action.payload.createdAt);
+      const newItem = {
+        ...action.payload,
+        revisionCount: 0,
+        nextRevisionDate: nextDate,
+        intervalDays,
+        category: categorizeRevision({
+          ...action.payload,
+          revisionCount: 0,
+          nextRevisionDate: nextDate,
+          intervalDays,
+        } as RevisionItem) as 'pending' | 'completed' | 'priority',
+      };
+      return { ...state, revisionItems: [...state.revisionItems, newItem] };
     
     case 'UPDATE_REVISION_ITEM':
       return {
         ...state,
-        revisionItems: state.revisionItems.map(item => 
-          item.id === action.payload.id ? action.payload : item
-        ),
+        revisionItems: state.revisionItems.map(item => {
+          if (item.id === action.payload.id) {
+            // Se está sendo marcada como concluída, atualiza o sistema de revisão espaçada
+            if (action.payload.category === 'completed' && item.category !== 'completed') {
+              const newRevisionCount = item.revisionCount + 1;
+              const { nextDate, intervalDays } = calculateNextRevisionDate(newRevisionCount, item.createdAt);
+              
+              return {
+                ...action.payload,
+                revisionCount: newRevisionCount,
+                nextRevisionDate: nextDate,
+                intervalDays,
+                completedAt: Date.now(),
+              };
+            }
+            return action.payload;
+          }
+          return item;
+        }),
       };
     
     case 'DELETE_REVISION_ITEM':

@@ -1,7 +1,7 @@
-
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { RevisionItem } from '../types';
+import { calculateNextRevisionDate } from '../utils/spacedRepetition';
 import {
   Dialog,
   DialogContent,
@@ -29,12 +29,18 @@ export default function CreateRevisionModal({ isOpen, onClose }: CreateRevisionM
     
     if (!title.trim()) return;
 
+    const createdAt = Date.now();
+    const { nextDate, intervalDays } = calculateNextRevisionDate(0, createdAt);
+
     const newRevision: RevisionItem = {
       id: Date.now().toString(),
       title: title.trim(),
       description: content.trim() || undefined,
       category: 'pending',
-      createdAt: Date.now(),
+      createdAt,
+      revisionCount: 0,
+      nextRevisionDate: nextDate,
+      intervalDays,
     };
 
     dispatch({ type: 'ADD_REVISION_ITEM', payload: newRevision });
