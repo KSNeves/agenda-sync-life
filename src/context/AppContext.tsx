@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 import { Task, CalendarEvent, RevisionItem, CalendarView } from '../types';
-import { calculateNextRevisionDate, categorizeRevision } from '../utils/spacedRepetition';
+import { calculateNextRevisionDate, categorizeRevision, adjustDateForNonStudyDays } from '../utils/spacedRepetition';
 
 interface AppState {
   tasks: Task[];
@@ -167,8 +167,12 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, isEventModalOpen: false, selectedEvent: null };
     
     case 'ADD_REVISION_ITEM':
-      // Adiciona o item exatamente como veio, sem modificar
-      return { ...state, revisionItems: [...state.revisionItems, action.payload] };
+      // Ajusta a data inicial considerando dias não-úteis
+      const adjustedItem = {
+        ...action.payload,
+        nextRevisionDate: adjustDateForNonStudyDays(action.payload.nextRevisionDate, action.payload.nonStudyDays)
+      };
+      return { ...state, revisionItems: [...state.revisionItems, adjustedItem] };
     
     case 'UPDATE_REVISION_ITEM':
       return {
@@ -180,16 +184,26 @@ function appReducer(state: AppState, action: AppAction): AppState {
               const newRevisionCount = item.revisionCount + 1;
               const { nextDate, intervalDays } = calculateNextRevisionDate(newRevisionCount, item.createdAt);
               
+              // Ajusta a próxima data considerando dias não-úteis
+              const adjustedNextDate = adjustDateForNonStudyDays(nextDate, item.nonStudyDays);
+              
               return {
                 ...action.payload,
                 revisionCount: newRevisionCount,
-                nextRevisionDate: nextDate,
+                nextRevisionDate: adjustedNextDate,
                 intervalDays,
                 completedAt: Date.now(),
                 category: 'priority', // Vai direto para "Próximas"
               };
             }
-            return action.payload;
+            
+            // Para outros tipos de atualização (como adiar), também ajusta a data
+            const updatedItem = {
+              ...action.payload,
+              nextRevisionDate: adjustDateForNonStudyDays(action.payload.nextRevisionDate, item.nonStudyDays || action.payload.nonStudyDays)
+            };
+            
+            return updatedItem;
           }
           return item;
         }),

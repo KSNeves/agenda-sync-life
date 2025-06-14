@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { RevisionItem } from '../types';
@@ -10,6 +11,7 @@ import {
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
+import { Checkbox } from './ui/checkbox';
 
 interface CreateRevisionModalProps {
   isOpen: boolean;
@@ -22,6 +24,25 @@ export default function CreateRevisionModal({ isOpen, onClose }: CreateRevisionM
   const [content, setContent] = useState('');
   const [subject, setSubject] = useState('');
   const [estimatedTime, setEstimatedTime] = useState('');
+  const [nonStudyDays, setNonStudyDays] = useState<number[]>([]);
+
+  const weekDays = [
+    { value: 0, label: 'Domingo' },
+    { value: 1, label: 'Segunda-feira' },
+    { value: 2, label: 'Terça-feira' },
+    { value: 3, label: 'Quarta-feira' },
+    { value: 4, label: 'Quinta-feira' },
+    { value: 5, label: 'Sexta-feira' },
+    { value: 6, label: 'Sábado' },
+  ];
+
+  const handleNonStudyDayToggle = (dayValue: number) => {
+    setNonStudyDays(prev => 
+      prev.includes(dayValue) 
+        ? prev.filter(day => day !== dayValue)
+        : [...prev, dayValue]
+    );
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,6 +62,7 @@ export default function CreateRevisionModal({ isOpen, onClose }: CreateRevisionM
       revisionCount: 0,
       nextRevisionDate: today.getTime(), // Começa hoje
       intervalDays: 1,
+      nonStudyDays: nonStudyDays.length > 0 ? nonStudyDays : undefined,
     };
 
     dispatch({ type: 'ADD_REVISION_ITEM', payload: newRevision });
@@ -50,6 +72,7 @@ export default function CreateRevisionModal({ isOpen, onClose }: CreateRevisionM
     setContent('');
     setSubject('');
     setEstimatedTime('');
+    setNonStudyDays([]);
     
     onClose();
   };
@@ -60,6 +83,7 @@ export default function CreateRevisionModal({ isOpen, onClose }: CreateRevisionM
     setContent('');
     setSubject('');
     setEstimatedTime('');
+    setNonStudyDays([]);
     
     onClose();
   };
@@ -126,6 +150,32 @@ export default function CreateRevisionModal({ isOpen, onClose }: CreateRevisionM
               className="bg-input border-border text-foreground placeholder:text-muted-foreground"
               min="1"
             />
+          </div>
+
+          <div>
+            <label className="block text-foreground text-sm font-medium mb-3">
+              Dias que não estuda (opcional):
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              {weekDays.map((day) => (
+                <div key={day.value} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`day-${day.value}`}
+                    checked={nonStudyDays.includes(day.value)}
+                    onCheckedChange={() => handleNonStudyDayToggle(day.value)}
+                  />
+                  <label
+                    htmlFor={`day-${day.value}`}
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-foreground"
+                  >
+                    {day.label}
+                  </label>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              As revisões programadas para estes dias serão automaticamente adiadas para o próximo dia útil.
+            </p>
           </div>
 
           <div className="flex gap-4 pt-4">

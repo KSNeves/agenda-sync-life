@@ -31,6 +31,22 @@ export function calculateNextRevisionDate(revisionCount: number, createdAt: numb
   return { nextDate, intervalDays };
 }
 
+export function adjustDateForNonStudyDays(timestamp: number, nonStudyDays?: number[]): number {
+  if (!nonStudyDays || nonStudyDays.length === 0) {
+    return timestamp;
+  }
+
+  const date = new Date(timestamp);
+  let adjustedDate = new Date(date);
+  
+  // Se a data cai em um dia não-útil, move para o próximo dia útil
+  while (nonStudyDays.includes(adjustedDate.getDay())) {
+    adjustedDate.setDate(adjustedDate.getDate() + 1);
+  }
+  
+  return adjustedDate.getTime();
+}
+
 export function isRevisionDue(nextRevisionDate: number): boolean {
   const now = Date.now();
   const today = new Date(now);
@@ -43,7 +59,10 @@ export function isRevisionDue(nextRevisionDate: number): boolean {
 export function categorizeRevision(item: RevisionItem): 'pending' | 'priority' | 'completed' {
   const now = Date.now();
   const today = new Date(now);
-  const revisionDate = new Date(item.nextRevisionDate);
+  
+  // Ajusta a data da revisão considerando dias não-úteis
+  const adjustedRevisionDate = adjustDateForNonStudyDays(item.nextRevisionDate, item.nonStudyDays);
+  const revisionDate = new Date(adjustedRevisionDate);
   
   // Se foi recém concluída, fica em priority (próximas)
   if (item.completedAt && new Date(item.completedAt).toDateString() === today.toDateString()) {

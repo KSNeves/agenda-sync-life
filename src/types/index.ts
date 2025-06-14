@@ -1,3 +1,4 @@
+
 export interface Task {
   id: string;
   title: string;
@@ -38,6 +39,7 @@ export interface RevisionItem {
   revisionCount: number; // Quantas revisões já foram feitas
   nextRevisionDate: number; // Timestamp da próxima revisão
   intervalDays: number; // Intervalo atual em dias
+  nonStudyDays?: number[]; // Dias da semana que não estuda (0 = domingo, 6 = sábado)
 }
 
 export type CalendarView = 'day' | 'week' | 'month';

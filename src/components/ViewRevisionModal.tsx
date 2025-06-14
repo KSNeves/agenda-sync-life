@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from './ui/dialog';
 import { Button } from './ui/button';
-import { Calendar, Clock, Hash } from 'lucide-react';
+import { Calendar, Clock, Hash, CalendarX } from 'lucide-react';
 
 interface ViewRevisionModalProps {
   isOpen: boolean;
@@ -18,6 +18,8 @@ interface ViewRevisionModalProps {
 
 export default function ViewRevisionModal({ isOpen, onClose, revision }: ViewRevisionModalProps) {
   if (!revision) return null;
+
+  const weekDayNames = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
 
   const formatDate = (timestamp: number) => {
     return new Date(timestamp).toLocaleDateString('pt-BR', {
@@ -49,6 +51,17 @@ export default function ViewRevisionModal({ isOpen, onClose, revision }: ViewRev
     });
   };
 
+  const getNonStudyDaysText = () => {
+    if (!revision.nonStudyDays || revision.nonStudyDays.length === 0) {
+      return 'Todos os dias';
+    }
+    
+    return revision.nonStudyDays
+      .sort((a, b) => a - b)
+      .map(day => weekDayNames[day])
+      .join(', ');
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px] bg-card border-border">
@@ -72,7 +85,7 @@ export default function ViewRevisionModal({ isOpen, onClose, revision }: ViewRev
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-input border border-border rounded-lg p-4">
               <div className="flex items-center gap-2 mb-2">
                 <Calendar size={16} className="text-primary" />
@@ -100,6 +113,19 @@ export default function ViewRevisionModal({ isOpen, onClose, revision }: ViewRev
               </div>
               <p className="text-sm text-muted-foreground">
                 {revision.revisionCount} revisões
+              </p>
+            </div>
+
+            <div className="bg-input border border-border rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <CalendarX size={16} className="text-primary" />
+                <span className="text-sm font-medium text-foreground">Dias de Não Estudo</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {revision.nonStudyDays && revision.nonStudyDays.length > 0 
+                  ? getNonStudyDaysText()
+                  : 'Nenhum dia restrito'
+                }
               </p>
             </div>
           </div>
