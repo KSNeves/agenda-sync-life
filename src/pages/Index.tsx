@@ -6,6 +6,7 @@ import Dashboard from '../components/Dashboard';
 import Calendar from '../components/Calendar';
 import Schedule from '../components/Schedule';
 import Revision from '../components/Revision';
+import Flashcards from '../components/Flashcards';
 import EventModal from '../components/EventModal';
 
 const Index = () => {
@@ -21,6 +22,8 @@ const Index = () => {
         return <Schedule />;
       case 'revision':
         return <Revision />;
+      case 'flashcards':
+        return <Flashcards />;
       default:
         return <Dashboard />;
     }

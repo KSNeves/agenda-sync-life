@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BarChart3, Clock, BookOpen } from 'lucide-react';
+import { BarChart3, Clock, BookOpen, Brain } from 'lucide-react';
 
 interface NavigationProps {
   currentView: string;
@@ -12,6 +12,7 @@ export default function Navigation({ currentView, onViewChange }: NavigationProp
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
     { id: 'schedule', label: 'Schedule', icon: Clock },
     { id: 'revision', label: 'Revision', icon: BookOpen },
+    { id: 'flashcards', label: 'Flashcards', icon: Brain },
   ];
 
   return (
