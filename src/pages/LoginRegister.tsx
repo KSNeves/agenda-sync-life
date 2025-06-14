@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
-import { Globe } from 'lucide-react';
+import { Navigate } from 'react-router-dom';
+import { Globe, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,7 +22,12 @@ function LoginRegisterContent() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const { language, setLanguage, t } = useLoginLanguage();
-  const { login } = useAuth();
+  const { signIn, signUp, loading, isAuthenticated } = useAuth();
+
+  // Redirect if already authenticated
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
 
   const languages = [
     { code: 'pt' as const, name: 'Português', flag: '🇧🇷' },
@@ -32,10 +38,17 @@ function LoginRegisterContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!email || !password) {
+      return;
+    }
+
     if (isLogin) {
-      await login(email, password);
+      await signIn(email, password);
     } else {
-      await login(email, password, firstName, lastName);
+      if (!firstName || !lastName) {
+        return;
+      }
+      await signUp(email, password, firstName, lastName);
     }
   };
 
@@ -68,7 +81,7 @@ function LoginRegisterContent() {
       {/* Main Card */}
       <Card className="w-full max-w-md bg-card/80 backdrop-blur-sm border-border/50 shadow-xl">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-primary">
+          <CardTitle className="text-2xl font-bold text-gray-800 dark:text-gray-200">
             {isLogin ? t('auth.welcomeBack') : t('auth.createAccount')}
           </CardTitle>
           <CardDescription className="text-muted-foreground">
@@ -89,6 +102,7 @@ function LoginRegisterContent() {
                     onChange={(e) => setFirstName(e.target.value)}
                     placeholder={t('auth.firstNamePlaceholder')}
                     required={!isLogin}
+                    disabled={loading}
                   />
                 </div>
                 <div className="space-y-2">
@@ -100,6 +114,7 @@ function LoginRegisterContent() {
                     onChange={(e) => setLastName(e.target.value)}
                     placeholder={t('auth.lastNamePlaceholder')}
                     required={!isLogin}
+                    disabled={loading}
                   />
                 </div>
               </div>
@@ -114,6 +129,7 @@ function LoginRegisterContent() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={t('auth.emailPlaceholder')}
                 required
+                disabled={loading}
               />
             </div>
             
@@ -126,11 +142,23 @@ function LoginRegisterContent() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder={t('auth.passwordPlaceholder')}
                 required
+                disabled={loading}
               />
             </div>
 
-            <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
-              {isLogin ? t('auth.login') : t('auth.register')}
+            <Button 
+              type="submit" 
+              className="w-full bg-gray-700 hover:bg-gray-800 text-white"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {isLogin ? 'Entrando...' : 'Criando conta...'}
+                </>
+              ) : (
+                isLogin ? t('auth.login') : t('auth.register')
+              )}
             </Button>
           </form>
 
@@ -140,7 +168,8 @@ function LoginRegisterContent() {
               <button
                 type="button"
                 onClick={() => setIsLogin(!isLogin)}
-                className="text-primary hover:text-primary/80 font-medium hover:underline"
+                className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 font-medium hover:underline"
+                disabled={loading}
               >
                 {t('auth.clickHere')}
               </button>
