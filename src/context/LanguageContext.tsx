@@ -95,20 +95,50 @@ const translations = {
       changesSaved: 'Alterações salvas',
       appearance: 'Aparência',
       darkMode: 'Modo Escuro',
-      'appearance.desc': 'Personalize a aparência da aplicação',
-      'darkMode.desc': 'Alternar entre tema claro e escuro',
-      'language.placeholder': 'Selecione um idioma',
-      'notifications.desc': 'Configure suas preferências de notificação',
-      'pushNotifications.desc': 'Receber notificações no dispositivo',
-      'studyReminders.desc': 'Receber lembretes para estudar',
-      'pomodoro.desc': 'Configure os tempos do Pomodoro',
-      'autoStartBreaks.desc': 'Iniciar pausas automaticamente após o tempo de foco',
-      'resetData.desc': 'Excluir dados da aplicação',
-      'deleteSchedule.btn': 'Excluir Agenda',
-      'deleteAllData.btn': 'Excluir Todos os Dados',
-      'scheduleDeleted.desc': 'Todos os eventos da agenda foram removidos',
-      'allDataDeleted.desc': 'Todos os dados da aplicação foram removidos',
-      'changesSaved.desc': 'Suas configurações foram salvas com sucesso'
+      appearance: {
+        desc: 'Personalize a aparência da aplicação'
+      },
+      darkMode: {
+        desc: 'Alternar entre tema claro e escuro'
+      },
+      language: {
+        placeholder: 'Selecione um idioma'
+      },
+      notifications: {
+        desc: 'Configure suas preferências de notificação'
+      },
+      pushNotifications: {
+        desc: 'Receber notificações no dispositivo'
+      },
+      studyReminders: {
+        desc: 'Receber lembretes para estudar'
+      },
+      pomodoro: {
+        desc: 'Configure os tempos do Pomodoro'
+      },
+      autoStartBreaks: {
+        desc: 'Iniciar pausas automaticamente após o tempo de foco'
+      },
+      resetData: {
+        desc: 'Excluir dados da aplicação'
+      },
+      deleteSchedule: {
+        btn: 'Excluir Agenda',
+        desc: 'Todos os eventos da agenda foram removidos'
+      },
+      deleteAllData: {
+        btn: 'Excluir Todos os Dados',
+        desc: 'Todos os dados da aplicação foram removidos'
+      },
+      scheduleDeleted: {
+        desc: 'Todos os eventos da agenda foram removidos'
+      },
+      allDataDeleted: {
+        desc: 'Todos os dados da aplicação foram removidos'
+      },
+      changesSaved: {
+        desc: 'Suas configurações foram salvas com sucesso'
+      }
     },
     task: {
       title: 'Tarefa',
@@ -212,10 +242,18 @@ const translations = {
     },
     profile: {
       title: 'Perfil',
-      'personalInfo.desc': 'Gerencie suas informações pessoais e configurações de conta',
-      'firstName.placeholder': 'Digite seu nome',
-      'lastName.placeholder': 'Digite seu sobrenome',
-      'email.placeholder': 'Digite seu email'
+      personalInfo: {
+        desc: 'Gerencie suas informações pessoais e configurações de conta'
+      },
+      firstName: {
+        placeholder: 'Digite seu nome'
+      },
+      lastName: {
+        placeholder: 'Digite seu sobrenome'
+      },
+      email: {
+        placeholder: 'Digite seu email'
+      }
     },
     days: {
       sunday: 'Domingo',
