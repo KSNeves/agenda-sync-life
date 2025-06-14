@@ -338,7 +338,7 @@ const translations = {
     'event.monthly': 'Mensalmente',
     'event.yearly': 'Anualmente',
     'event.weekdays': 'Dias da Semana',
-    'event.addToRevision': 'Adicionar à Revisão Espaçada',
+    'event.addToRevision': 'Adicionar à Revisão Espacada',
     'event.addToRevisionDesc': 'Criará automaticamente uma revisão para este evento na data programada',
     'event.deleteSeries': 'Excluir Série',
     'event.delete': 'Excluir',
@@ -386,6 +386,19 @@ const translations = {
     'flashcards.howWasAnswer': 'Como foi sua resposta?',
     'flashcards.forgot': 'Esqueci',
     'flashcards.hard': 'Difícil',
+    
+    // Additional flashcard translations for DeckView
+    'flashcards.cardsToReview': 'cards para revisar',
+    'flashcards.study': 'Estudar',
+    'flashcards.restartStudies': 'Reiniciar estudos',
+    'flashcards.confirmRestartStudies': 'Tem certeza que deseja reiniciar todos os estudos deste deck? Isso resetará todo o progresso.',
+    'flashcards.addNewCard': 'Adicionar Novo Card',
+    'flashcards.frontCard': 'Frente do Card',
+    'flashcards.backCard': 'Verso do Card',
+    'flashcards.frontCardPlaceholder': 'Digite a pergunta ou termo...',
+    'flashcards.backCardPlaceholder': 'Digite a resposta ou definição...',
+    'flashcards.noCardsInCategory': 'Nenhum card nesta categoria',
+    'flashcards.interval': 'Intervalo',
   },
   en: {
     'navigation.dashboard': 'Dashboard',
@@ -764,6 +777,19 @@ const translations = {
     'flashcards.howWasAnswer': 'How was your answer?',
     'flashcards.forgot': 'Forgot',
     'flashcards.hard': 'Hard',
+    
+    // Additional flashcard translations for DeckView
+    'flashcards.cardsToReview': 'cards to review',
+    'flashcards.study': 'Study',
+    'flashcards.restartStudies': 'Restart studies',
+    'flashcards.confirmRestartStudies': 'Are you sure you want to restart all studies for this deck? This will reset all progress.',
+    'flashcards.addNewCard': 'Add New Card',
+    'flashcards.frontCard': 'Card Front',
+    'flashcards.backCard': 'Card Back',
+    'flashcards.frontCardPlaceholder': 'Enter the question or term...',
+    'flashcards.backCardPlaceholder': 'Enter the answer or definition...',
+    'flashcards.noCardsInCategory': 'No cards in this category',
+    'flashcards.interval': 'Interval',
   },
   es: {
     'navigation.dashboard': 'Panel',
@@ -1142,6 +1168,19 @@ const translations = {
     'flashcards.howWasAnswer': '¿Cómo fue tu respuesta?',
     'flashcards.forgot': 'Olvidé',
     'flashcards.hard': 'Difícil',
+    
+    // Additional flashcard translations for DeckView
+    'flashcards.cardsToReview': 'tarjetas para revisar',
+    'flashcards.study': 'Estudiar',
+    'flashcards.restartStudies': 'Reiniciar estudios',
+    'flashcards.confirmRestartStudies': '¿Estás seguro de que deseas reiniciar todos los estudios de este mazo? Esto restablecerá todo el progreso.',
+    'flashcards.addNewCard': 'Agregar Nueva Tarjeta',
+    'flashcards.frontCard': 'Frente de la Tarjeta',
+    'flashcards.backCard': 'Reverso de la Tarjeta',
+    'flashcards.frontCardPlaceholder': 'Ingresa la pregunta o término...',
+    'flashcards.backCardPlaceholder': 'Ingresa la respuesta o definición...',
+    'flashcards.noCardsInCategory': 'No hay tarjetas en esta categoría',
+    'flashcards.interval': 'Intervalo',
   }
 };
 
