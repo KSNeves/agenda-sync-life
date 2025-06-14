@@ -7,6 +7,7 @@ import Calendar from '../components/Calendar';
 import Schedule from '../components/Schedule';
 import Revision from '../components/Revision';
 import Flashcards from '../components/Flashcards';
+import Settings from './Settings';
 import EventModal from '../components/EventModal';
 
 const Index = () => {
@@ -24,6 +25,8 @@ const Index = () => {
         return <Revision />;
       case 'flashcards':
         return <Flashcards />;
+      case 'settings':
+        return <Settings onBack={() => setCurrentView('dashboard')} />;
       default:
         return <Dashboard />;
     }
@@ -32,7 +35,9 @@ const Index = () => {
   return (
     <AppProvider>
       <div className="min-h-screen bg-background">
-        <Navigation currentView={currentView} onViewChange={setCurrentView} />
+        {currentView !== 'settings' && (
+          <Navigation currentView={currentView} onViewChange={setCurrentView} />
+        )}
         <main>
           {renderCurrentView()}
         </main>

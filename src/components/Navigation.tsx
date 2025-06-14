@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BarChart3, Clock, BookOpen, Brain, User, ChevronDown, Settings, LogOut } from 'lucide-react';
 import {
@@ -24,13 +23,12 @@ export default function Navigation({ currentView, onViewChange }: NavigationProp
 
   const handleProfileAction = (action: string) => {
     console.log(`Profile action: ${action}`);
-    // Aqui você pode implementar as ações específicas para cada opção do menu
     switch (action) {
       case 'profile':
         // Navegar para página de perfil
         break;
       case 'settings':
-        // Navegar para configurações
+        onViewChange('settings');
         break;
       case 'logout':
         // Implementar logout
