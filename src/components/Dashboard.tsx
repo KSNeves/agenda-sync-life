@@ -196,110 +196,112 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="dashboard-container">
-      <header className="dashboard-header">
-        <div>
-          <h1 className="text-2xl font-bold">{t('dashboard.title')}</h1>
-          <div className="date-display text-muted-foreground">
-            {formatCurrentDate()}
+    <div className="min-h-screen bg-background text-foreground p-6">
+      <div className="max-w-6xl mx-auto">
+        <header className="mb-8">
+          <div>
+            <h1 className="text-4xl font-bold">{t('dashboard.title')}</h1>
+            <p className="text-muted-foreground mt-2">
+              {formatCurrentDate()}
+            </p>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <div className="dashboard-content">
-        {/* Today's Tasks - First */}
-        <div className="dashboard-widget">
-          <h3 className="text-lg font-semibold mb-4">{t('dashboard.todayTasks')}</h3>
-          {todayRevisions.length === 0 ? (
-            <div className="empty-message">
-              {t('dashboard.noRevisionsToday')}
+        <div className="space-y-6">
+          {/* Today's Tasks - First */}
+          <div className="bg-card/80 backdrop-blur-sm p-6 rounded-xl shadow-2xl border border-border/50 hover:shadow-3xl transition-all duration-300">
+            <h3 className="text-lg font-semibold mb-4">{t('dashboard.todayTasks')}</h3>
+            {todayRevisions.length === 0 ? (
+              <div className="text-center text-muted-foreground bg-secondary/40 p-8 rounded-xl border border-dashed border-border/50">
+                {t('dashboard.noRevisionsToday')}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {todayRevisions.map(revision => (
+                  <div key={revision.id} className="bg-secondary/60 backdrop-blur-sm p-5 rounded-xl flex items-center justify-between gap-4 transition-all duration-300 hover:bg-secondary/80 hover:shadow-lg border border-border/30">
+                    <div className="flex-1">
+                      <div className="font-semibold text-foreground">{revision.title}</div>
+                      {revision.description && (
+                        <div className="text-sm text-muted-foreground mt-1">
+                          {revision.description}
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="flex gap-2 flex-shrink-0">
+                      <button
+                        onClick={() => handleRevisionAction(revision.id, 'start')}
+                        className="flex items-center gap-1 px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition-colors"
+                      >
+                        <PlayCircle className="w-4 h-4" />
+                        {t('dashboard.start')}
+                      </button>
+                      <button
+                        onClick={() => handleRevisionAction(revision.id, 'complete')}
+                        className="flex items-center gap-1 px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600 transition-colors"
+                      >
+                        <CheckCircle className="w-4 h-4" />
+                        {t('dashboard.complete')}
+                      </button>
+                      <button
+                        onClick={() => handleRevisionAction(revision.id, 'postpone')}
+                        className="flex items-center gap-1 px-3 py-1 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded text-sm font-medium transition-colors"
+                      >
+                        <ClockIcon className="w-4 h-4" />
+                        {t('dashboard.postpone')}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Daily Progress - Second */}
+          <div className="bg-card/80 backdrop-blur-sm p-6 rounded-xl shadow-2xl border border-border/50 hover:shadow-3xl transition-all duration-300">
+            <h3 className="text-lg font-semibold mb-4">{t('dashboard.dailyProgress')}</h3>
+            <div className="relative mb-4">
+              <div className="w-full h-3 bg-muted/50 rounded-full overflow-hidden shadow-inner">
+                <div 
+                  className="h-full bg-primary rounded-full transition-all duration-700 ease-out min-w-[5px] shadow-sm"
+                  style={{ width: `${dailyProgress}%` }}
+                />
+              </div>
+              <div className="flex justify-between items-center mt-3 text-sm">
+                <span className="font-bold text-foreground">{completedRevisionsToday}/{totalDailyTasks} {t('dashboard.tasks')}</span>
+                <span className="text-muted-foreground">{dailyProgress.toFixed(0)}%</span>
+              </div>
             </div>
-          ) : (
-            <div className="tasks-list">
-              {todayRevisions.map(revision => (
-                <div key={revision.id} className="task-item">
-                  <div className="task-info">
-                    <div className="task-title">{revision.title}</div>
-                    {revision.description && (
-                      <div className="task-description text-sm text-muted-foreground mt-1">
-                        {revision.description}
-                      </div>
-                    )}
+          </div>
+
+          {/* Weekly Progress - Third */}
+          <div className="bg-card/80 backdrop-blur-sm p-6 rounded-xl shadow-2xl border border-border/50 hover:shadow-3xl transition-all duration-300">
+            <h3 className="text-lg font-semibold mb-4">{t('dashboard.weeklyProgress')}</h3>
+            <div className="space-y-4">
+              {getWeekProgress().map((day, index) => (
+                <div key={index} className="flex items-center gap-4 p-2 rounded-lg hover:bg-muted/20 transition-colors">
+                  <div className="w-20 text-right text-sm font-medium text-muted-foreground">{day.day}</div>
+                  <div className="flex-1 relative">
+                    <div className="w-full h-3 bg-muted/50 rounded-full overflow-hidden shadow-inner">
+                      <div 
+                        className="h-full bg-primary rounded-full transition-all duration-500"
+                        style={{ width: `${day.progress}%` }}
+                      />
+                    </div>
                   </div>
-                  
-                  <div className="task-actions flex gap-2">
-                    <button
-                      onClick={() => handleRevisionAction(revision.id, 'start')}
-                      className="action-button start flex items-center gap-1 px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
-                    >
-                      <PlayCircle className="w-4 h-4" />
-                      {t('dashboard.start')}
-                    </button>
-                    <button
-                      onClick={() => handleRevisionAction(revision.id, 'complete')}
-                      className="action-button complete flex items-center gap-1 px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600"
-                    >
-                      <CheckCircle className="w-4 h-4" />
-                      {t('dashboard.complete')}
-                    </button>
-                    <button
-                      onClick={() => handleRevisionAction(revision.id, 'postpone')}
-                      className="action-button postpone flex items-center gap-1 px-3 py-1 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded text-sm font-medium transition-colors"
-                    >
-                      <ClockIcon className="w-4 h-4" />
-                      {t('dashboard.postpone')}
-                    </button>
-                  </div>
+                  <div className="text-xs text-muted-foreground">{day.completed}/{day.total}</div>
                 </div>
               ))}
             </div>
-          )}
-        </div>
-
-        {/* Daily Progress - Second */}
-        <div className="dashboard-widget">
-          <h3 className="text-lg font-semibold mb-4">{t('dashboard.dailyProgress')}</h3>
-          <div className="progress-container">
-            <div className="progress-bar">
-              <div 
-                className="progress-fill"
-                style={{ width: `${dailyProgress}%` }}
-              />
-            </div>
-            <div className="progress-stats">
-              <span className="progress-value">{completedRevisionsToday}/{totalDailyTasks} {t('dashboard.tasks')}</span>
-              <span className="progress-goal">{dailyProgress.toFixed(0)}%</span>
-            </div>
           </div>
         </div>
 
-        {/* Weekly Progress - Third */}
-        <div className="dashboard-widget">
-          <h3 className="text-lg font-semibold mb-4">{t('dashboard.weeklyProgress')}</h3>
-          <div className="weekly-progress-grid">
-            {getWeekProgress().map((day, index) => (
-              <div key={index} className="day-progress-row">
-                <div className="day-label">{day.day}</div>
-                <div className="progress-container flex-1">
-                  <div className="progress-bar h-3">
-                    <div 
-                      className="h-full bg-primary rounded-full transition-all duration-500"
-                      style={{ width: `${day.progress}%` }}
-                    />
-                  </div>
-                </div>
-                <div className="day-stats">{day.completed}/{day.total}</div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <StudyTimerModal
+          isOpen={isStudyModalOpen}
+          onClose={() => setIsStudyModalOpen(false)}
+          revisionTitle={selectedRevisionTitle}
+        />
       </div>
-
-      <StudyTimerModal
-        isOpen={isStudyModalOpen}
-        onClose={() => setIsStudyModalOpen(false)}
-        revisionTitle={selectedRevisionTitle}
-      />
     </div>
   );
 }
