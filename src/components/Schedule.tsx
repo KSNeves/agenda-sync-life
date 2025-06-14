@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import CalendarMonth from './CalendarMonth';
+import CalendarDay from './CalendarDay';
 
 export default function Schedule() {
   const { state, dispatch } = useApp();
@@ -9,7 +10,7 @@ export default function Schedule() {
 
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
+  const [viewMode, setViewMode] = useState<'day' | 'week' | 'month'>('week');
 
   // Atualizar hora atual a cada minuto
   useEffect(() => {
@@ -25,6 +26,8 @@ export default function Schedule() {
     const newDate = new Date(currentWeek);
     if (viewMode === 'month') {
       newDate.setMonth(newDate.getMonth() + (direction === 'next' ? 1 : -1));
+    } else if (viewMode === 'day') {
+      newDate.setDate(newDate.getDate() + (direction === 'next' ? 1 : -1));
     } else {
       newDate.setDate(newDate.getDate() + (direction === 'next' ? 7 : -7));
     }
@@ -57,6 +60,13 @@ export default function Schedule() {
   const getWeekTitle = () => {
     if (viewMode === 'month') {
       return currentWeek.toLocaleDateString('pt-BR', { year: 'numeric', month: 'long' });
+    } else if (viewMode === 'day') {
+      return currentWeek.toLocaleDateString('pt-BR', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
     }
     const start = weekDays[0];
     const end = weekDays[6];
@@ -180,8 +190,8 @@ export default function Schedule() {
 
               <div className="flex border border-border/50 rounded-lg overflow-hidden bg-card/30">
                 <button 
-                  onClick={() => setViewMode('week')}
-                  className="px-4 py-2 text-muted-foreground hover:bg-accent/50 transition-colors"
+                  onClick={() => setViewMode('day')}
+                  className={`px-4 py-2 ${viewMode === 'day' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/50'} transition-colors`}
                 >
                   Dia
                 </button>
@@ -207,6 +217,157 @@ export default function Schedule() {
     );
   }
 
+  // Se estiver no modo dia, renderizar o componente de dia
+  if (viewMode === 'day') {
+    return (
+      <div className="flex h-screen bg-gray-900 text-white">
+        <div className="flex-1 flex flex-col">
+          {/* Header */}
+          <div className="bg-gray-800 border-b border-gray-700 p-6">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={createEvent}
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-700 transition-colors"
+                >
+                  <Plus size={16} />
+                  Criar Evento
+                </button>
+                <button
+                  onClick={goToToday}
+                  className="px-4 py-2 text-white hover:bg-gray-700 rounded-lg transition-colors"
+                >
+                  Hoje
+                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => navigateWeek('prev')}
+                    className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+                  <button
+                    onClick={() => navigateWeek('next')}
+                    className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+                  >
+                    <ChevronRight size={20} />
+                  </button>
+                </div>
+                <h2 className="text-xl font-semibold text-white">
+                  {getWeekTitle()}
+                </h2>
+              </div>
+
+              <div className="flex border border-gray-600 rounded-lg overflow-hidden bg-gray-800">
+                <button 
+                  onClick={() => setViewMode('day')}
+                  className={`px-4 py-2 ${viewMode === 'day' ? 'bg-gray-600 text-white' : 'text-gray-300 hover:bg-gray-700'} transition-colors`}
+                >
+                  Dia
+                </button>
+                <button 
+                  onClick={() => setViewMode('week')}
+                  className={`px-4 py-2 ${viewMode === 'week' ? 'bg-gray-600 text-white' : 'text-gray-300 hover:bg-gray-700'} transition-colors`}
+                >
+                  Semana
+                </button>
+                <button 
+                  onClick={() => setViewMode('month')}
+                  className={`px-4 py-2 ${viewMode === 'month' ? 'bg-gray-600 text-white' : 'text-gray-300 hover:bg-gray-700'} transition-colors`}
+                >
+                  Mês
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Visualização do Dia */}
+          <div className="flex-1 overflow-auto">
+            <div className="relative">
+              {/* Linha da hora atual */}
+              {currentTimePosition !== null && (
+                <div
+                  className="absolute left-0 right-0 z-30 border-t-2 border-red-500 shadow-lg"
+                  style={{
+                    top: `${currentTimePosition}px`,
+                  }}
+                >
+                  <div className="absolute -left-2 -top-2 w-4 h-4 bg-red-500 rounded-full shadow-lg"></div>
+                  <div className="absolute right-2 -top-3 bg-red-500 text-white text-xs px-2 py-1 rounded shadow-lg">
+                    {currentTime.toLocaleTimeString('pt-BR', { 
+                      hour: '2-digit', 
+                      minute: '2-digit' 
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Container para eventos */}
+              <div className="absolute inset-0 z-10 ml-20">
+                {getEventsForDay(currentWeek).map(event => {
+                  const position = getEventPosition(event);
+                  const eventStyle = getEventStyle(event);
+                  const startTime = new Date(event.startTime);
+                  const endTime = new Date(event.endTime);
+                  
+                  return (
+                    <div
+                      key={event.id}
+                      className="absolute left-2 right-2 rounded-lg p-2 text-xs font-medium cursor-pointer hover:shadow-xl transition-all duration-200 border-2 z-20"
+                      style={{
+                        ...position,
+                        ...eventStyle,
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        dispatch({ type: 'OPEN_EVENT_MODAL', payload: event });
+                      }}
+                    >
+                      <div className="truncate font-semibold text-white">{event.title}</div>
+                      <div className="truncate opacity-90 text-xs text-white">
+                        {startTime.toLocaleTimeString('pt-BR', { 
+                          hour: '2-digit', 
+                          minute: '2-digit' 
+                        })} - {endTime.toLocaleTimeString('pt-BR', { 
+                          hour: '2-digit', 
+                          minute: '2-digit' 
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Grade de linhas de hora */}
+              {hours.map((hour) => (
+                <div key={hour} className="flex border-b border-gray-700 h-16">
+                  {/* Coluna de Horário */}
+                  <div className="w-20 flex items-start justify-end pr-2 pt-0 text-sm text-gray-400 border-r border-gray-700">
+                    <span className="-mt-2">
+                      {hour.toString().padStart(2, '0')}:00
+                    </span>
+                  </div>
+                  
+                  {/* Área do Dia */}
+                  <div
+                    className="flex-1 hover:bg-gray-800 cursor-pointer transition-colors"
+                    onClick={() => {
+                      const startTime = new Date(currentWeek);
+                      startTime.setHours(hour, 0, 0, 0);
+                      dispatch({ type: 'SET_SELECTED_DATE', payload: startTime });
+                      dispatch({ type: 'OPEN_EVENT_MODAL', payload: null });
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ... keep existing code (week view implementation)
   return (
     <div className="flex h-screen bg-background">
       {/* Área Principal - Sem Sidebar */}
@@ -249,8 +410,8 @@ export default function Schedule() {
 
             <div className="flex border border-border/50 rounded-lg overflow-hidden bg-card/30">
               <button 
-                onClick={() => setViewMode('week')}
-                className="px-4 py-2 text-muted-foreground hover:bg-accent/50 transition-colors"
+                onClick={() => setViewMode('day')}
+                className={`px-4 py-2 ${viewMode === 'day' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/50'} transition-colors`}
               >
                 Dia
               </button>
