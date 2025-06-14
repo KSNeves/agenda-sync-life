@@ -1,8 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, RotateCcw } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
 import { useFlashcards } from '../../hooks/useFlashcards';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface StudyModeProps {
   deckId: string;
@@ -11,6 +13,7 @@ interface StudyModeProps {
 
 export default function StudyMode({ deckId, onExit }: StudyModeProps) {
   const { getDeck, getDueCards, reviewCard } = useFlashcards();
+  const { t } = useTranslation();
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [showBack, setShowBack] = useState(false);
   const [studiedCards, setStudiedCards] = useState(0);
@@ -40,7 +43,7 @@ export default function StudyMode({ deckId, onExit }: StudyModeProps) {
         setShowBack(false);
       } else {
         // Fim da sessão
-        alert(`Sessão concluída! Você estudou ${studiedCards + 1} cards.`);
+        alert(`${t('flashcards.studyComplete')} ${t('flashcards.studiedCards')}: ${studiedCards + 1}`);
         onExit();
       }
     }
@@ -59,9 +62,9 @@ export default function StudyMode({ deckId, onExit }: StudyModeProps) {
       <div className="min-h-screen bg-gray-900 text-white p-6">
         <div className="max-w-4xl mx-auto text-center">
           <p className="text-yellow-400 mb-4">
-            {!deck ? 'Deck não encontrado' : 'Nenhum card para revisar no momento. Todos os cards estão em dia!'}
+            {!deck ? t('flashcards.deckNotFound') : t('flashcards.noCardsToReview')}
           </p>
-          <Button onClick={onExit}>Voltar</Button>
+          <Button onClick={onExit}>{t('common.back')}</Button>
         </div>
       </div>
     );
@@ -78,10 +81,10 @@ export default function StudyMode({ deckId, onExit }: StudyModeProps) {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'learning': return 'Aprendendo';
-      case 'reviewing': return 'Revisando';
-      case 'learned': return 'Aprendido';
-      default: return 'Desconhecido';
+      case 'learning': return t('flashcards.learning');
+      case 'reviewing': return t('flashcards.reviewing');
+      case 'learned': return t('flashcards.learned');
+      default: return t('flashcards.unknown');
     }
   };
 
@@ -93,23 +96,23 @@ export default function StudyMode({ deckId, onExit }: StudyModeProps) {
           <div className="flex items-center gap-4">
             <Button variant="ghost" onClick={onExit}>
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Sair
+              {t('flashcards.exit')}
             </Button>
             <div>
               <h1 className="text-2xl font-bold">{deck.name}</h1>
               <p className="text-gray-400">
-                {currentCardIndex + 1} de {sessionCards.length} cards
+                {currentCardIndex + 1} {t('flashcards.of')} {sessionCards.length} {t('flashcards.cards')}
               </p>
             </div>
           </div>
           
           <div className="flex items-center gap-4">
             <div className="text-sm text-gray-400">
-              Estudados: {studiedCards}
+              {t('flashcards.studied')}: {studiedCards}
             </div>
             <Button variant="outline" onClick={handleRestart}>
               <RotateCcw className="w-4 h-4 mr-2" />
-              Reiniciar
+              {t('flashcards.restart')}
             </Button>
           </div>
         </div>
@@ -126,8 +129,8 @@ export default function StudyMode({ deckId, onExit }: StudyModeProps) {
         <div className="mb-4 text-center">
           <span className={`text-sm font-medium ${getStatusColor(currentCard.status)}`}>
             {getStatusText(currentCard.status)} • 
-            Revisões: {currentCard.reviewCount} • 
-            Facilidade: {currentCard.easeFactor.toFixed(1)}
+            {t('flashcards.reviews')}: {currentCard.reviewCount} • 
+            {t('flashcards.ease')}: {currentCard.easeFactor.toFixed(1)}
           </span>
         </div>
 
@@ -144,7 +147,7 @@ export default function StudyMode({ deckId, onExit }: StudyModeProps) {
                     {currentCard.front}
                   </h2>
                   <p className="text-gray-400 text-sm">
-                    Clique para ver a resposta
+                    {t('flashcards.clickToReveal')}
                   </p>
                 </div>
               ) : (
@@ -154,31 +157,31 @@ export default function StudyMode({ deckId, onExit }: StudyModeProps) {
                   </div>
                   
                   <div className="space-y-3">
-                    <p className="text-gray-300 mb-4">Como foi sua resposta?</p>
+                    <p className="text-gray-300 mb-4">{t('flashcards.howWasAnswer')}</p>
                     <div className="flex gap-2 justify-center flex-wrap">
                       <Button
                         onClick={() => handleResponse('again')}
                         className="bg-red-600 hover:bg-red-700 text-white min-w-20"
                       >
-                        Esqueci
+                        {t('flashcards.forgot')}
                       </Button>
                       <Button
                         onClick={() => handleResponse('hard')}
                         className="bg-orange-500 hover:bg-orange-600 text-white min-w-20"
                       >
-                        Difícil
+                        {t('flashcards.hard')}
                       </Button>
                       <Button
                         onClick={() => handleResponse('good')}
                         className="bg-yellow-500 hover:bg-yellow-600 text-white min-w-20"
                       >
-                        Bom
+                        {t('flashcards.good')}
                       </Button>
                       <Button
                         onClick={() => handleResponse('easy')}
                         className="bg-green-500 hover:bg-green-600 text-white min-w-20"
                       >
-                        Fácil
+                        {t('flashcards.easy')}
                       </Button>
                     </div>
                   </div>

@@ -6,6 +6,7 @@ import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { useFlashcards } from '../../context/FlashcardsContext';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface CreateDeckModalProps {
   isOpen: boolean;
@@ -16,6 +17,7 @@ export default function CreateDeckModal({ isOpen, onClose }: CreateDeckModalProp
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const { createDeck } = useFlashcards();
+  const { t } = useTranslation();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,7 +47,7 @@ export default function CreateDeckModal({ isOpen, onClose }: CreateDeckModalProp
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <Card className="w-full max-w-md mx-4">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Criar Novo Deck</CardTitle>
+          <CardTitle>{t('flashcards.createNewDeck')}</CardTitle>
           <Button variant="ghost" size="icon" onClick={onClose}>
             <X className="w-4 h-4" />
           </Button>
@@ -54,32 +56,32 @@ export default function CreateDeckModal({ isOpen, onClose }: CreateDeckModalProp
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-2">
-                Nome do Deck
+                {t('flashcards.deckName')}
               </label>
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Ex: Inglês - Vocabulário"
+                placeholder={t('flashcards.deckNamePlaceholder')}
                 required
               />
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">
-                Descrição (opcional)
+                {t('flashcards.deckDescription')} ({t('common.optional')})
               </label>
               <Textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Descreva sobre o que é este deck..."
+                placeholder={t('flashcards.deckDescriptionPlaceholder')}
                 rows={3}
               />
             </div>
             <div className="flex gap-2 pt-4">
               <Button type="submit" className="flex-1">
-                Criar Deck
+                {t('flashcards.createDeck')}
               </Button>
               <Button type="button" variant="outline" onClick={onClose}>
-                Cancelar
+                {t('common.cancel')}
               </Button>
             </div>
           </form>

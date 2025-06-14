@@ -365,6 +365,27 @@ const translations = {
     'event.weekdays.thu': 'Qui',
     'event.weekdays.fri': 'Sex',
     'event.weekdays.sat': 'Sáb',
+    
+    // Common terms
+    'common.optional': 'opcional',
+    
+    // Flashcard Study Mode specific translations
+    'flashcards.studiedCards': 'cards estudados',
+    'flashcards.deckNotFound': 'Deck não encontrado',
+    'flashcards.exit': 'Sair',
+    'flashcards.of': 'de',
+    'flashcards.studied': 'Estudados',
+    'flashcards.restart': 'Reiniciar',
+    'flashcards.reviews': 'Revisões',
+    'flashcards.ease': 'Facilidade',
+    'flashcards.learning': 'Aprendendo',
+    'flashcards.reviewing': 'Revisando',
+    'flashcards.learned': 'Aprendido',
+    'flashcards.unknown': 'Desconhecido',
+    'flashcards.clickToReveal': 'Clique para ver a resposta',
+    'flashcards.howWasAnswer': 'Como foi sua resposta?',
+    'flashcards.forgot': 'Esqueci',
+    'flashcards.hard': 'Difícil',
   },
   en: {
     'navigation.dashboard': 'Dashboard',
@@ -722,6 +743,27 @@ const translations = {
     'event.weekdays.thu': 'Thu',
     'event.weekdays.fri': 'Fri',
     'event.weekdays.sat': 'Sat',
+    
+    // Common terms
+    'common.optional': 'optional',
+    
+    // Flashcard Study Mode specific translations
+    'flashcards.studiedCards': 'cards studied',
+    'flashcards.deckNotFound': 'Deck not found',
+    'flashcards.exit': 'Exit',
+    'flashcards.of': 'of',
+    'flashcards.studied': 'Studied',
+    'flashcards.restart': 'Restart',
+    'flashcards.reviews': 'Reviews',
+    'flashcards.ease': 'Ease',
+    'flashcards.learning': 'Learning',
+    'flashcards.reviewing': 'Reviewing',
+    'flashcards.learned': 'Learned',
+    'flashcards.unknown': 'Unknown',
+    'flashcards.clickToReveal': 'Click to see the answer',
+    'flashcards.howWasAnswer': 'How was your answer?',
+    'flashcards.forgot': 'Forgot',
+    'flashcards.hard': 'Hard',
   },
   es: {
     'navigation.dashboard': 'Panel',
@@ -1079,6 +1121,27 @@ const translations = {
     'event.weekdays.thu': 'Jue',
     'event.weekdays.fri': 'Vie',
     'event.weekdays.sat': 'Sáb',
+    
+    // Common terms
+    'common.optional': 'opcional',
+    
+    // Flashcard Study Mode specific translations
+    'flashcards.studiedCards': 'tarjetas estudiadas',
+    'flashcards.deckNotFound': 'Mazo no encontrado',
+    'flashcards.exit': 'Salir',
+    'flashcards.of': 'de',
+    'flashcards.studied': 'Estudiadas',
+    'flashcards.restart': 'Reiniciar',
+    'flashcards.reviews': 'Revisiones',
+    'flashcards.ease': 'Facilidad',
+    'flashcards.learning': 'Aprendiendo',
+    'flashcards.reviewing': 'Revisando',
+    'flashcards.learned': 'Aprendido',
+    'flashcards.unknown': 'Desconocido',
+    'flashcards.clickToReveal': 'Haz clic para ver la respuesta',
+    'flashcards.howWasAnswer': '¿Cómo fue tu respuesta?',
+    'flashcards.forgot': 'Olvidé',
+    'flashcards.hard': 'Difícil',
   }
 };
 
