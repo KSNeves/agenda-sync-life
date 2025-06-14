@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useCallback } from 'react';
 
 interface Translation {
@@ -73,7 +72,6 @@ const translations = {
     },
     settings: {
       title: 'Configurações',
-      language: 'Idioma',
       theme: 'Tema',
       light: 'Claro',
       dark: 'Escuro',
@@ -87,6 +85,7 @@ const translations = {
         desc: 'Alternar entre tema claro e escuro'
       },
       language: {
+        title: 'Idioma',
         placeholder: 'Selecione um idioma'
       },
       notifications: {
