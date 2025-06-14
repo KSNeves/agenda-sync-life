@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Calendar, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 
 export default function Schedule() {
   const { state, dispatch } = useApp();
@@ -73,32 +73,7 @@ export default function Schedule() {
 
   return (
     <div className="flex h-screen bg-background">
-      {/* Sidebar de Navegação */}
-      <div className="w-64 bg-card/50 backdrop-blur-sm border-r border-border/50 p-6">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-foreground mb-2">StudyHub</h1>
-        </div>
-
-        <nav className="space-y-2">
-          <div className="bg-primary/20 text-primary px-4 py-3 rounded-lg font-medium">
-            Cronograma
-          </div>
-          <div className="text-muted-foreground px-4 py-3 hover:bg-secondary/50 rounded-lg cursor-pointer transition-colors">
-            Dashboard
-          </div>
-          <div className="text-muted-foreground px-4 py-3 hover:bg-secondary/50 rounded-lg cursor-pointer transition-colors">
-            Flashcards
-          </div>
-          <div className="text-muted-foreground px-4 py-3 hover:bg-secondary/50 rounded-lg cursor-pointer transition-colors">
-            Revisão
-          </div>
-          <div className="text-muted-foreground px-4 py-3 hover:bg-secondary/50 rounded-lg cursor-pointer transition-colors">
-            Configurações
-          </div>
-        </nav>
-      </div>
-
-      {/* Área Principal */}
+      {/* Área Principal - Sem Sidebar */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
         <div className="bg-card/50 backdrop-blur-sm border-b border-border/50 p-6">
@@ -204,15 +179,15 @@ export default function Schedule() {
                           return (
                             <div
                               key={event.id}
-                              className={`absolute left-1 right-1 rounded p-1 text-xs font-medium cursor-pointer hover:shadow-lg transition-all duration-200 event-type-${event.type}`}
+                              className={`absolute left-1 right-1 rounded-lg p-2 text-xs font-medium cursor-pointer hover:shadow-xl transition-all duration-200 z-10 schedule-event-${event.type}`}
                               style={position}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 dispatch({ type: 'OPEN_EVENT_MODAL', payload: event });
                               }}
                             >
-                              <div className="truncate font-semibold">{event.title}</div>
-                              <div className="truncate opacity-75 text-xs">
+                              <div className="truncate font-semibold text-white">{event.title}</div>
+                              <div className="truncate opacity-90 text-xs text-white">
                                 {eventStart.toLocaleTimeString('pt-BR', { 
                                   hour: '2-digit', 
                                   minute: '2-digit' 

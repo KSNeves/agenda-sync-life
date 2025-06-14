@@ -352,6 +352,20 @@
   .event-type-personal { @apply bg-purple-600/30 border-purple-500/50; }
   .event-type-other { @apply bg-gray-600/30 border-gray-500/50; }
   
+  /* Event Types - Cores mais vibrantes e chamativas */
+  .event-type-class { @apply bg-blue-600/80 border-blue-400/70 shadow-lg shadow-blue-500/30; }
+  .event-type-study { @apply bg-green-600/80 border-green-400/70 shadow-lg shadow-green-500/30; }
+  .event-type-exam { @apply bg-red-600/80 border-red-400/70 shadow-lg shadow-red-500/30; }
+  .event-type-personal { @apply bg-purple-600/80 border-purple-400/70 shadow-lg shadow-purple-500/30; }
+  .event-type-other { @apply bg-gray-600/80 border-gray-400/70 shadow-lg shadow-gray-500/30; }
+  
+  /* Schedule Event Types - Cores ainda mais vibrantes */
+  .schedule-event-class { @apply bg-blue-500 border-2 border-blue-300 shadow-xl shadow-blue-500/40; }
+  .schedule-event-study { @apply bg-green-500 border-2 border-green-300 shadow-xl shadow-green-500/40; }
+  .schedule-event-exam { @apply bg-red-500 border-2 border-red-300 shadow-xl shadow-red-500/40; }
+  .schedule-event-personal { @apply bg-purple-500 border-2 border-purple-300 shadow-xl shadow-purple-500/40; }
+  .schedule-event-other { @apply bg-gray-500 border-2 border-gray-300 shadow-xl shadow-gray-500/40; }
+  
   /* Schedule/Cronograma Styles */
   .schedule-container {
     @apply flex h-screen bg-background;
