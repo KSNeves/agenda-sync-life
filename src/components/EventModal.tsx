@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { CalendarEvent } from '../types';
@@ -90,6 +91,99 @@ export default function EventModal() {
     }
   }, [selectedEvent, state.selectedDate]);
 
+  // Função para criar eventos recorrentes
+  const createRecurringEvents = (baseEvent: CalendarEvent) => {
+    const events: CalendarEvent[] = [baseEvent];
+    const startDate = new Date(baseEvent.startTime);
+    const endDate = new Date(baseEvent.endTime);
+    const eventDuration = endDate.getTime() - startDate.getTime();
+
+    if (formData.recurrence.type === 'daily') {
+      // Criar eventos diários por 30 dias
+      for (let i = 1; i <= 30; i++) {
+        const newStart = new Date(startDate);
+        newStart.setDate(startDate.getDate() + i);
+        const newEnd = new Date(newStart.getTime() + eventDuration);
+
+        events.push({
+          ...baseEvent,
+          id: `${baseEvent.id}_${i}`,
+          startTime: newStart,
+          endTime: newEnd,
+        });
+      }
+    } else if (formData.recurrence.type === 'weekly') {
+      if (formData.recurrence.weekdays.length > 0) {
+        // Criar eventos para os dias específicos da semana por 12 semanas
+        for (let week = 0; week < 12; week++) {
+          formData.recurrence.weekdays.forEach(weekday => {
+            if (week === 0 && weekday === startDate.getDay()) {
+              return; // Pular o evento original
+            }
+
+            const newStart = new Date(startDate);
+            newStart.setDate(startDate.getDate() - startDate.getDay() + weekday + (week * 7));
+            const newEnd = new Date(newStart.getTime() + eventDuration);
+
+            // Só adicionar se a data for futura ou atual
+            if (newStart >= new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate())) {
+              events.push({
+                ...baseEvent,
+                id: `${baseEvent.id}_${week}_${weekday}`,
+                startTime: newStart,
+                endTime: newEnd,
+              });
+            }
+          });
+        }
+      } else {
+        // Criar eventos semanais por 12 semanas
+        for (let i = 1; i <= 12; i++) {
+          const newStart = new Date(startDate);
+          newStart.setDate(startDate.getDate() + (i * 7));
+          const newEnd = new Date(newStart.getTime() + eventDuration);
+
+          events.push({
+            ...baseEvent,
+            id: `${baseEvent.id}_${i}`,
+            startTime: newStart,
+            endTime: newEnd,
+          });
+        }
+      }
+    } else if (formData.recurrence.type === 'monthly') {
+      // Criar eventos mensais por 12 meses
+      for (let i = 1; i <= 12; i++) {
+        const newStart = new Date(startDate);
+        newStart.setMonth(startDate.getMonth() + i);
+        const newEnd = new Date(newStart.getTime() + eventDuration);
+
+        events.push({
+          ...baseEvent,
+          id: `${baseEvent.id}_${i}`,
+          startTime: newStart,
+          endTime: newEnd,
+        });
+      }
+    } else if (formData.recurrence.type === 'yearly') {
+      // Criar eventos anuais por 5 anos
+      for (let i = 1; i <= 5; i++) {
+        const newStart = new Date(startDate);
+        newStart.setFullYear(startDate.getFullYear() + i);
+        const newEnd = new Date(newStart.getTime() + eventDuration);
+
+        events.push({
+          ...baseEvent,
+          id: `${baseEvent.id}_${i}`,
+          startTime: newStart,
+          endTime: newEnd,
+        });
+      }
+    }
+
+    return events;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -109,7 +203,15 @@ export default function EventModal() {
     if (selectedEvent) {
       dispatch({ type: 'UPDATE_EVENT', payload: eventData });
     } else {
-      dispatch({ type: 'ADD_EVENT', payload: eventData });
+      if (formData.recurrence.type !== 'none') {
+        // Criar eventos recorrentes
+        const recurringEvents = createRecurringEvents(eventData);
+        recurringEvents.forEach(event => {
+          dispatch({ type: 'ADD_EVENT', payload: event });
+        });
+      } else {
+        dispatch({ type: 'ADD_EVENT', payload: eventData });
+      }
     }
 
     handleClose();
