@@ -40,7 +40,7 @@ function LoginRegisterContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-slate-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-background to-gray-900 flex items-center justify-center p-4">
       {/* Language Selector */}
       <div className="absolute top-4 right-4">
         <DropdownMenu>
@@ -68,7 +68,7 @@ function LoginRegisterContent() {
       {/* Main Card */}
       <Card className="w-full max-w-md bg-card/80 backdrop-blur-sm border-border/50 shadow-xl">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+          <CardTitle className="text-2xl font-bold text-primary">
             {isLogin ? t('auth.welcomeBack') : t('auth.createAccount')}
           </CardTitle>
           <CardDescription className="text-muted-foreground">
@@ -129,7 +129,7 @@ function LoginRegisterContent() {
               />
             </div>
 
-            <Button type="submit" className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90">
+            <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
               {isLogin ? t('auth.login') : t('auth.register')}
             </Button>
           </form>
