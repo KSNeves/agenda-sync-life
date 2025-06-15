@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Task, RevisionItem } from '../types';
@@ -9,7 +8,7 @@ import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useTranslation } from '../hooks/useTranslation';
 
 export default function Dashboard() {
-  const { state, dispatch, updateRevisionItem } = useApp();
+  const { state, dispatch } = useApp();
   const { tasks, events, revisionItems } = state;
   const { t } = useTranslation();
   const [isStudyModalOpen, setIsStudyModalOpen] = useState(false);
@@ -130,7 +129,7 @@ export default function Dashboard() {
     dispatch({ type: action.toUpperCase() + '_TASK' as any, payload: taskId });
   };
 
-  const handleRevisionAction = async (revisionId: string, action: 'start' | 'complete' | 'postpone') => {
+  const handleRevisionAction = (revisionId: string, action: 'start' | 'complete' | 'postpone') => {
     const revision = revisionItems.find(item => item.id === revisionId);
     if (!revision) return;
 
@@ -138,23 +137,27 @@ export default function Dashboard() {
       setSelectedRevisionTitle(revision.title);
       setIsStudyModalOpen(true);
     } else if (action === 'complete') {
-      const updatedRevision = { 
-        ...revision, 
-        category: 'completed' as const,
-        completedAt: Date.now() // Garante que a data de conclusão seja hoje
-      };
-      await updateRevisionItem(updatedRevision);
+      dispatch({ 
+        type: 'UPDATE_REVISION_ITEM', 
+        payload: { 
+          ...revision, 
+          category: 'completed',
+          completedAt: Date.now() // Garante que a data de conclusão seja hoje
+        }
+      });
     } else if (action === 'postpone') {
       const newDate = new Date();
       newDate.setDate(newDate.getDate() + 1);
       newDate.setHours(0, 0, 0, 0);
       
-      const updatedRevision = { 
-        ...revision, 
-        nextRevisionDate: newDate.getTime(),
-        category: 'priority' as const
-      };
-      await updateRevisionItem(updatedRevision);
+      dispatch({ 
+        type: 'UPDATE_REVISION_ITEM', 
+        payload: { 
+          ...revision, 
+          nextRevisionDate: newDate.getTime(),
+          category: 'priority'
+        }
+      });
     }
   };
 

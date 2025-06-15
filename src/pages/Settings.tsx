@@ -10,6 +10,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../hooks/useTranslation';
 import { usePomodoro } from '../context/PomodoroContext';
+import { useApp } from '../context/AppContext';
 import { useFlashcards } from '../hooks/useFlashcards';
 import { toast } from '@/components/ui/use-toast';
 
@@ -22,6 +23,7 @@ export default function Settings({ onBack }: SettingsProps) {
   const { language, setLanguage } = useLanguage();
   const { t } = useTranslation();
   const { settings, updateSettings } = usePomodoro();
+  const { dispatch } = useApp();
   const { deleteAllDecks } = useFlashcards();
   
   const [notifications, setNotifications] = useState(true);
@@ -47,8 +49,7 @@ export default function Settings({ onBack }: SettingsProps) {
   const longBreakOptions = generateTimeOptions(5, 60); // 5 to 60 minutes
 
   const handleDeleteSchedule = () => {
-    // Since we're using Supabase, we would need to implement a clear all events function
-    // For now, just show a message that this would clear the schedule
+    dispatch({ type: 'CLEAR_EVENTS' });
     toast({
       title: t('settings.scheduleDeleted'),
       description: t('settings.deleteSchedule.desc'),
@@ -56,8 +57,14 @@ export default function Settings({ onBack }: SettingsProps) {
   };
 
   const handleDeleteAllData = () => {
+    // Clear schedule events
+    dispatch({ type: 'CLEAR_EVENTS' });
+    
     // Clear flashcards
     deleteAllDecks();
+    
+    // Clear revision items
+    dispatch({ type: 'CLEAR_REVISIONS' });
     
     // Reset pomodoro settings to default
     updateSettings({

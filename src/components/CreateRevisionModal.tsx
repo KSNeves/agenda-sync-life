@@ -21,7 +21,7 @@ interface CreateRevisionModalProps {
 }
 
 export default function CreateRevisionModal({ isOpen, onClose }: CreateRevisionModalProps) {
-  const { addRevisionItem } = useApp();
+  const { dispatch } = useApp();
   const { t } = useTranslation();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -47,7 +47,7 @@ export default function CreateRevisionModal({ isOpen, onClose }: CreateRevisionM
     );
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!title.trim()) return;
@@ -56,7 +56,8 @@ export default function CreateRevisionModal({ isOpen, onClose }: CreateRevisionM
     const today = new Date(now);
     today.setHours(0, 0, 0, 0); // Define para o início do dia
 
-    const newRevision: Omit<RevisionItem, 'id'> = {
+    const newRevision: RevisionItem = {
+      id: Date.now().toString(),
       title: title.trim(),
       description: content.trim() || undefined,
       category: 'pending',
@@ -67,7 +68,7 @@ export default function CreateRevisionModal({ isOpen, onClose }: CreateRevisionM
       nonStudyDays: nonStudyDays.length > 0 ? nonStudyDays : undefined,
     };
 
-    await addRevisionItem(newRevision);
+    dispatch({ type: 'ADD_REVISION_ITEM', payload: newRevision });
     
     // Reset form
     setTitle('');
