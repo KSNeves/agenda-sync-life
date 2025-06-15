@@ -1,13 +1,23 @@
+
 import React, { useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Task, RevisionItem } from '../types';
 import { Play, Pause, Check, Clock, Calendar, PlayCircle, CheckCircle, ClockIcon } from 'lucide-react';
 import { categorizeRevision, calculateNextRevisionDate, adjustDateForNonStudyDays } from '../utils/spacedRepetition';
 import StudyTimerModal from './StudyTimerModal';
+import ProtectedFeature from './ProtectedFeature';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useTranslation } from '../hooks/useTranslation';
 
 export default function Dashboard() {
+  return (
+    <ProtectedFeature feature="Dashboard">
+      <DashboardContent />
+    </ProtectedFeature>
+  );
+}
+
+function DashboardContent() {
   const { state, dispatch } = useApp();
   const { tasks, events, revisionItems } = state;
   const { t } = useTranslation();

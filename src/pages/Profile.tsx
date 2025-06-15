@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, User, Camera, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, User, Camera, Eye, EyeOff, Crown, Clock, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useTranslation } from '../hooks/useTranslation';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '../context/AuthContext';
+import { useSubscription } from '../hooks/useSubscription';
 import { supabase } from '@/integrations/supabase/client';
 
 interface ProfileProps {
@@ -26,6 +27,7 @@ export default function Profile({ onBack }: ProfileProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const { user } = useAuth();
+  const { subscription, isTrialExpired, trialDaysRemaining, upgradeToPremium } = useSubscription();
   
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [firstName, setFirstName] = useState('');
@@ -193,6 +195,42 @@ export default function Profile({ onBack }: ProfileProps) {
     }
   };
 
+  const handleUpgradeToPremium = async () => {
+    const success = await upgradeToPremium();
+    if (success) {
+      toast({
+        title: "Sucesso",
+        description: "Conta atualizada para Premium!",
+      });
+    } else {
+      toast({
+        title: "Erro",
+        description: "Erro ao atualizar conta. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getSubscriptionStatus = () => {
+    if (!subscription) return { text: 'Carregando...', color: 'text-gray-500', icon: Clock };
+    
+    switch (subscription.plan_type) {
+      case 'premium':
+        return { text: 'Premium', color: 'text-green-600', icon: Crown };
+      case 'free_trial':
+        return isTrialExpired 
+          ? { text: 'Teste Expirado', color: 'text-red-600', icon: Clock }
+          : { text: `Teste (${trialDaysRemaining} dias restantes)`, color: 'text-blue-600', icon: Clock };
+      case 'free':
+        return { text: 'Gratuita', color: 'text-gray-600', icon: User };
+      default:
+        return { text: 'Desconhecido', color: 'text-gray-500', icon: Clock };
+    }
+  };
+
+  const status = getSubscriptionStatus();
+  const StatusIcon = status.icon;
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto p-6">
@@ -205,6 +243,69 @@ export default function Profile({ onBack }: ProfileProps) {
         </div>
 
         <div className="space-y-6">
+          {/* Status da Assinatura */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Crown className="h-5 w-5" />
+                Status da Conta
+              </CardTitle>
+              <CardDescription>
+                Informações sobre seu plano atual
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between p-4 bg-secondary/20 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <StatusIcon className={`h-6 w-6 ${status.color}`} />
+                  <div>
+                    <p className="font-semibold">Plano Atual</p>
+                    <p className={`text-sm ${status.color}`}>{status.text}</p>
+                  </div>
+                </div>
+                
+                {subscription?.plan_type !== 'premium' && (
+                  <Button 
+                    onClick={handleUpgradeToPremium}
+                    className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
+                  >
+                    <Crown className="w-4 h-4 mr-2" />
+                    Assinar Premium
+                  </Button>
+                )}
+                
+                {subscription?.plan_type === 'premium' && (
+                  <div className="flex items-center gap-2 text-green-600">
+                    <CheckCircle className="w-5 h-5" />
+                    <span className="font-medium">Ativo</span>
+                  </div>
+                )}
+              </div>
+
+              {subscription?.plan_type === 'free_trial' && !isTrialExpired && (
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-blue-800 font-medium">
+                    Seu período de teste gratuito expira em {trialDaysRemaining} {trialDaysRemaining === 1 ? 'dia' : 'dias'}.
+                  </p>
+                  <p className="text-blue-700 text-sm mt-1">
+                    Após o vencimento, você precisará assinar o plano Premium para continuar usando todas as funcionalidades.
+                  </p>
+                </div>
+              )}
+
+              {isTrialExpired && subscription?.plan_type === 'free_trial' && (
+                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-red-800 font-medium">
+                    Seu período de teste gratuito expirou.
+                  </p>
+                  <p className="text-red-700 text-sm mt-1">
+                    Assine o plano Premium para continuar usando todas as funcionalidades do aplicativo.
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Perfil */}
           <Card>
             <CardHeader>
