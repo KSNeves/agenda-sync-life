@@ -43,6 +43,18 @@ export default function EventModal() {
 
   const [addToRevision, setAddToRevision] = useState(false);
 
+  // Função para encontrar o valor da cor baseado no hex
+  const getColorValueFromHex = (hexColor: string) => {
+    const colorConfig = eventColors.find(c => c.preview.toLowerCase() === hexColor.toLowerCase());
+    return colorConfig?.value || 'blue';
+  };
+
+  // Função para obter o hex baseado no valor da cor
+  const getHexFromColorValue = (colorValue: string) => {
+    const colorConfig = eventColors.find(c => c.value === colorValue);
+    return colorConfig?.preview || '#3b82f6';
+  };
+
   useEffect(() => {
     if (selectedEvent) {
       const formatDateTimeLocal = (timestamp: number) => {
@@ -55,15 +67,13 @@ export default function EventModal() {
         return `${year}-${month}-${day}T${hours}:${minutes}`;
       };
 
-      // Mapear cor do evento para customColor - verificar tanto color quanto customColor
-      const getCustomColorFromHex = (hexColor: string) => {
-        const colorMap = eventColors.find(c => c.preview === hexColor);
-        return colorMap?.value || 'blue';
-      };
-
+      // Pegar a cor correta do evento
       const eventColor = selectedEvent.color || selectedEvent.customColor || '#3b82f6';
-      console.log('Carregando evento no modal:', selectedEvent.title);
-      console.log('Cor do evento encontrada:', eventColor);
+      const colorValue = getColorValueFromHex(eventColor);
+
+      console.log('🔍 Carregando evento editável:', selectedEvent.title);
+      console.log('🎨 Cor original do evento:', eventColor);
+      console.log('🎨 Valor da cor mapeado:', colorValue);
 
       setFormData({
         title: selectedEvent.title,
@@ -73,7 +83,7 @@ export default function EventModal() {
         type: selectedEvent.type,
         location: selectedEvent.location || '',
         professor: selectedEvent.professor || '',
-        customColor: getCustomColorFromHex(eventColor),
+        customColor: colorValue,
         recurrence: {
           type: selectedEvent.recurrence?.type || 'none',
           weekdays: selectedEvent.recurrence?.weekdays || [],
@@ -176,14 +186,12 @@ export default function EventModal() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Garantir mapeamento correto da cor
-    const selectedColorConfig = eventColors.find(c => c.value === formData.customColor);
-    const eventColor = selectedColorConfig?.preview || '#3B82F6';
+    // Converter o valor da cor para hex
+    const eventColor = getHexFromColorValue(formData.customColor);
     
-    console.log('=== SALVANDO EVENTO ===');
-    console.log('CustomColor do formulário:', formData.customColor);
-    console.log('Configuração de cor selecionada:', selectedColorConfig);
-    console.log('Cor hex final para salvar:', eventColor);
+    console.log('💾 Salvando evento...');
+    console.log('🎨 Valor da cor do formulário:', formData.customColor);
+    console.log('🎨 Cor hex para salvar:', eventColor);
     
     const eventData: CalendarEvent = {
       id: selectedEvent?.id || Date.now().toString(),
@@ -194,12 +202,12 @@ export default function EventModal() {
       type: formData.type,
       location: formData.location,
       professor: formData.professor,
-      color: eventColor, // Usar a cor hex correta
-      customColor: eventColor, // Garantir consistência
+      color: eventColor,
+      customColor: eventColor,
       recurrence: formData.recurrence.type !== 'none' ? formData.recurrence : undefined,
     };
 
-    console.log('Dados do evento para salvar:', eventData);
+    console.log('📦 Dados completos do evento:', eventData);
 
     if (selectedEvent) {
       updateEvent(eventData);
@@ -215,7 +223,7 @@ export default function EventModal() {
     }
 
     if (addToRevision) {
-      console.log('Adicionando evento à revisão...');
+      console.log('📚 Adicionando evento à revisão...');
       
       const eventStartDate = new Date(formData.startTime);
       eventStartDate.setHours(0, 0, 0, 0);
@@ -237,7 +245,6 @@ export default function EventModal() {
         intervalDays: 1,
       };
 
-      console.log('Item de revisão a ser criado:', revisionItem);
       addRevisionItem(revisionItem);
     }
 
@@ -246,16 +253,23 @@ export default function EventModal() {
 
   const handleDelete = () => {
     if (selectedEvent) {
+      console.log('🗑️ Iniciando exclusão de evento:', selectedEvent.id);
+      console.log('🗑️ Título do evento:', selectedEvent.title);
+      console.log('🗑️ Tem recorrência?', selectedEvent.recurrence);
+      console.log('🗑️ ID contém underscore?', selectedEvent.id.includes('_'));
+
       if (selectedEvent.recurrence && selectedEvent.recurrence.type !== 'none') {
-        const baseId = selectedEvent.id.split('_')[0];
-        deleteRecurringEvents(baseId);
+        // Evento com recorrência definida - deletar toda a série
+        console.log('🗑️ Deletando série por recorrência definida');
+        deleteRecurringEvents(selectedEvent.id);
+      } else if (selectedEvent.id.includes('_')) {
+        // Evento gerado de uma série (ID contém underscore) - deletar toda a série
+        console.log('🗑️ Deletando série por ID com underscore');
+        deleteRecurringEvents(selectedEvent.id);
       } else {
-        if (selectedEvent.id.includes('_')) {
-          const baseId = selectedEvent.id.split('_')[0];
-          deleteRecurringEvents(baseId);
-        } else {
-          deleteEvent(selectedEvent.id);
-        }
+        // Evento único
+        console.log('🗑️ Deletando evento único');
+        deleteEvent(selectedEvent.id);
       }
       handleClose();
     }
@@ -385,7 +399,7 @@ export default function EventModal() {
                   key={color.value}
                   type="button"
                   onClick={() => {
-                    console.log('Cor clicada no seletor:', color.value, color.preview);
+                    console.log('🎨 Cor clicada:', color.value, color.preview);
                     setFormData(prev => ({ ...prev, customColor: color.value }));
                   }}
                   className={`color-option ${color.bg} ${
@@ -395,6 +409,9 @@ export default function EventModal() {
                   style={{ backgroundColor: color.preview }}
                 />
               ))}
+            </div>
+            <div className="mt-2 text-sm text-gray-600">
+              Cor selecionada: {eventColors.find(c => c.value === formData.customColor)?.name}
             </div>
           </div>
 
