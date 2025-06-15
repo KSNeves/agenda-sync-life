@@ -1,14 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { Event } from '../types';
+import { CalendarEvent } from '../types';
 import { X, Lock } from 'lucide-react';
 import { useSubscription } from '../context/SubscriptionContext';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 export default function EventModal() {
   const { state, dispatch } = useApp();
-  const { isEventModalOpen, editingEvent, selectedDate } = state;
+  const { isEventModalOpen, selectedEvent, selectedDate } = state;
   const { subscribed, planType, trialEndDate } = useSubscription();
   const { toast } = useToast();
 
@@ -43,23 +43,25 @@ export default function EventModal() {
   };
 
   useEffect(() => {
-    if (editingEvent) {
-      setTitle(editingEvent.title);
-      setDescription(editingEvent.description || '');
-      setType(editingEvent.type);
-      setColor(editingEvent.color || '#3b82f6');
+    if (selectedEvent) {
+      setTitle(selectedEvent.title);
+      setDescription(selectedEvent.description || '');
+      setType(selectedEvent.type as 'study' | 'exam' | 'assignment' | 'other');
+      setColor(selectedEvent.color || '#3b82f6');
       
-      const startDate = new Date(editingEvent.startTime);
-      const endDate = new Date(editingEvent.endTime);
+      const startDate = new Date(selectedEvent.startTime);
+      const endDate = new Date(selectedEvent.endTime);
       setStartTime(startDate.toTimeString().slice(0, 5));
       setEndTime(endDate.toTimeString().slice(0, 5));
       
-      setIsRecurring(editingEvent.isRecurring || false);
-      setRecurrenceType(editingEvent.recurrenceType || 'weekly');
-      setRecurrenceInterval(editingEvent.recurrenceInterval || 1);
+      setIsRecurring(selectedEvent.recurrence?.type !== 'none' && selectedEvent.recurrence?.type !== undefined);
+      if (selectedEvent.recurrence && selectedEvent.recurrence.type !== 'none') {
+        setRecurrenceType(selectedEvent.recurrence.type as 'daily' | 'weekly' | 'monthly');
+      }
+      setRecurrenceInterval(1);
       
-      if (editingEvent.recurrenceEnd) {
-        const recEndDate = new Date(editingEvent.recurrenceEnd);
+      if (selectedEvent.recurrence?.endDate) {
+        const recEndDate = new Date(selectedEvent.recurrence.endDate);
         setRecurrenceEnd(recEndDate.toISOString().split('T')[0]);
       }
     } else {
@@ -75,7 +77,7 @@ export default function EventModal() {
       setRecurrenceInterval(1);
       setRecurrenceEnd('');
     }
-  }, [editingEvent, isEventModalOpen]);
+  }, [selectedEvent, isEventModalOpen]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,28 +107,29 @@ export default function EventModal() {
       endDateTime.setDate(endDateTime.getDate() + 1);
     }
 
-    const eventData: Omit<Event, 'id'> = {
+    const eventData: CalendarEvent = {
+      id: selectedEvent ? selectedEvent.id : Date.now().toString(),
       title: title.trim(),
       description: description.trim() || undefined,
-      type,
-      startTime: startDateTime.getTime(),
-      endTime: endDateTime.getTime(),
+      type: type as 'class' | 'study' | 'exam' | 'personal' | 'other',
+      startTime: startDateTime,
+      endTime: endDateTime,
       color,
-      isRecurring,
-      recurrenceType: isRecurring ? recurrenceType : undefined,
-      recurrenceInterval: isRecurring ? recurrenceInterval : undefined,
-      recurrenceEnd: isRecurring && recurrenceEnd ? new Date(recurrenceEnd).getTime() : undefined,
+      recurrence: isRecurring ? {
+        type: recurrenceType as 'daily' | 'weekly' | 'monthly',
+        endDate: recurrenceEnd ? new Date(recurrenceEnd) : undefined
+      } : { type: 'none' }
     };
 
-    if (editingEvent) {
+    if (selectedEvent) {
       dispatch({
         type: 'UPDATE_EVENT',
-        payload: { ...eventData, id: editingEvent.id }
+        payload: eventData
       });
     } else {
       dispatch({
         type: 'ADD_EVENT',
-        payload: { ...eventData, id: Date.now().toString() }
+        payload: eventData
       });
     }
 
@@ -144,7 +147,7 @@ export default function EventModal() {
       <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">
-            {editingEvent ? 'Editar Evento' : 'Novo Evento'}
+            {selectedEvent ? 'Editar Evento' : 'Novo Evento'}
           </h2>
           <button
             onClick={handleClose}
@@ -301,14 +304,14 @@ export default function EventModal() {
                 disabled
               >
                 <Lock className="w-4 h-4" />
-                {editingEvent ? 'Salvar' : 'Criar Evento'}
+                {selectedEvent ? 'Salvar' : 'Criar Evento'}
               </button>
             ) : (
               <button
                 type="submit"
                 className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium transition-colors"
               >
-                {editingEvent ? 'Salvar' : 'Criar Evento'}
+                {selectedEvent ? 'Salvar' : 'Criar Evento'}
               </button>
             )}
             <button
