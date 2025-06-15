@@ -18,13 +18,39 @@ export default function StudyMode({ deckId, onExit }: StudyModeProps) {
   const [showBack, setShowBack] = useState(false);
   const [studiedCards, setStudiedCards] = useState(0);
   const [sessionCards, setSessionCards] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const deck = getDeck(deckId);
 
   useEffect(() => {
-    const dueCards = getDueCards(deckId);
-    setSessionCards(dueCards);
+    const loadCards = async () => {
+      setIsLoading(true);
+      try {
+        const dueCards = getDueCards(deckId);
+        setSessionCards(dueCards);
+      } catch (error) {
+        console.error('Error loading cards:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadCards();
   }, [deckId, getDueCards]);
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white p-6">
+        <div className="max-w-4xl mx-auto text-center">
+          <p className="text-yellow-400 mb-4">
+            {t('common.loading')}...
+          </p>
+          <Button onClick={onExit}>{t('common.back')}</Button>
+        </div>
+      </div>
+    );
+  }
 
   const currentCard = sessionCards[currentCardIndex];
   const hasNextCard = currentCardIndex < sessionCards.length - 1;
@@ -76,7 +102,7 @@ export default function StudyMode({ deckId, onExit }: StudyModeProps) {
       <div className="min-h-screen bg-gray-900 text-white p-6">
         <div className="max-w-4xl mx-auto text-center">
           <p className="text-yellow-400 mb-4">
-            {t('flashcards.loadingCard')}
+            {t('common.loading')}...
           </p>
           <Button onClick={onExit}>{t('common.back')}</Button>
         </div>
@@ -85,6 +111,7 @@ export default function StudyMode({ deckId, onExit }: StudyModeProps) {
   }
 
   const getStatusColor = (status: string) => {
+    if (!status) return 'text-gray-400';
     switch (status) {
       case 'learning': return 'text-red-400';
       case 'reviewing': return 'text-yellow-400';
@@ -94,6 +121,7 @@ export default function StudyMode({ deckId, onExit }: StudyModeProps) {
   };
 
   const getStatusText = (status: string) => {
+    if (!status) return t('flashcards.unknown');
     switch (status) {
       case 'learning': return t('flashcards.learning');
       case 'reviewing': return t('flashcards.reviewing');
@@ -143,8 +171,8 @@ export default function StudyMode({ deckId, onExit }: StudyModeProps) {
         <div className="mb-4 text-center">
           <span className={`text-sm font-medium ${getStatusColor(currentCard.status)}`}>
             {getStatusText(currentCard.status)} • 
-            {t('flashcards.reviews')}: {currentCard.reviewCount} • 
-            {t('flashcards.ease')}: {currentCard.easeFactor.toFixed(1)}
+            {t('flashcards.reviews')}: {currentCard.reviewCount || 0} • 
+            {t('flashcards.ease')}: {(currentCard.easeFactor || 2.5).toFixed(1)}
           </span>
         </div>
 

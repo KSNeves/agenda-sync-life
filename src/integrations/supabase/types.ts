@@ -233,6 +233,39 @@ export type Database = {
         }
         Relationships: []
       }
+      subscriptions: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          plan_type: Database["public"]["Enums"]["plan_type"]
+          trial_end_date: string | null
+          trial_start_date: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          plan_type?: Database["public"]["Enums"]["plan_type"]
+          trial_end_date?: string | null
+          trial_start_date?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          plan_type?: Database["public"]["Enums"]["plan_type"]
+          trial_end_date?: string | null
+          trial_start_date?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -241,7 +274,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      plan_type: "free_trial" | "free" | "premium"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -356,6 +389,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      plan_type: ["free_trial", "free", "premium"],
+    },
   },
 } as const
