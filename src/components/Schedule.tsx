@@ -188,12 +188,11 @@ export default function Schedule() {
         <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 w-full md:w-auto">
           <button
             onClick={createEvent}
-            className="bg-primary text-primary-foreground px-2 py-1 md:px-4 md:py-2 rounded-lg flex items-center gap-1 md:gap-2 hover:bg-primary/90 transition-colors text-xs md:text-sm"
+            className="bg-primary text-primary-foreground px-3 py-1.5 md:px-4 md:py-2 rounded-lg flex items-center gap-1 md:gap-2 hover:bg-primary/90 transition-colors text-sm md:text-sm min-w-[140px] md:min-w-0"
           >
-            <Plus size={12} className="md:hidden" />
+            <Plus size={14} className="md:hidden" />
             <Plus size={14} className="hidden md:block" />
-            <span className="hidden sm:inline">{t('schedule.createEvent')}</span>
-            <span className="sm:hidden">+</span>
+            <span>{t('schedule.createEvent')}</span>
           </button>
           
           <div className="flex items-center gap-1 md:gap-2 w-full md:w-auto">
@@ -271,7 +270,7 @@ export default function Schedule() {
 
           {/* Visualização do Dia */}
           <ScrollArea className="flex-1">
-            <div className="relative">
+            <div className="relative min-w-[320px]">
               {/* Linha da hora atual */}
               {currentTimePosition !== null && (
                 <div
@@ -365,7 +364,7 @@ export default function Schedule() {
         <ScrollArea className="flex-1">
           <div className="overflow-x-auto md:overflow-x-visible">
             {/* Header dos Dias */}
-            <div className="grid grid-cols-8 border-b border-border/50 bg-card/30">
+            <div className="grid grid-cols-8 border-b border-border/50 bg-card/30 min-w-[700px]">
               <div className="w-8 md:w-20"></div>
               {weekDays.map((day, index) => {
                 const isToday = day.toDateString() === new Date().toDateString();
@@ -384,7 +383,7 @@ export default function Schedule() {
             </div>
 
             {/* Grade de Horários */}
-            <div className="relative">
+            <div className="relative min-w-[700px]">
               {/* Linha da hora atual */}
               {currentTimePosition !== null && (
                 <div
