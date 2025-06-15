@@ -83,9 +83,11 @@ export default function Settings({ onBack }: SettingsProps) {
       await calendarData.clearEvents();
       dispatch({ type: 'CLEAR_EVENTS' });
       
-      // Clear revision items
+      // Clear revision items - force clear both Supabase and local state
       console.log('Limpando itens de revisão...');
       await revisionsData.clearRevisions();
+      // Also clear from local app state
+      dispatch({ type: 'CLEAR_REVISION_ITEMS' });
       
       // Clear flashcards
       console.log('Limpando flashcards...');
