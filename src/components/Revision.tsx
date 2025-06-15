@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { RevisionItem } from '../types';
@@ -8,7 +9,7 @@ import ViewRevisionModal from './ViewRevisionModal';
 import { useTranslation } from '../hooks/useTranslation';
 
 export default function Revision() {
-  const { state, dispatch } = useApp();
+  const { state, updateRevisionItem, deleteRevisionItem } = useApp();
   const { revisionItems } = state;
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'pending' | 'completed' | 'priority'>('pending');
@@ -18,29 +19,26 @@ export default function Revision() {
 
   // Atualiza categorias dos itens baseado na data atual
   useEffect(() => {
-    revisionItems.forEach(item => {
+    revisionItems.forEach(async (item) => {
       const currentCategory = categorizeRevision(item);
       if (item.category !== currentCategory) {
-        dispatch({ 
-          type: 'UPDATE_REVISION_ITEM', 
-          payload: { ...item, category: currentCategory }
-        });
+        await updateRevisionItem({ ...item, category: currentCategory });
       }
     });
-  }, [revisionItems, dispatch]);
+  }, [revisionItems, updateRevisionItem]);
 
   const filteredItems = revisionItems.filter(item => item.category === activeTab);
 
-  const toggleItemCompletion = (item: RevisionItem) => {
+  const toggleItemCompletion = async (item: RevisionItem) => {
     const updatedItem: RevisionItem = {
       ...item,
       category: item.category === 'completed' ? 'pending' : 'completed',
     };
 
-    dispatch({ type: 'UPDATE_REVISION_ITEM', payload: updatedItem });
+    await updateRevisionItem(updatedItem);
   };
 
-  const postponeItem = (item: RevisionItem) => {
+  const postponeItem = async (item: RevisionItem) => {
     // Se a revisão é para hoje ou passado, adia para amanhã
     // Se a revisão é futura, adia por mais um dia a partir da data programada
     const currentRevisionDate = new Date(item.nextRevisionDate);
@@ -54,7 +52,7 @@ export default function Revision() {
       category: 'priority', // Vai para próximas
     };
 
-    dispatch({ type: 'UPDATE_REVISION_ITEM', payload: updatedItem });
+    await updateRevisionItem(updatedItem);
   };
 
   const viewRevisionContent = (item: RevisionItem) => {
@@ -62,8 +60,8 @@ export default function Revision() {
     setIsViewModalOpen(true);
   };
 
-  const deleteItem = (id: string) => {
-    dispatch({ type: 'DELETE_REVISION_ITEM', payload: id });
+  const deleteItem = async (id: string) => {
+    await deleteRevisionItem(id);
   };
 
   const getTabLabel = (tab: string) => {

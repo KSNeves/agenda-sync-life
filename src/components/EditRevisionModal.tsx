@@ -22,7 +22,7 @@ interface EditRevisionModalProps {
 }
 
 export default function EditRevisionModal({ isOpen, onClose, revision }: EditRevisionModalProps) {
-  const { dispatch } = useApp();
+  const { updateRevisionItem } = useApp();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [nonStudyDays, setNonStudyDays] = useState<number[]>([]);
@@ -37,7 +37,7 @@ export default function EditRevisionModal({ isOpen, onClose, revision }: EditRev
     }
   }, [revision]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!revision || !title.trim()) return;
 
     const updatedRevision: RevisionItem = {
@@ -47,7 +47,7 @@ export default function EditRevisionModal({ isOpen, onClose, revision }: EditRev
       nonStudyDays: nonStudyDays.length > 0 ? nonStudyDays : undefined,
     };
 
-    dispatch({ type: 'UPDATE_REVISION_ITEM', payload: updatedRevision });
+    await updateRevisionItem(updatedRevision);
     onClose();
   };
 
