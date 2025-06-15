@@ -1,6 +1,8 @@
-import React, { createContext, useContext, useReducer, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, ReactNode, useEffect } from 'react';
 import { Task, CalendarEvent, RevisionItem, CalendarView } from '../types';
 import { calculateNextRevisionDate, categorizeRevision, adjustDateForNonStudyDays } from '../utils/spacedRepetition';
+import { useSupabaseCalendarEvents, useSupabaseRevisions } from '../hooks/useSupabaseData';
+import { useAuth } from './AuthContext';
 
 interface AppState {
   tasks: Task[];
@@ -36,7 +38,9 @@ type AppAction =
   | { type: 'ADD_REVISION_ITEM'; payload: RevisionItem }
   | { type: 'UPDATE_REVISION_ITEM'; payload: RevisionItem }
   | { type: 'DELETE_REVISION_ITEM'; payload: string }
-  | { type: 'CLEAR_REVISIONS' };
+  | { type: 'CLEAR_REVISIONS' }
+  | { type: 'SET_EVENTS'; payload: CalendarEvent[] }
+  | { type: 'SET_REVISIONS'; payload: RevisionItem[] };
 
 const initialState: AppState = {
   tasks: [],
@@ -51,6 +55,12 @@ const initialState: AppState = {
 
 function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
+    case 'SET_EVENTS':
+      return { ...state, events: action.payload };
+    
+    case 'SET_REVISIONS':
+      return { ...state, revisionItems: action.payload };
+    
     case 'ADD_TASK':
       return { ...state, tasks: [...state.tasks, action.payload] };
     
@@ -147,7 +157,6 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return {
         ...state,
         events: state.events.filter(event => {
-          // Remove o evento original e todos os eventos que começam com o baseId
           const baseId = action.payload;
           return event.id !== baseId && !event.id.startsWith(`${baseId}_`);
         }),
@@ -172,7 +181,6 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, isEventModalOpen: false, selectedEvent: null };
     
     case 'ADD_REVISION_ITEM':
-      // Ajusta a data inicial considerando dias não-úteis
       const adjustedItem = {
         ...action.payload,
         nextRevisionDate: adjustDateForNonStudyDays(action.payload.nextRevisionDate, action.payload.nonStudyDays)
@@ -184,12 +192,10 @@ function appReducer(state: AppState, action: AppAction): AppState {
         ...state,
         revisionItems: state.revisionItems.map(item => {
           if (item.id === action.payload.id) {
-            // Se está sendo marcada como concluída, atualiza o sistema de revisão espaçada
             if (action.payload.category === 'completed' && item.category !== 'completed') {
               const newRevisionCount = item.revisionCount + 1;
               const { nextDate, intervalDays } = calculateNextRevisionDate(newRevisionCount, item.createdAt);
               
-              // Ajusta a próxima data considerando dias não-úteis
               const adjustedNextDate = adjustDateForNonStudyDays(nextDate, item.nonStudyDays);
               
               return {
@@ -198,11 +204,10 @@ function appReducer(state: AppState, action: AppAction): AppState {
                 nextRevisionDate: adjustedNextDate,
                 intervalDays,
                 completedAt: Date.now(),
-                category: 'priority', // Vai direto para "Próximas"
+                category: 'priority',
               };
             }
             
-            // Para outros tipos de atualização (como adiar), também ajusta a data
             const updatedItem = {
               ...action.payload,
               nextRevisionDate: adjustDateForNonStudyDays(action.payload.nextRevisionDate, item.nonStudyDays || action.payload.nonStudyDays)
@@ -235,9 +240,67 @@ const AppContext = createContext<{
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
+  const { user } = useAuth();
+  const calendarData = useSupabaseCalendarEvents();
+  const revisionsData = useSupabaseRevisions();
+
+  // Sincronizar dados do Supabase com o estado local
+  useEffect(() => {
+    if (calendarData.isLoaded) {
+      dispatch({ type: 'SET_EVENTS', payload: calendarData.events });
+    }
+  }, [calendarData.events, calendarData.isLoaded]);
+
+  useEffect(() => {
+    if (revisionsData.isLoaded) {
+      dispatch({ type: 'SET_REVISIONS', payload: revisionsData.revisionItems });
+    }
+  }, [revisionsData.revisionItems, revisionsData.isLoaded]);
+
+  // Interceptar ações para sincronizar com Supabase
+  const enhancedDispatch = async (action: AppAction) => {
+    if (!user) {
+      dispatch(action);
+      return;
+    }
+
+    // Atualizar estado local primeiro
+    dispatch(action);
+
+    // Sincronizar com Supabase baseado no tipo de ação
+    switch (action.type) {
+      case 'ADD_EVENT':
+        await calendarData.addEvent(action.payload);
+        break;
+      case 'UPDATE_EVENT':
+        await calendarData.updateEvent(action.payload);
+        break;
+      case 'DELETE_EVENT':
+        await calendarData.deleteEvent(action.payload);
+        break;
+      case 'DELETE_RECURRING_EVENTS':
+        await calendarData.deleteRecurringEvents(action.payload);
+        break;
+      case 'CLEAR_EVENTS':
+        await calendarData.clearEvents();
+        break;
+      case 'ADD_REVISION_ITEM':
+        await revisionsData.addRevision(action.payload);
+        break;
+      case 'UPDATE_REVISION_ITEM':
+        await revisionsData.updateRevision(action.payload);
+        break;
+      case 'DELETE_REVISION_ITEM':
+        await revisionsData.deleteRevision(action.payload);
+        break;
+      case 'CLEAR_REVISIONS':
+        await revisionsData.clearRevisions();
+        break;
+    }
+  };
 
   return (
-    <AppContext.Provider value={{ state, dispatch }}>
+    <AppContext.Provider value={{ state, dispatch: enhancedDispatch }}>
       {children}
     </AppContext.Provider>
   );

@@ -13,6 +13,7 @@ import { usePomodoro } from '../context/PomodoroContext';
 import { useApp } from '../context/AppContext';
 import { useFlashcards } from '../hooks/useFlashcards';
 import { toast } from '@/components/ui/use-toast';
+import { useSupabaseCalendarEvents, useSupabaseRevisions } from '../hooks/useSupabaseData';
 
 interface SettingsProps {
   onBack: () => void;
@@ -25,6 +26,8 @@ export default function Settings({ onBack }: SettingsProps) {
   const { settings, updateSettings } = usePomodoro();
   const { dispatch } = useApp();
   const { deleteAllDecks } = useFlashcards();
+  const calendarData = useSupabaseCalendarEvents();
+  const revisionsData = useSupabaseRevisions();
   
   const [notifications, setNotifications] = useState(true);
   const [studyReminders, setStudyReminders] = useState(true);
@@ -48,38 +51,54 @@ export default function Settings({ onBack }: SettingsProps) {
   const shortBreakOptions = generateTimeOptions(5, 30); // 5 to 30 minutes
   const longBreakOptions = generateTimeOptions(5, 60); // 5 to 60 minutes
 
-  const handleDeleteSchedule = () => {
-    dispatch({ type: 'CLEAR_EVENTS' });
-    toast({
-      title: t('settings.scheduleDeleted'),
-      description: t('settings.deleteSchedule.desc'),
-    });
+  const handleDeleteSchedule = async () => {
+    try {
+      await calendarData.clearEvents();
+      toast({
+        title: t('settings.scheduleDeleted'),
+        description: t('settings.deleteSchedule.desc'),
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao deletar agenda.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleDeleteAllData = () => {
-    // Clear schedule events
-    dispatch({ type: 'CLEAR_EVENTS' });
-    
-    // Clear flashcards
-    deleteAllDecks();
-    
-    // Clear revision items
-    dispatch({ type: 'CLEAR_REVISIONS' });
-    
-    // Reset pomodoro settings to default
-    updateSettings({
-      focusTime: 25,
-      shortBreak: 5,
-      longBreak: 15,
-      longBreakInterval: 4,
-      autoStartBreaks: false
-    });
-    
-    toast({
-      title: t('settings.allDataDeleted'),
-      description: t('settings.deleteAllData.desc'),
-      variant: "destructive"
-    });
+  const handleDeleteAllData = async () => {
+    try {
+      // Clear schedule events
+      await calendarData.clearEvents();
+      
+      // Clear flashcards
+      await deleteAllDecks();
+      
+      // Clear revision items
+      await revisionsData.clearRevisions();
+      
+      // Reset pomodoro settings to default
+      updateSettings({
+        focusTime: 25,
+        shortBreak: 5,
+        longBreak: 15,
+        longBreakInterval: 4,
+        autoStartBreaks: false
+      });
+      
+      toast({
+        title: t('settings.allDataDeleted'),
+        description: t('settings.deleteAllData.desc'),
+        variant: "destructive"
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao deletar todos os dados.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSaveChanges = () => {

@@ -9,7 +9,230 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      calendar_events: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          end_time: number
+          id: string
+          is_recurring: boolean | null
+          recurrence_end: number | null
+          recurrence_interval: number | null
+          recurrence_type: string | null
+          start_time: number
+          title: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          end_time: number
+          id: string
+          is_recurring?: boolean | null
+          recurrence_end?: number | null
+          recurrence_interval?: number | null
+          recurrence_type?: string | null
+          start_time: number
+          title: string
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          end_time?: number
+          id?: string
+          is_recurring?: boolean | null
+          recurrence_end?: number | null
+          recurrence_interval?: number | null
+          recurrence_type?: string | null
+          start_time?: number
+          title?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      flashcard_decks: {
+        Row: {
+          card_count: number | null
+          created_at: number
+          description: string | null
+          id: string
+          learned_cards: number | null
+          name: string
+          new_cards: number | null
+          review_cards: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          card_count?: number | null
+          created_at: number
+          description?: string | null
+          id: string
+          learned_cards?: number | null
+          name: string
+          new_cards?: number | null
+          review_cards?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          card_count?: number | null
+          created_at?: number
+          description?: string | null
+          id?: string
+          learned_cards?: number | null
+          name?: string
+          new_cards?: number | null
+          review_cards?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      flashcards: {
+        Row: {
+          back: string
+          created_at: number
+          deck_id: string
+          ease_factor: number | null
+          front: string
+          id: string
+          interval_days: number | null
+          lapses: number | null
+          last_reviewed: number | null
+          learning_step: number | null
+          next_review: number
+          review_count: number | null
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          back: string
+          created_at: number
+          deck_id: string
+          ease_factor?: number | null
+          front: string
+          id: string
+          interval_days?: number | null
+          lapses?: number | null
+          last_reviewed?: number | null
+          learning_step?: number | null
+          next_review: number
+          review_count?: number | null
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          back?: string
+          created_at?: number
+          deck_id?: string
+          ease_factor?: number | null
+          front?: string
+          id?: string
+          interval_days?: number | null
+          lapses?: number | null
+          last_reviewed?: number | null
+          learning_step?: number | null
+          next_review?: number
+          review_count?: number | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flashcards_deck_id_fkey"
+            columns: ["deck_id"]
+            isOneToOne: false
+            referencedRelation: "flashcard_decks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      revision_items: {
+        Row: {
+          category: string
+          completed_at: number | null
+          created_at: number
+          description: string | null
+          id: string
+          interval_days: number | null
+          next_revision_date: number
+          non_study_days: number[] | null
+          revision_count: number | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          completed_at?: number | null
+          created_at: number
+          description?: string | null
+          id: string
+          interval_days?: number | null
+          next_revision_date: number
+          non_study_days?: number[] | null
+          revision_count?: number | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          completed_at?: number | null
+          created_at?: number
+          description?: string | null
+          id?: string
+          interval_days?: number | null
+          next_revision_date?: number
+          non_study_days?: number[] | null
+          revision_count?: number | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useTranslation } from '../hooks/useTranslation';
 import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ProfileProps {
   onBack: () => void;
@@ -23,6 +25,7 @@ interface UserProfile {
 export default function Profile({ onBack }: ProfileProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const { user } = useAuth();
   
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [firstName, setFirstName] = useState('');
@@ -36,17 +39,31 @@ export default function Profile({ onBack }: ProfileProps) {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Load user profile from localStorage on component mount
+  // Load user profile from Supabase on component mount
   useEffect(() => {
-    const savedProfile = localStorage.getItem('userProfile');
-    if (savedProfile) {
-      const profile: UserProfile = JSON.parse(savedProfile);
-      setFirstName(profile.firstName || '');
-      setLastName(profile.lastName || '');
-      setEmail(profile.email || '');
-      setProfileImage(profile.profileImage || null);
-    }
-  }, []);
+    const loadProfile = async () => {
+      if (!user) return;
+
+      try {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (profile) {
+          setFirstName(profile.first_name || '');
+          setLastName(profile.last_name || '');
+          setEmail(profile.email || '');
+          setProfileImage(null); // Implementar storage depois se necessário
+        }
+      } catch (error) {
+        console.error('Erro ao carregar perfil:', error);
+      }
+    };
+
+    loadProfile();
+  }, [user]);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -59,7 +76,9 @@ export default function Profile({ onBack }: ProfileProps) {
     }
   };
 
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
+    if (!user) return;
+
     // Validate required fields
     if (!firstName.trim() || !lastName.trim() || !email.trim()) {
       toast({
@@ -111,32 +130,67 @@ export default function Profile({ onBack }: ProfileProps) {
       }
     }
 
-    // Save profile to localStorage
-    const userProfile: UserProfile = {
-      firstName: firstName.trim(),
-      lastName: lastName.trim(),
-      email: email.trim(),
-      profileImage: profileImage,
-    };
+    try {
+      // Update profile in Supabase
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+          email: email.trim()
+        })
+        .eq('id', user.id);
 
-    localStorage.setItem('userProfile', JSON.stringify(userProfile));
+      if (profileError) throw profileError;
 
-    // Dispatch custom event to notify other components
-    window.dispatchEvent(new Event('profileUpdated'));
+      // Update password if needed
+      if (newPassword) {
+        const { error: passwordError } = await supabase.auth.updateUser({
+          password: newPassword
+        });
 
-    // If password was changed, save it separately (in a real app, this would be handled securely on the backend)
-    if (newPassword) {
-      localStorage.setItem('userPassword', newPassword);
-      // Clear password fields after successful change
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
+        if (passwordError) throw passwordError;
+
+        // Clear password fields after successful change
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+      }
+
+      // Update email if changed
+      if (email !== user.email) {
+        const { error: emailError } = await supabase.auth.updateUser({
+          email: email.trim()
+        });
+
+        if (emailError) throw emailError;
+      }
+
+      // Save profile to localStorage for compatibility
+      const userProfile: UserProfile = {
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email: email.trim(),
+        profileImage: profileImage,
+      };
+
+      localStorage.setItem('userProfile', JSON.stringify(userProfile));
+
+      // Dispatch custom event to notify other components
+      window.dispatchEvent(new Event('profileUpdated'));
+
+      toast({
+        title: "Sucesso",
+        description: "Perfil salvo com sucesso!",
+      });
+    } catch (error: any) {
+      console.error('Erro ao salvar perfil:', error);
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao salvar perfil.",
+        variant: "destructive",
+      });
     }
-
-    toast({
-      title: "Sucesso",
-      description: "Perfil salvo com sucesso!",
-    });
   };
 
   return (
