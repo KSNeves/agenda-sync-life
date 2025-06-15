@@ -54,6 +54,16 @@ export default function EventModal() {
         return `${year}-${month}-${day}T${hours}:${minutes}`;
       };
 
+      // Mapear cor do evento para customColor
+      const getCustomColorFromHex = (hexColor: string) => {
+        const colorMap = eventColors.find(c => c.preview === hexColor);
+        return colorMap?.value || 'blue';
+      };
+
+      console.log('Evento selecionado:', selectedEvent);
+      console.log('Cor do evento:', selectedEvent.color);
+      console.log('CustomColor do evento:', selectedEvent.customColor);
+
       setFormData({
         title: selectedEvent.title,
         description: selectedEvent.description || '',
@@ -62,7 +72,7 @@ export default function EventModal() {
         type: selectedEvent.type,
         location: selectedEvent.location || '',
         professor: selectedEvent.professor || '',
-        customColor: selectedEvent.customColor || 'blue',
+        customColor: getCustomColorFromHex(selectedEvent.color || selectedEvent.customColor || '#3b82f6'),
         recurrence: {
           type: selectedEvent.recurrence?.type || 'none',
           weekdays: selectedEvent.recurrence?.weekdays || [],
@@ -70,6 +80,7 @@ export default function EventModal() {
       });
       setAddToRevision(false);
     } else {
+      // ... keep existing code (new event initialization)
       const now = new Date();
       const startTime = new Date(state.selectedDate);
       startTime.setHours(now.getHours(), 0, 0, 0);
@@ -100,6 +111,7 @@ export default function EventModal() {
     }
   }, [selectedEvent, state.selectedDate]);
 
+  // ... keep existing code (createRecurringEvents function)
   const createRecurringEvents = (baseEvent: CalendarEvent) => {
     const events: CalendarEvent[] = [baseEvent];
     const startDate = new Date(baseEvent.startTime);
@@ -163,11 +175,14 @@ export default function EventModal() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Mapear a cor corretamente
-    const eventColor = eventColors.find(c => c.value === formData.customColor)?.preview || '#3B82F6';
+    // Garantir mapeamento correto da cor
+    const selectedColorConfig = eventColors.find(c => c.value === formData.customColor);
+    const eventColor = selectedColorConfig?.preview || '#3B82F6';
     
-    console.log('Cor selecionada:', formData.customColor);
-    console.log('Cor mapeada:', eventColor);
+    console.log('=== SALVANDO EVENTO ===');
+    console.log('CustomColor selecionado:', formData.customColor);
+    console.log('Configuração de cor encontrada:', selectedColorConfig);
+    console.log('Cor final mapeada:', eventColor);
     
     const eventData: CalendarEvent = {
       id: selectedEvent?.id || Date.now().toString(),
@@ -178,12 +193,12 @@ export default function EventModal() {
       type: formData.type,
       location: formData.location,
       professor: formData.professor,
-      color: eventColor, // Usar color para compatibilidade
-      customColor: formData.customColor, // Manter customColor também
+      color: eventColor,
+      customColor: eventColor, // Garantir consistência
       recurrence: formData.recurrence.type !== 'none' ? formData.recurrence : undefined,
     };
 
-    console.log('Dados do evento para salvar:', eventData);
+    console.log('Dados completos do evento para salvar:', eventData);
 
     if (selectedEvent) {
       updateEvent(eventData);
@@ -368,7 +383,10 @@ export default function EventModal() {
                 <button
                   key={color.value}
                   type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, customColor: color.value }))}
+                  onClick={() => {
+                    console.log('Cor selecionada no modal:', color.value, color.preview);
+                    setFormData(prev => ({ ...prev, customColor: color.value }));
+                  }}
                   className={`color-option ${color.bg} ${
                     formData.customColor === color.value ? 'selected' : ''
                   }`}
