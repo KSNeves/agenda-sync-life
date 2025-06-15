@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { RevisionItem } from '../types';
 import { Plus, Calendar, Clock, Hash } from 'lucide-react';
-import { categorizeRevision } from '../utils/spacedRepetition';
+import { categorizeRevision, calculateNextRevisionDate, adjustDateForNonStudyDays } from '../utils/spacedRepetition';
 import CreateRevisionModal from './CreateRevisionModal';
 import ViewRevisionModal from './ViewRevisionModal';
 import { useTranslation } from '../hooks/useTranslation';
@@ -32,12 +33,36 @@ export default function Revision() {
   const filteredItems = revisionItems.filter(item => item.category === activeTab);
 
   const toggleItemCompletion = (item: RevisionItem) => {
-    const updatedItem: RevisionItem = {
-      ...item,
-      category: item.category === 'completed' ? 'pending' : 'completed',
-    };
+    if (item.category === 'completed') {
+      // Se já está concluído, volta para pending
+      const updatedItem: RevisionItem = {
+        ...item,
+        category: 'pending',
+        completedAt: undefined
+      };
+      dispatch({ type: 'UPDATE_REVISION_ITEM', payload: updatedItem });
+    } else {
+      // Marca como concluído e calcula próxima revisão usando repetição espaçada
+      const now = Date.now();
+      const newRevisionCount = item.revisionCount + 1;
+      
+      // Calcula a próxima data de revisão baseada no algoritmo de repetição espaçada
+      const { nextDate, intervalDays } = calculateNextRevisionDate(newRevisionCount, item.createdAt);
+      
+      // Ajusta a data considerando dias não-úteis
+      const adjustedNextDate = adjustDateForNonStudyDays(nextDate, item.nonStudyDays);
 
-    dispatch({ type: 'UPDATE_REVISION_ITEM', payload: updatedItem });
+      const updatedItem: RevisionItem = {
+        ...item,
+        category: 'priority', // Vai para próximas revisões
+        revisionCount: newRevisionCount,
+        nextRevisionDate: adjustedNextDate,
+        intervalDays: intervalDays,
+        completedAt: now
+      };
+
+      dispatch({ type: 'UPDATE_REVISION_ITEM', payload: updatedItem });
+    }
   };
 
   const postponeItem = (item: RevisionItem) => {
