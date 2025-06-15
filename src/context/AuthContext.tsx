@@ -1,16 +1,17 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+
+interface User {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+}
 
 interface AuthContextType {
   user: User | null;
-  session: Session | null;
-  loading: boolean;
-  signUp: (email: string, password: string, firstName: string, lastName: string) => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signOut: () => Promise<void>;
+  login: (email: string, password: string, firstName?: string, lastName?: string) => Promise<boolean>;
+  logout: () => void;
   isAuthenticated: boolean;
 }
 
@@ -18,98 +19,53 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-        
-        if (event === 'SIGNED_IN') {
-          toast.success('Login realizado com sucesso!');
-        } else if (event === 'SIGNED_OUT') {
-          toast.success('Logout realizado com sucesso!');
-        }
-      }
-    );
-
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    // Carregar usuário do localStorage ao inicializar
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
   }, []);
 
-  const signUp = async (email: string, password: string, firstName: string, lastName: string) => {
-    setLoading(true);
+  const login = async (email: string, password: string, firstName?: string, lastName?: string): Promise<boolean> => {
+    // Simular login (em um app real, aqui seria uma chamada para API)
+    const userData: User = {
+      id: Date.now().toString(),
+      firstName: firstName || 'Usuário',
+      lastName: lastName || 'Teste',
+      email
+    };
+
+    setUser(userData);
+    localStorage.setItem('user', JSON.stringify(userData));
     
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/`,
-        data: {
-          first_name: firstName,
-          last_name: lastName,
-        }
-      }
-    });
+    // Salvar também no formato antigo para compatibilidade
+    localStorage.setItem('userProfile', JSON.stringify({
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      email: userData.email,
+      profileImage: null
+    }));
 
-    if (error) {
-      toast.error(error.message);
-      setLoading(false);
-      return { error };
-    }
-
-    toast.success('Conta criada com sucesso! Verifique seu email para confirmar.');
-    setLoading(false);
-    return { error: null };
+    // Disparar evento para atualizar outros componentes
+    window.dispatchEvent(new Event('profileUpdated'));
+    
+    return true;
   };
 
-  const signIn = async (email: string, password: string) => {
-    setLoading(true);
-    
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-
-    if (error) {
-      toast.error(error.message);
-      setLoading(false);
-      return { error };
-    }
-
-    setLoading(false);
-    return { error: null };
-  };
-
-  const signOut = async () => {
-    setLoading(true);
-    const { error } = await supabase.auth.signOut();
-    
-    if (error) {
-      toast.error(error.message);
-    }
-    
-    setLoading(false);
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem('user');
+    localStorage.removeItem('userProfile');
+    window.dispatchEvent(new Event('profileUpdated'));
   };
 
   return (
     <AuthContext.Provider value={{
       user,
-      session,
-      loading,
-      signUp,
-      signIn,
-      signOut,
+      login,
+      logout,
       isAuthenticated: !!user
     }}>
       {children}
