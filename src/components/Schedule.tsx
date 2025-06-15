@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
@@ -330,8 +331,8 @@ export default function Schedule() {
               {hours.map((hour) => (
                 <div key={hour} className="flex border-b border-border/20 h-10 md:h-16">
                   {/* Coluna de Horário */}
-                  <div className="w-6 md:w-20 flex items-start justify-end pr-1 md:pr-2 pt-0 text-xs md:text-sm text-muted-foreground border-r border-border/50">
-                    <span className="-mt-2 text-xs md:text-sm">
+                  <div className="w-6 md:w-20 flex items-start justify-end pr-0.5 md:pr-2 pt-0 text-muted-foreground border-r border-border/50">
+                    <span className="-mt-2 text-[10px] md:text-sm">
                       {hour.toString().padStart(2, '0')}:00
                     </span>
                   </div>
@@ -453,8 +454,8 @@ export default function Schedule() {
               {hours.map((hour, hourIndex) => (
                 <div key={hour} className="grid grid-cols-8 border-b border-border/20 h-10 md:h-16">
                   {/* Coluna de Horário */}
-                  <div className="w-6 md:w-20 flex items-start justify-end pr-1 md:pr-2 pt-0 text-xs md:text-sm text-muted-foreground border-r border-border/50">
-                    <span className="-mt-2 text-xs md:text-sm">
+                  <div className="w-6 md:w-20 flex items-start justify-end pr-0.5 md:pr-2 pt-0 text-muted-foreground border-r border-border/50">
+                    <span className="-mt-2 text-[10px] md:text-sm">
                       {hour.toString().padStart(2, '0')}:00
                     </span>
                   </div>
@@ -484,3 +485,4 @@ export default function Schedule() {
     </div>
   );
 }
+
