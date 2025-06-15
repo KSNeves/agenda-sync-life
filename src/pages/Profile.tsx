@@ -11,6 +11,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../context/SubscriptionContext';
 import { supabase } from '@/integrations/supabase/client';
+
 interface ProfileProps {
   onBack: () => void;
 }
@@ -363,7 +364,7 @@ export default function Profile({
                         </div>
                         <CardContent className="p-4 text-center">
                           <h3 className="font-semibold mb-2">Anual</h3>
-                          <p className="text-2xl font-bold mb-2">R$ 79,99</p>
+                          <p className="text-2xl font-bold mb-2">R$ 199,90</p>
                           <p className="text-sm text-muted-foreground mb-4">por ano</p>
                           <Button className="w-full" onClick={() => handleUpgrade('price_1RaE5CF5hbq3sDLKhAp6negB')}>
                             Assinar
@@ -374,7 +375,7 @@ export default function Profile({
                       <Card className="relative">
                         <CardContent className="p-4 text-center">
                           <h3 className="font-semibold mb-2">Vitalício</h3>
-                          <p className="text-2xl font-bold mb-2">R$ 299</p>
+                          <p className="text-2xl font-bold mb-2">R$ 499,90</p>
                           <p className="text-sm text-muted-foreground mb-4">pagamento único</p>
                           <Button className="w-full" onClick={() => handleUpgrade('price_1RaE66F5hbq3sDLK5l5uKNFv')}>
                             Comprar
