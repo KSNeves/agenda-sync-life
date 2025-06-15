@@ -94,7 +94,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       }
 
       // Se não está subscrito no Stripe mas o trial ainda está ativo, manter o trial
-      let finalPlanType = planType;
+      let finalPlanType: 'free_trial' | 'free' | 'premium' = planType;
       if (stripeData.subscribed) {
         finalPlanType = 'premium';
       } else if (planType === 'free_trial') {
