@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
 import { Task, CalendarEvent, RevisionItem } from '../types';
 import { useSupabaseCalendarEvents, useSupabaseRevisions } from '../hooks/useSupabaseData';
@@ -6,6 +7,9 @@ interface AppState {
   tasks: Task[];
   events: CalendarEvent[];
   revisionItems: RevisionItem[];
+  selectedDate: Date;
+  isEventModalOpen: boolean;
+  selectedEvent: CalendarEvent | null;
 }
 
 type AppAction = 
@@ -25,12 +29,19 @@ type AppAction =
   | { type: 'ADD_REVISION_ITEM'; payload: RevisionItem }
   | { type: 'UPDATE_REVISION_ITEM'; payload: RevisionItem }
   | { type: 'DELETE_REVISION_ITEM'; payload: string }
-  | { type: 'SET_REVISION_ITEMS'; payload: RevisionItem[] };
+  | { type: 'SET_REVISION_ITEMS'; payload: RevisionItem[] }
+  | { type: 'SET_SELECTED_DATE'; payload: Date }
+  | { type: 'OPEN_EVENT_MODAL'; payload: CalendarEvent | null }
+  | { type: 'CLOSE_EVENT_MODAL' }
+  | { type: 'SET_CALENDAR_VIEW'; payload: string };
 
 const initialState: AppState = {
   tasks: [],
   events: [],
-  revisionItems: []
+  revisionItems: [],
+  selectedDate: new Date(),
+  isEventModalOpen: false,
+  selectedEvent: null
 };
 
 function appReducer(state: AppState, action: AppAction): AppState {
@@ -163,6 +174,32 @@ function appReducer(state: AppState, action: AppAction): AppState {
         revisionItems: state.revisionItems.filter(item => item.id !== action.payload)
       };
 
+    // Calendar navigation actions
+    case 'SET_SELECTED_DATE':
+      return {
+        ...state,
+        selectedDate: action.payload
+      };
+
+    case 'OPEN_EVENT_MODAL':
+      return {
+        ...state,
+        isEventModalOpen: true,
+        selectedEvent: action.payload
+      };
+
+    case 'CLOSE_EVENT_MODAL':
+      return {
+        ...state,
+        isEventModalOpen: false,
+        selectedEvent: null
+      };
+
+    case 'SET_CALENDAR_VIEW':
+      return {
+        ...state
+      };
+
     default:
       return state;
   }
@@ -245,7 +282,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           await deleteRevision(action.payload);
           break;
         default:
-          // Para ações que não precisam sincronizar com Supabase (tasks)
+          // Para ações que não precisam sincronizar com Supabase (tasks, navigation)
           break;
       }
     } catch (error) {

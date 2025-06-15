@@ -1,19 +1,34 @@
-
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import CalendarMonth from './CalendarMonth';
 import CalendarDay from './CalendarDay';
 import { useTranslation } from '../hooks/useTranslation';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function Schedule() {
   const { state, dispatch } = useApp();
   const { events, selectedDate } = state;
   const { t } = useTranslation();
+  const { language } = useLanguage();
 
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [currentTime, setCurrentTime] = useState(new Date());
   const [viewMode, setViewMode] = useState<'day' | 'week' | 'month'>('week');
+
+  // Get the actual locale based on the current language
+  const getLocale = () => {
+    switch (language) {
+      case 'pt':
+        return 'pt-BR';
+      case 'en':
+        return 'en-US';
+      case 'es':
+        return 'es-ES';
+      default:
+        return 'pt-BR';
+    }
+  };
 
   // Atualizar hora atual a cada minuto
   useEffect(() => {
@@ -70,9 +85,9 @@ export default function Schedule() {
     t('weekdays.sat')
   ];
 
-  // Formatar título da semana com tradução
+  // Formatar título da semana com tradução - using proper locale
   const getWeekTitle = () => {
-    const locale = t('common.locale');
+    const locale = getLocale();
     
     if (viewMode === 'month') {
       return currentWeek.toLocaleDateString(locale, { year: 'numeric', month: 'long' });
