@@ -25,15 +25,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('🔐 AuthProvider initializing...');
+    
     // Verificar se há uma sessão ativa
     const getSession = async () => {
       try {
+        console.log('🔍 Checking for existing session...');
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
+          console.log('✅ Found existing session for user:', session.user.id);
           await loadUserProfile(session.user);
+        } else {
+          console.log('❌ No existing session found');
         }
       } catch (error) {
-        console.error('Erro ao carregar sessão:', error);
+        console.error('❌ Erro ao carregar sessão:', error);
       } finally {
         setLoading(false);
       }
@@ -43,6 +49,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Escutar mudanças na autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('🔄 Auth state changed:', event, session?.user?.id);
+      
       if (event === 'SIGNED_IN' && session?.user) {
         await loadUserProfile(session.user);
       } else if (event === 'SIGNED_OUT') {
@@ -60,6 +68,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loadUserProfile = async (supabaseUser: SupabaseUser) => {
     try {
+      console.log('👤 Loading profile for user:', supabaseUser.id);
+      
       const { data: profile } = await supabase
         .from('profiles')
         .select('*')
@@ -74,6 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           email: profile.email || supabaseUser.email || ''
         };
 
+        console.log('✅ Profile loaded:', userData);
         setUser(userData);
         
         // Manter compatibilidade com código existente
@@ -88,7 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         window.dispatchEvent(new Event('profileUpdated'));
       }
     } catch (error) {
-      console.error('Erro ao carregar perfil:', error);
+      console.error('❌ Erro ao carregar perfil:', error);
     }
   };
 
@@ -98,6 +109,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       // Se firstName e lastName são fornecidos, é um registro
       if (firstName && lastName) {
+        console.log('📝 Registering new user:', email);
+        
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -110,15 +123,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
 
         if (error) {
-          console.error('Erro no registro:', error);
+          console.error('❌ Erro no registro:', error);
           return false;
         }
 
         if (data.user) {
-          // Para desenvolvimento, confirmar automaticamente o email
+          console.log('✅ User registered successfully');
           return true;
         }
       } else {
+        console.log('🔐 Logging in user:', email);
+        
         // Login
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
@@ -126,16 +141,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
 
         if (error) {
-          console.error('Erro no login:', error);
+          console.error('❌ Erro no login:', error);
           return false;
         }
 
+        console.log('✅ User logged in successfully');
         return true;
       }
       
       return false;
     } catch (error) {
-      console.error('Erro na autenticação:', error);
+      console.error('❌ Erro na autenticação:', error);
       return false;
     } finally {
       setLoading(false);
@@ -144,9 +160,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
+      console.log('🚪 Logging out user...');
       await supabase.auth.signOut();
     } catch (error) {
-      console.error('Erro no logout:', error);
+      console.error('❌ Erro no logout:', error);
     }
   };
 

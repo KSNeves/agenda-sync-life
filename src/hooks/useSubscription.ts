@@ -20,7 +20,10 @@ export function useSubscription() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('🔄 useSubscription - User state:', user);
+    
     if (!user) {
+      console.log('❌ No user found, setting loading to false');
       setSubscription(null);
       setLoading(false);
       return;
@@ -31,6 +34,8 @@ export function useSubscription() {
 
   const loadSubscription = async () => {
     try {
+      console.log('📡 Loading subscription for user:', user?.id);
+      
       const { data, error } = await supabase
         .from('subscriptions')
         .select('*')
@@ -38,15 +43,52 @@ export function useSubscription() {
         .single();
 
       if (error && error.code !== 'PGRST116') {
-        console.error('Erro ao carregar assinatura:', error);
+        console.error('❌ Erro ao carregar assinatura:', error);
+        // Se não encontrar assinatura, criar uma
+        if (error.code === 'PGRST116') {
+          console.log('📝 Creating new subscription for user');
+          await createSubscription();
+          return;
+        }
+      }
+
+      console.log('✅ Subscription loaded:', data);
+      setSubscription(data);
+    } catch (error) {
+      console.error('❌ Erro ao carregar assinatura:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createSubscription = async () => {
+    if (!user) return;
+
+    try {
+      const now = new Date();
+      const trialEnd = new Date();
+      trialEnd.setDate(now.getDate() + 7);
+
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .insert({
+          user_id: user.id,
+          plan_type: 'free_trial',
+          trial_start_date: now.toISOString(),
+          trial_end_date: trialEnd.toISOString()
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('❌ Erro ao criar assinatura:', error);
         return;
       }
 
+      console.log('✅ Subscription created:', data);
       setSubscription(data);
     } catch (error) {
-      console.error('Erro ao carregar assinatura:', error);
-    } finally {
-      setLoading(false);
+      console.error('❌ Erro ao criar assinatura:', error);
     }
   };
 
@@ -70,6 +112,11 @@ export function useSubscription() {
   };
 
   const canAccessFeatures = () => {
+    console.log('🔍 Checking feature access:', { 
+      subscription: subscription?.plan_type, 
+      isTrialExpired: isTrialExpired() 
+    });
+    
     if (!subscription) return false;
     
     if (subscription.plan_type === 'premium') return true;

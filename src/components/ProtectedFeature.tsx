@@ -12,6 +12,8 @@ interface ProtectedFeatureProps {
 export default function ProtectedFeature({ children, feature, onUpgrade }: ProtectedFeatureProps) {
   const { canAccessFeatures, loading } = useSubscription();
 
+  console.log('🛡️ ProtectedFeature:', { feature, canAccessFeatures, loading });
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
