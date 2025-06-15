@@ -7,6 +7,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "./context/ThemeContext";
 import { LanguageProvider } from "./context/LanguageContext";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { SupabaseRevisionsProvider } from "./context/SupabaseRevisionsContext";
+import { SupabaseEventsProvider } from "./context/SupabaseEventsContext";
+import { FlashcardsProvider } from "./context/FlashcardsContext";
 import Index from "./pages/Index";
 import LoginRegister from "./pages/LoginRegister";
 import NotFound from "./pages/NotFound";
@@ -30,23 +33,29 @@ function AppContent() {
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <BrowserRouter>
-            <Routes>
-              {user ? (
-                <>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/dashboard" element={<Index />} />
-                  <Route path="*" element={<NotFound />} />
-                </>
-              ) : (
-                <>
-                  <Route path="/" element={<LoginRegister />} />
-                  <Route path="/login" element={<LoginRegister />} />
-                  <Route path="*" element={<LoginRegister />} />
-                </>
-              )}
-            </Routes>
-          </BrowserRouter>
+          {user ? (
+            <SupabaseRevisionsProvider>
+              <SupabaseEventsProvider>
+                <FlashcardsProvider>
+                  <BrowserRouter>
+                    <Routes>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/dashboard" element={<Index />} />
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </BrowserRouter>
+                </FlashcardsProvider>
+              </SupabaseEventsProvider>
+            </SupabaseRevisionsProvider>
+          ) : (
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<LoginRegister />} />
+                <Route path="/login" element={<LoginRegister />} />
+                <Route path="*" element={<LoginRegister />} />
+              </Routes>
+            </BrowserRouter>
+          )}
         </TooltipProvider>
       </ThemeProvider>
     </LanguageProvider>

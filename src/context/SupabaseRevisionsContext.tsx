@@ -50,8 +50,8 @@ export function SupabaseRevisionsProvider({ children }: { children: ReactNode })
         nonStudyDays: revision.non_study_days?.map(day => parseInt(day)) || [],
       }));
 
-      setRevisionItems(transformedRevisions);
       console.log('Revisões transformadas:', transformedRevisions.length);
+      setRevisionItems(transformedRevisions);
     } catch (error) {
       console.error('Error loading revisions:', error);
     }
@@ -72,7 +72,6 @@ export function SupabaseRevisionsProvider({ children }: { children: ReactNode })
       return;
     }
 
-    // Generate a proper UUID
     const id = generateUUID();
     const newItem: RevisionItem = { ...item, id };
     
@@ -94,7 +93,7 @@ export function SupabaseRevisionsProvider({ children }: { children: ReactNode })
       non_study_days: item.nonStudyDays?.map(day => day.toString()) || [],
     };
 
-    console.log('Dados da revisão para salvar:', revisionData);
+    console.log('Dados da revisão para salvar no banco:', revisionData);
 
     supabase
       .from('user_revisions')
@@ -104,13 +103,14 @@ export function SupabaseRevisionsProvider({ children }: { children: ReactNode })
           console.error('Error creating revision:', error);
           setRevisionItems(prev => prev.filter(r => r.id !== id));
         } else {
-          console.log('Revisão criada com sucesso:', id);
+          console.log('Revisão salva com sucesso no banco:', id);
         }
       });
   };
 
   const updateRevisionItem = (item: RevisionItem) => {
     console.log('Atualizando revisão:', item.id);
+    console.log('Dados da revisão:', item);
     
     setRevisionItems(prev => prev.map(r => r.id === item.id ? item : r));
 
@@ -127,7 +127,7 @@ export function SupabaseRevisionsProvider({ children }: { children: ReactNode })
         non_study_days: item.nonStudyDays?.map(day => day.toString()) || [],
       };
 
-      console.log('Dados para atualizar revisão:', updateData);
+      console.log('Dados para atualizar no banco:', updateData);
 
       supabase
         .from('user_revisions')
@@ -138,7 +138,7 @@ export function SupabaseRevisionsProvider({ children }: { children: ReactNode })
           if (error) {
             console.error('Error updating revision:', error);
           } else {
-            console.log('Revisão atualizada com sucesso:', item.id);
+            console.log('Revisão atualizada no banco com sucesso:', item.id);
           }
         });
     }
@@ -159,7 +159,7 @@ export function SupabaseRevisionsProvider({ children }: { children: ReactNode })
           if (error) {
             console.error('Error deleting revision:', error);
           } else {
-            console.log('Revisão deletada com sucesso:', id);
+            console.log('Revisão deletada do banco com sucesso:', id);
           }
         });
     }

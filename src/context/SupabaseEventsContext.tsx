@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { CalendarEvent } from '../types';
 import { supabase } from '@/integrations/supabase/client';
@@ -24,6 +25,8 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
   const loadEvents = async () => {
     if (!user) return;
     
+    console.log('Carregando eventos para usuário:', user.id);
+    
     try {
       const { data, error } = await supabase
         .from('user_events')
@@ -31,6 +34,8 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
         .eq('user_id', user.id);
 
       if (error) throw error;
+
+      console.log('Eventos carregados do banco:', data?.length || 0);
 
       const transformedEvents: CalendarEvent[] = data.map(event => ({
         id: event.id,
@@ -43,6 +48,7 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
         isAllDay: event.is_all_day || false,
       }));
 
+      console.log('Eventos transformados:', transformedEvents);
       setEvents(transformedEvents);
     } catch (error) {
       console.error('Error loading events:', error);
@@ -61,15 +67,15 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
   const addEvent = (event: CalendarEvent) => {
     if (!user) return;
 
-    // Generate a proper UUID
     const eventWithUUID = { ...event, id: generateUUID() };
     
-    setEvents(prev => [...prev, eventWithUUID]);
-
-    // Mapear customColor para color no banco de dados
+    // Determinar a cor a ser salva - priorizar customColor, depois color
     const colorToSave = event.customColor || event.color || '#3B82F6';
     
-    console.log('Salvando evento com cor:', colorToSave);
+    console.log('Adicionando evento:', eventWithUUID);
+    console.log('Cor a ser salva:', colorToSave);
+    
+    setEvents(prev => [...prev, eventWithUUID]);
 
     supabase
       .from('user_events')
@@ -88,20 +94,20 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
           console.error('Error creating event:', error);
           setEvents(prev => prev.filter(e => e.id !== eventWithUUID.id));
         } else {
-          console.log('Evento criado com sucesso com cor:', colorToSave);
+          console.log('Evento criado com sucesso. Cor salva:', colorToSave);
         }
       });
   };
 
   const updateEvent = (event: CalendarEvent) => {
+    const colorToSave = event.customColor || event.color || '#3B82F6';
+    
+    console.log('Atualizando evento:', event.id);
+    console.log('Nova cor:', colorToSave);
+    
     setEvents(prev => prev.map(e => e.id === event.id ? event : e));
 
     if (user) {
-      // Mapear customColor para color no banco de dados
-      const colorToSave = event.customColor || event.color || '#3B82F6';
-      
-      console.log('Atualizando evento com cor:', colorToSave);
-
       supabase
         .from('user_events')
         .update({
@@ -118,13 +124,15 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
           if (error) {
             console.error('Error updating event:', error);
           } else {
-            console.log('Evento atualizado com sucesso com cor:', colorToSave);
+            console.log('Evento atualizado com sucesso. Nova cor:', colorToSave);
           }
         });
     }
   };
 
   const deleteEvent = (id: string) => {
+    console.log('Deletando evento individual:', id);
+    
     setEvents(prev => prev.filter(e => e.id !== id));
 
     if (user) {
@@ -132,13 +140,20 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
         .from('user_events')
         .delete()
         .eq('id', id)
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .then(({ error }) => {
+          if (error) {
+            console.error('Error deleting event:', error);
+          } else {
+            console.log('Evento deletado com sucesso:', id);
+          }
+        });
     }
   };
 
   const deleteRecurringEvents = async (eventId: string) => {
-    console.log('=== EXCLUSÃO DE SÉRIE - VERSÃO CORRIGIDA ===');
-    console.log('ID do evento recebido:', eventId);
+    console.log('=== EXCLUSÃO DE SÉRIE INICIADA ===');
+    console.log('ID do evento clicado:', eventId);
     
     if (!user) {
       console.log('Usuário não autenticado');
@@ -146,8 +161,17 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      // Buscar TODOS os eventos do usuário
-      const { data: allEvents, error: fetchError } = await supabase
+      // Buscar o evento clicado
+      const targetEvent = events.find(e => e.id === eventId);
+      if (!targetEvent) {
+        console.log('Evento não encontrado no estado local');
+        return;
+      }
+
+      console.log('Evento encontrado:', targetEvent.title);
+
+      // Buscar todos os eventos do usuário no banco
+      const { data: allEventsInDB, error: fetchError } = await supabase
         .from('user_events')
         .select('*')
         .eq('user_id', user.id);
@@ -157,34 +181,24 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      console.log('Total de eventos no banco:', allEvents?.length || 0);
+      console.log('Total de eventos no banco:', allEventsInDB?.length || 0);
 
-      // Primeiro, encontrar o evento base procurando pelo título e horário
-      const targetEvent = allEvents?.find(e => e.id === eventId);
-      if (!targetEvent) {
-        console.log('Evento alvo não encontrado');
-        return;
-      }
+      // Encontrar todos os eventos da série (mesmo título)
+      const seriesEvents = allEventsInDB?.filter(event => 
+        event.title === targetEvent.title
+      ) || [];
 
-      console.log('Evento alvo encontrado:', targetEvent.title);
-
-      // Procurar TODOS os eventos com o mesmo título (eventos da série)
-      const seriesEvents = allEvents?.filter(event => {
-        return event.title === targetEvent.title;
-      }) || [];
-
-      console.log('Eventos da série encontrados (mesmo título):', seriesEvents.length);
-      console.log('IDs dos eventos:', seriesEvents.map(e => e.id));
+      console.log('Eventos da série encontrados:', seriesEvents.length);
+      console.log('IDs dos eventos da série:', seriesEvents.map(e => e.id));
 
       if (seriesEvents.length === 0) {
-        console.log('ERRO: Nenhum evento da série encontrado!');
+        console.log('Nenhum evento da série encontrado');
         return;
       }
 
-      // Deletar TODOS os eventos da série
-      console.log('Iniciando exclusão dos eventos...');
+      // Deletar todos os eventos da série no banco
       for (const event of seriesEvents) {
-        console.log(`Deletando evento: ${event.id} (${event.title})`);
+        console.log(`Deletando do banco: ${event.id} (${event.title})`);
         
         const { error: deleteError } = await supabase
           .from('user_events')
@@ -193,33 +207,26 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
           .eq('user_id', user.id);
 
         if (deleteError) {
-          console.error(`ERRO ao deletar ${event.id}:`, deleteError);
+          console.error(`Erro ao deletar ${event.id}:`, deleteError);
         } else {
-          console.log(`✓ Evento ${event.id} deletado com sucesso`);
+          console.log(`✓ Evento ${event.id} deletado do banco`);
         }
       }
 
-      // Atualizar o estado local removendo TODOS os eventos com o mesmo título
-      console.log('Atualizando estado local...');
+      // Atualizar estado local - remover todos os eventos com o mesmo título
       setEvents(prevEvents => {
-        const eventsToKeep = prevEvents.filter(event => {
-          const shouldRemove = event.title === targetEvent.title;
-          
-          if (shouldRemove) {
-            console.log(`Removendo do estado local: ${event.id} (${event.title})`);
-          }
-          
-          return !shouldRemove;
-        });
+        const filteredEvents = prevEvents.filter(event => 
+          event.title !== targetEvent.title
+        );
         
-        console.log(`Estado atualizado: ${prevEvents.length} → ${eventsToKeep.length} eventos`);
-        return eventsToKeep;
+        console.log(`Estado local atualizado: ${prevEvents.length} → ${filteredEvents.length} eventos`);
+        return filteredEvents;
       });
 
       console.log('=== EXCLUSÃO DE SÉRIE CONCLUÍDA ===');
 
     } catch (error) {
-      console.error('Erro inesperado na exclusão:', error);
+      console.error('Erro inesperado na exclusão de série:', error);
     }
   };
 
