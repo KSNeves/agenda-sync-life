@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { RevisionItem } from '../types';
@@ -133,7 +132,10 @@ export default function Revision() {
     if (item.category === 'completed') {
       return `Próxima em ${item.intervalDays * 2} dias`;
     }
-    return formatScheduledDate(item.nextRevisionDate);
+    
+    // Aplica o ajuste de dias não-úteis para exibição
+    const adjustedDate = adjustDateForNonStudyDays(item.nextRevisionDate, item.nonStudyDays);
+    return formatScheduledDate(adjustedDate);
   };
 
   return (
