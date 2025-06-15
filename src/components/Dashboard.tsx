@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Task, RevisionItem } from '../types';
 import { Play, Pause, Check, Clock, Calendar, PlayCircle, CheckCircle, ClockIcon } from 'lucide-react';
-import { categorizeRevision } from '../utils/spacedRepetition';
+import { categorizeRevision, calculateNextRevisionDate, adjustDateForNonStudyDays } from '../utils/spacedRepetition';
 import StudyTimerModal from './StudyTimerModal';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useTranslation } from '../hooks/useTranslation';
@@ -137,14 +137,26 @@ export default function Dashboard() {
       setSelectedRevisionTitle(revision.title);
       setIsStudyModalOpen(true);
     } else if (action === 'complete') {
-      dispatch({ 
-        type: 'UPDATE_REVISION_ITEM', 
-        payload: { 
-          ...revision, 
-          category: 'completed',
-          completedAt: Date.now() // Garante que a data de conclusão seja hoje
-        }
-      });
+      // Usar a mesma lógica de repetição espaçada da página de Revisão
+      const now = Date.now();
+      const newRevisionCount = revision.revisionCount + 1;
+      
+      // Calcula a próxima data de revisão baseada no algoritmo de repetição espaçada
+      const { nextDate, intervalDays } = calculateNextRevisionDate(newRevisionCount, revision.createdAt);
+      
+      // Ajusta a data considerando dias não-úteis
+      const adjustedNextDate = adjustDateForNonStudyDays(nextDate, revision.nonStudyDays);
+
+      const updatedItem: RevisionItem = {
+        ...revision,
+        category: 'priority', // Vai para próximas revisões
+        revisionCount: newRevisionCount,
+        nextRevisionDate: adjustedNextDate,
+        intervalDays: intervalDays,
+        completedAt: now
+      };
+
+      dispatch({ type: 'UPDATE_REVISION_ITEM', payload: updatedItem });
     } else if (action === 'postpone') {
       const newDate = new Date();
       newDate.setDate(newDate.getDate() + 1);
