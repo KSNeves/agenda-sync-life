@@ -1,43 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { RevisionItem } from '../types';
-import { Plus, Calendar, Clock, Hash, Lock } from 'lucide-react';
+import { Plus, Calendar, Clock, Hash } from 'lucide-react';
 import { categorizeRevision, calculateNextRevisionDate, adjustDateForNonStudyDays } from '../utils/spacedRepetition';
 import CreateRevisionModal from './CreateRevisionModal';
 import ViewRevisionModal from './ViewRevisionModal';
-import { useLanguage } from '../context/LanguageContext';
-import { useSubscription } from '../context/SubscriptionContext';
-import { useToast } from '@/components/ui/use-toast';
+import { useTranslation } from '../hooks/useTranslation';
 
 export default function Revision() {
   const { state, dispatch } = useApp();
   const { revisionItems } = state;
-  const { t } = useLanguage();
-  const { subscribed, planType, trialEndDate } = useSubscription();
-  const { toast } = useToast();
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'pending' | 'completed' | 'priority'>('pending');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedRevision, setSelectedRevision] = useState<RevisionItem | null>(null);
-
-  // Check if trial has expired
-  const isTrialExpired = () => {
-    if (subscribed && planType === 'premium') return false;
-    if (planType === 'free') return true;
-    if (!trialEndDate) return false;
-    
-    const today = new Date();
-    const endDate = new Date(trialEndDate);
-    return today > endDate;
-  };
-
-  const showUpgradeMessage = () => {
-    toast({
-      title: "Período de teste expirado",
-      description: "Faça upgrade para continuar usando todos os recursos.",
-      variant: "destructive"
-    });
-  };
 
   // Atualiza categorias dos itens baseado na data atual
   useEffect(() => {
@@ -55,12 +32,6 @@ export default function Revision() {
   const filteredItems = revisionItems.filter(item => item.category === activeTab);
 
   const toggleItemCompletion = (item: RevisionItem) => {
-    // Check if trial expired before allowing completion
-    if (isTrialExpired()) {
-      showUpgradeMessage();
-      return;
-    }
-
     if (item.category === 'completed') {
       // Se já está concluído, volta para pending
       const updatedItem: RevisionItem = {
@@ -94,12 +65,6 @@ export default function Revision() {
   };
 
   const postponeItem = (item: RevisionItem) => {
-    // Check if trial expired before allowing postpone
-    if (isTrialExpired()) {
-      showUpgradeMessage();
-      return;
-    }
-
     // Se a revisão é para hoje ou passado, adia para amanhã
     // Se a revisão é futura, adia por mais um dia a partir da data programada
     const currentRevisionDate = new Date(item.nextRevisionDate);
@@ -117,27 +82,12 @@ export default function Revision() {
   };
 
   const viewRevisionContent = (item: RevisionItem) => {
-    // Allow viewing content even if trial expired
     setSelectedRevision(item);
     setIsViewModalOpen(true);
   };
 
   const deleteItem = (id: string) => {
-    // Check if trial expired before allowing deletion
-    if (isTrialExpired()) {
-      showUpgradeMessage();
-      return;
-    }
-
     dispatch({ type: 'DELETE_REVISION_ITEM', payload: id });
-  };
-
-  const handleCreateRevision = () => {
-    if (isTrialExpired()) {
-      showUpgradeMessage();
-      return;
-    }
-    setIsModalOpen(true);
   };
 
   const getTabLabel = (tab: string) => {
@@ -194,24 +144,13 @@ export default function Revision() {
         {/* Header */}
         <div className="flex justify-between items-center px-6 py-6">
           <h1 className="text-3xl font-bold text-foreground">{t('revision.title')}</h1>
-          {isTrialExpired() ? (
-            <button
-              onClick={showUpgradeMessage}
-              className="bg-gray-400 cursor-not-allowed text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
-              disabled
-            >
-              <Lock size={20} />
-              {t('revision.createNew')}
-            </button>
-          ) : (
-            <button
-              onClick={handleCreateRevision}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
-            >
-              <Plus size={20} />
-              {t('revision.createNew')}
-            </button>
-          )}
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
+          >
+            <Plus size={20} />
+            {t('revision.createNew')}
+          </button>
         </div>
 
         {/* Tabs */}
@@ -251,16 +190,11 @@ export default function Revision() {
           ) : (
             <div className="space-y-3">
               {filteredItems.map(item => (
-                <div key={item.id} className={`bg-card border border-border rounded-lg p-3 hover:shadow-md transition-shadow ${
-                  isTrialExpired() ? 'opacity-60' : ''
-                }`}>
+                <div key={item.id} className="bg-card border border-border rounded-lg p-3 hover:shadow-md transition-shadow">
                   <div className="space-y-2">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
-                        <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
-                          {item.title}
-                          {isTrialExpired() && <Lock className="w-4 h-4 text-gray-500" />}
-                        </h3>
+                        <h3 className="text-base font-semibold text-foreground">{item.title}</h3>
                         {item.description && (
                           <p className="text-muted-foreground text-xs leading-relaxed line-clamp-2 mt-1">
                             {item.description}
@@ -292,67 +226,32 @@ export default function Revision() {
                         {t('revision.viewContent')}
                       </button>
                       
-                      {isTrialExpired() ? (
-                        <button
-                          onClick={showUpgradeMessage}
-                          className="bg-gray-400 cursor-not-allowed text-white px-2 py-1 rounded text-xs font-medium flex items-center gap-1"
-                          disabled
-                        >
-                          <Lock className="w-3 h-3" />
-                          {item.category === 'completed' ? t('revision.completed') : t('revision.complete')}
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => toggleItemCompletion(item)}
-                          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
-                            item.category === 'completed'
-                              ? 'bg-green-600 hover:bg-green-700 text-white'
-                              : 'bg-green-100 hover:bg-green-200 text-green-800'
-                          }`}
-                        >
-                          {item.category === 'completed' ? t('revision.completed') : t('revision.complete')}
-                        </button>
-                      )}
+                      <button
+                        onClick={() => toggleItemCompletion(item)}
+                        className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+                          item.category === 'completed'
+                            ? 'bg-green-600 hover:bg-green-700 text-white'
+                            : 'bg-green-100 hover:bg-green-200 text-green-800'
+                        }`}
+                      >
+                        {item.category === 'completed' ? t('revision.completed') : t('revision.complete')}
+                      </button>
                       
                       {activeTab !== 'completed' && (
-                        <>
-                          {isTrialExpired() ? (
-                            <button
-                              onClick={showUpgradeMessage}
-                              className="bg-gray-400 cursor-not-allowed text-white px-2 py-1 rounded text-xs font-medium flex items-center gap-1"
-                              disabled
-                            >
-                              <Lock className="w-3 h-3" />
-                              {t('revision.postpone')}
-                            </button>
-                          ) : (
-                            <button 
-                              onClick={() => postponeItem(item)}
-                              className="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-2 py-1 rounded text-xs font-medium transition-colors"
-                            >
-                              {t('revision.postpone')}
-                            </button>
-                          )}
-                        </>
+                        <button 
+                          onClick={() => postponeItem(item)}
+                          className="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-2 py-1 rounded text-xs font-medium transition-colors"
+                        >
+                          {t('revision.postpone')}
+                        </button>
                       )}
                       
-                      {isTrialExpired() ? (
-                        <button
-                          onClick={showUpgradeMessage}
-                          className="bg-gray-400 cursor-not-allowed text-white px-2 py-1 rounded text-xs font-medium flex items-center gap-1"
-                          disabled
-                        >
-                          <Lock className="w-3 h-3" />
-                          {t('revision.delete')}
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => deleteItem(item.id)}
-                          className="bg-red-100 hover:bg-red-200 text-red-800 px-2 py-1 rounded text-xs font-medium transition-colors"
-                        >
-                          {t('revision.delete')}
-                        </button>
-                      )}
+                      <button
+                        onClick={() => deleteItem(item.id)}
+                        className="bg-red-100 hover:bg-red-200 text-red-800 px-2 py-1 rounded text-xs font-medium transition-colors"
+                      >
+                        {t('revision.delete')}
+                      </button>
                     </div>
                   </div>
                 </div>

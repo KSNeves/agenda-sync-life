@@ -1,3 +1,7 @@
 
-// This file is no longer needed - we use useLanguage from LanguageContext instead
-export { useLanguage as useTranslation } from '../context/LanguageContext';
+import { useLanguage } from '../context/LanguageContext';
+
+export function useTranslation() {
+  const { t } = useLanguage();
+  return { t };
+}
