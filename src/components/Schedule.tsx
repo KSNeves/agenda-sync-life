@@ -220,7 +220,7 @@ export default function Schedule() {
             </div>
           </div>
           
-          <h2 className="text-sm md:text-xl font-semibold text-foreground truncate">
+          <h2 className="text-xs sm:text-sm lg:text-xl font-semibold text-foreground truncate">
             {getWeekTitle()}
           </h2>
         </div>
