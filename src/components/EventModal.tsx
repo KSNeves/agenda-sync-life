@@ -287,14 +287,15 @@ export default function EventModal() {
 
   if (!isEventModalOpen) return null;
 
+  // Corrigido: usar valores diretos ao invés de chaves de tradução
   const weekdays = [
-    t('event.weekdays.sun'),
-    t('event.weekdays.mon'),
-    t('event.weekdays.tue'),
-    t('event.weekdays.wed'),
-    t('event.weekdays.thu'),
-    t('event.weekdays.fri'),
-    t('event.weekdays.sat'),
+    'Dom',
+    'Seg', 
+    'Ter',
+    'Qua',
+    'Qui',
+    'Sex',
+    'Sáb',
   ];
 
   return (
