@@ -18,39 +18,15 @@ export default function StudyMode({ deckId, onExit }: StudyModeProps) {
   const [showBack, setShowBack] = useState(false);
   const [studiedCards, setStudiedCards] = useState(0);
   const [sessionCards, setSessionCards] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
   const deck = getDeck(deckId);
 
   useEffect(() => {
-    const loadCards = async () => {
-      setIsLoading(true);
-      try {
-        const dueCards = getDueCards(deckId);
-        setSessionCards(dueCards);
-      } catch (error) {
-        console.error('Error loading cards:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadCards();
+    console.log('Loading cards for deck:', deckId);
+    const dueCards = getDueCards(deckId);
+    console.log('Due cards loaded:', dueCards);
+    setSessionCards(dueCards);
   }, [deckId, getDueCards]);
-
-  // Show loading state
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-900 text-white p-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="text-yellow-400 mb-4">
-            {t('common.loading')}...
-          </p>
-          <Button onClick={onExit}>{t('common.back')}</Button>
-        </div>
-      </div>
-    );
-  }
 
   const currentCard = sessionCards[currentCardIndex];
   const hasNextCard = currentCardIndex < sessionCards.length - 1;
@@ -61,6 +37,7 @@ export default function StudyMode({ deckId, onExit }: StudyModeProps) {
 
   const handleResponse = (response: 'again' | 'hard' | 'good' | 'easy') => {
     if (currentCard) {
+      console.log('Reviewing card:', currentCard.id, 'with response:', response);
       reviewCard(currentCard.id, response);
       setStudiedCards(prev => prev + 1);
 
@@ -98,11 +75,12 @@ export default function StudyMode({ deckId, onExit }: StudyModeProps) {
 
   // Add safety check for currentCard
   if (!currentCard) {
+    console.log('No current card available. SessionCards:', sessionCards, 'CurrentIndex:', currentCardIndex);
     return (
       <div className="min-h-screen bg-gray-900 text-white p-6">
         <div className="max-w-4xl mx-auto text-center">
           <p className="text-yellow-400 mb-4">
-            {t('common.loading')}...
+            {t('flashcards.noCardsToReview')}
           </p>
           <Button onClick={onExit}>{t('common.back')}</Button>
         </div>
