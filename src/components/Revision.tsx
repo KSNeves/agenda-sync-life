@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { RevisionItem } from '../types';
@@ -6,18 +5,9 @@ import { Plus, Calendar, Clock, Hash } from 'lucide-react';
 import { categorizeRevision, calculateNextRevisionDate, adjustDateForNonStudyDays } from '../utils/spacedRepetition';
 import CreateRevisionModal from './CreateRevisionModal';
 import ViewRevisionModal from './ViewRevisionModal';
-import ProtectedFeature from './ProtectedFeature';
 import { useTranslation } from '../hooks/useTranslation';
 
 export default function Revision() {
-  return (
-    <ProtectedFeature feature="Revisões">
-      <RevisionContent />
-    </ProtectedFeature>
-  );
-}
-
-function RevisionContent() {
   const { state, dispatch } = useApp();
   const { revisionItems } = state;
   const { t } = useTranslation();
@@ -147,19 +137,6 @@ function RevisionContent() {
     const adjustedDate = adjustDateForNonStudyDays(item.nextRevisionDate, item.nonStudyDays);
     return formatScheduledDate(adjustedDate);
   };
-
-  // Atualiza categorias dos itens baseado na data atual
-  useEffect(() => {
-    revisionItems.forEach(item => {
-      const currentCategory = categorizeRevision(item);
-      if (item.category !== currentCategory) {
-        dispatch({ 
-          type: 'UPDATE_REVISION_ITEM', 
-          payload: { ...item, category: currentCategory }
-        });
-      }
-    });
-  }, [revisionItems, dispatch]);
 
   return (
     <div className="min-h-screen bg-background">
