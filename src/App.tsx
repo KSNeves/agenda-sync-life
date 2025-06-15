@@ -7,11 +7,33 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "./context/ThemeContext";
 import { LanguageProvider } from "./context/LanguageContext";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { SubscriptionProvider, useSubscription } from "./context/SubscriptionContext";
 import Index from "./pages/Index";
 import LoginRegister from "./pages/LoginRegister";
 import NotFound from "./pages/NotFound";
+import UpgradeModal from "./components/UpgradeModal";
 
 const queryClient = new QueryClient();
+
+function AppWithSubscription() {
+  const { subscribed, planType, isLoading } = useSubscription();
+  
+  // Mostrar modal obrigatório se o período de teste expirou
+  const shouldShowUpgradeModal = !isLoading && !subscribed && planType === 'free';
+
+  return (
+    <>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/dashboard" element={<Index />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+      <UpgradeModal isOpen={shouldShowUpgradeModal} />
+    </>
+  );
+}
 
 function AppContent() {
   const { isAuthenticated, loading } = useAuth();
@@ -33,23 +55,19 @@ function AppContent() {
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <BrowserRouter>
-            <Routes>
-              {isAuthenticated ? (
-                <>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/dashboard" element={<Index />} />
-                  <Route path="*" element={<NotFound />} />
-                </>
-              ) : (
-                <>
-                  <Route path="/" element={<LoginRegister />} />
-                  <Route path="/login" element={<LoginRegister />} />
-                  <Route path="*" element={<LoginRegister />} />
-                </>
-              )}
-            </Routes>
-          </BrowserRouter>
+          {isAuthenticated ? (
+            <SubscriptionProvider>
+              <AppWithSubscription />
+            </SubscriptionProvider>
+          ) : (
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<LoginRegister />} />
+                <Route path="/login" element={<LoginRegister />} />
+                <Route path="*" element={<LoginRegister />} />
+              </Routes>
+            </BrowserRouter>
+          )}
         </TooltipProvider>
       </ThemeProvider>
     </LanguageProvider>

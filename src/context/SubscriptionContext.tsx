@@ -48,8 +48,35 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
         .single();
 
       let trialEndDate = null;
+      let planType: 'free_trial' | 'free' | 'premium' = 'free_trial';
+
       if (subscription?.trial_end_date) {
         trialEndDate = subscription.trial_end_date;
+        const trialEnd = new Date(subscription.trial_end_date);
+        const now = new Date();
+        
+        // Se o período de teste ainda não expirou
+        if (now < trialEnd) {
+          planType = 'free_trial';
+        } else {
+          planType = 'free';
+        }
+      } else {
+        // Se não há data de fim do teste, criar uma nova (7 dias a partir de agora)
+        const newTrialEnd = new Date();
+        newTrialEnd.setDate(newTrialEnd.getDate() + 7);
+        trialEndDate = newTrialEnd.toISOString();
+        planType = 'free_trial';
+
+        // Atualizar no banco de dados
+        await supabase
+          .from('subscriptions')
+          .upsert({
+            user_id: user.id,
+            trial_end_date: trialEndDate,
+            plan_type: 'free_trial',
+            updated_at: new Date().toISOString()
+          });
       }
 
       // Check Stripe subscription status
@@ -60,7 +87,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
         setState(prev => ({ 
           ...prev, 
           isLoading: false,
-          planType: subscription?.plan_type || 'free_trial',
+          planType,
           trialEndDate
         }));
         return;
@@ -68,7 +95,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
 
       setState({
         subscribed: stripeData.subscribed || false,
-        planType: stripeData.plan_type || subscription?.plan_type || 'free_trial',
+        planType: stripeData.subscribed ? 'premium' : planType,
         subscriptionEnd: stripeData.subscription_end,
         trialEndDate,
         isLoading: false,
