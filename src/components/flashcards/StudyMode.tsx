@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, RotateCcw } from 'lucide-react';
 import { Button } from '../ui/button';
@@ -21,12 +20,13 @@ export default function StudyMode({ deckId, onExit }: StudyModeProps) {
 
   const deck = getDeck(deckId);
 
+  // Carrega as cartas apenas uma vez no início da sessão
   useEffect(() => {
     console.log('Loading cards for deck:', deckId);
     const dueCards = getDueCards(deckId);
     console.log('Due cards loaded:', dueCards);
     setSessionCards(dueCards);
-  }, [deckId, getDueCards]);
+  }, [deckId]); // Removido getDueCards da dependência para evitar recarregamentos
 
   const currentCard = sessionCards[currentCardIndex];
   const hasNextCard = currentCardIndex < sessionCards.length - 1;
@@ -35,10 +35,12 @@ export default function StudyMode({ deckId, onExit }: StudyModeProps) {
     setShowBack(!showBack);
   };
 
-  const handleResponse = (response: 'again' | 'hard' | 'good' | 'easy') => {
+  const handleResponse = async (response: 'again' | 'hard' | 'good' | 'easy') => {
     if (currentCard) {
       console.log('Reviewing card:', currentCard.id, 'with response:', response);
-      reviewCard(currentCard.id, response);
+      
+      // Atualiza o card no banco sem recarregar a lista
+      await reviewCard(currentCard.id, response);
       setStudiedCards(prev => prev + 1);
 
       if (hasNextCard) {
@@ -53,6 +55,7 @@ export default function StudyMode({ deckId, onExit }: StudyModeProps) {
   };
 
   const handleRestart = () => {
+    // Recarrega as cartas apenas quando o usuário clica em reiniciar
     const dueCards = getDueCards(deckId);
     setSessionCards(dueCards);
     setCurrentCardIndex(0);
