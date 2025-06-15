@@ -39,12 +39,25 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     console.log(`[SUBSCRIPTION-CONTEXT] ${message}`, data ? JSON.stringify(data) : '');
   };
 
+  // Timeout para forçar saída do loading se demorar muito
+  const forceStopLoading = () => {
+    setTimeout(() => {
+      setState(prev => {
+        if (prev.isLoading) {
+          debugLog('FORCE STOP: Loading timeout reached, stopping loading state');
+          return { ...prev, isLoading: false };
+        }
+        return prev;
+      });
+    }, 15000); // 15 segundos máximo
+  };
+
   // Check subscription status com controle rigoroso
   const checkSubscription = async () => {
     const now = Date.now();
     
-    // Prevenir múltiplas execuções muito próximas (mínimo 5 segundos entre chamadas)
-    if (now - lastCheckTime < 5000) {
+    // Prevenir múltiplas execuções muito próximas (mínimo 3 segundos entre chamadas)
+    if (now - lastCheckTime < 3000) {
       debugLog('BLOCKED: Check too soon after last check', { timeSince: now - lastCheckTime });
       return;
     }
@@ -65,6 +78,9 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       setIsCheckingInProgress(true);
       setLastCheckTime(now);
       setState(prev => ({ ...prev, isLoading: true }));
+
+      // Iniciar timeout para forçar parada do loading
+      forceStopLoading();
 
       // Get trial info from Supabase
       const { data: subscription } = await supabase
@@ -109,7 +125,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
 
       // Check Stripe subscription status com timeout reduzido
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Stripe check timeout')), 5000) // Reduzido para 5 segundos
+        setTimeout(() => reject(new Error('Stripe check timeout')), 8000) // 8 segundos
       );
 
       const stripeCheckPromise = supabase.functions.invoke('check-subscription');
@@ -120,7 +136,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
         const result = await Promise.race([stripeCheckPromise, timeoutPromise]) as any;
         stripeData = result?.data;
         debugLog('Stripe check completed', stripeData);
-      } catch (error) {
+      } catch (error: any) {
         debugLog('Stripe check failed (using fallback)', { error: error.message });
         // Continue com dados locais se Stripe falhar
       }
@@ -161,7 +177,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
         isLoading: false,
       });
 
-    } catch (error) {
+    } catch (error: any) {
       debugLog('ERROR in checkSubscription', { error: error.message });
       setState(prev => ({ ...prev, isLoading: false }));
     } finally {
@@ -223,7 +239,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       setIsCheckingInProgress(false);
       setLastCheckTime(0);
     }
-  }, [isAuthenticated, user?.id]); // Mudança: dependência mais específica
+  }, [isAuthenticated, user?.id]);
 
   // Check for URL parameters (success/cancel) - apenas uma vez
   useEffect(() => {
@@ -234,35 +250,35 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       // Limpar parâmetros da URL imediatamente
       window.history.replaceState({}, document.title, window.location.pathname);
       
-      // Aguardar processamento do Stripe antes de verificar
+      // Aguardar processamento do Stripe antes de verificar (reduzido para 2 segundos)
       setTimeout(() => {
         if (isAuthenticated && user && !isCheckingInProgress) {
           debugLog('Triggering subscription check after checkout success');
           checkSubscription();
         }
-      }, 3000);
+      }, 2000);
     }
-  }, []); // Executar apenas uma vez
+  }, []);
 
-  // Verificação periódica mais controlada - aumentando intervalo
+  // Verificação periódica mais controlada - só se não estiver em loading infinito
   useEffect(() => {
     if (!isAuthenticated || isCheckingInProgress) return;
 
     debugLog('Setting up periodic subscription check');
     const interval = setInterval(() => {
-      if (!isCheckingInProgress && Date.now() - lastCheckTime > 120000) { // Mínimo 2 minutos
+      if (!isCheckingInProgress && Date.now() - lastCheckTime > 300000 && !state.isLoading) { // 5 minutos e não em loading
         debugLog('Periodic subscription check triggered');
         checkSubscription();
       }
-    }, 120000); // Aumentado para 2 minutos
+    }, 300000); // 5 minutos
 
     return () => {
       debugLog('Clearing periodic check interval');
       clearInterval(interval);
     };
-  }, [isAuthenticated, isCheckingInProgress, lastCheckTime]);
+  }, [isAuthenticated, isCheckingInProgress, lastCheckTime, state.isLoading]);
 
-  // Verificação no foco da página - com debounce maior
+  // Verificação no foco da página - com debounce maior e controle de loading
   useEffect(() => {
     if (!isAuthenticated) return;
 
@@ -271,11 +287,11 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     const handleFocus = () => {
       clearTimeout(focusTimeout);
       focusTimeout = setTimeout(() => {
-        if (!isCheckingInProgress && Date.now() - lastCheckTime > 30000) { // Mínimo 30 segundos
+        if (!isCheckingInProgress && Date.now() - lastCheckTime > 60000 && !state.isLoading) { // 1 minuto e não em loading
           debugLog('Page focus check triggered');
           checkSubscription();
         }
-      }, 2000); // Debounce de 2 segundos
+      }, 3000); // Debounce de 3 segundos
     };
 
     window.addEventListener('focus', handleFocus);
@@ -283,7 +299,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       window.removeEventListener('focus', handleFocus);
       clearTimeout(focusTimeout);
     };
-  }, [isAuthenticated, isCheckingInProgress, lastCheckTime]);
+  }, [isAuthenticated, isCheckingInProgress, lastCheckTime, state.isLoading]);
 
   return (
     <SubscriptionContext.Provider value={{
