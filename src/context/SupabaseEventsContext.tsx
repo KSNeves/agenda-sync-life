@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { CalendarEvent } from '../types';
 import { supabase } from '@/integrations/supabase/client';
@@ -118,8 +119,8 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
   };
 
   const deleteRecurringEvents = async (eventId: string) => {
-    console.log('=== INICIANDO EXCLUSÃO DE SÉRIE (NOVA VERSÃO) ===');
-    console.log('EventId recebido:', eventId);
+    console.log('=== EXCLUSÃO DE SÉRIE - VERSÃO FINAL ===');
+    console.log('ID do evento recebido:', eventId);
     
     if (!user) {
       console.log('Usuário não autenticado');
@@ -127,47 +128,52 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      // Buscar TODOS os eventos do usuário
-      const { data: allUserEvents, error: fetchError } = await supabase
+      // Primeiro, buscar TODOS os eventos do usuário no banco
+      const { data: allEvents, error: fetchError } = await supabase
         .from('user_events')
-        .select('id, title')
+        .select('*')
         .eq('user_id', user.id);
 
       if (fetchError) {
-        console.error('Erro ao buscar eventos do usuário:', fetchError);
+        console.error('Erro ao buscar eventos:', fetchError);
         return;
       }
 
-      console.log('Todos os eventos do usuário:', allUserEvents?.map(e => ({ id: e.id, title: e.title })) || []);
+      console.log('Total de eventos no banco:', allEvents?.length || 0);
 
-      // Identificar o baseId do evento principal
-      let baseId = eventId;
-      
-      // Se o ID contém underscore, é um evento recorrente - pegar o baseId
-      if (eventId.includes('_')) {
-        // Para IDs como "123_1" ou "123_2_3", pegar apenas a primeira parte
-        baseId = eventId.split('_')[0];
-      }
-      
-      console.log('BaseId identificado:', baseId);
+      // Extrair o baseId do evento
+      const baseId = eventId.includes('_') ? eventId.split('_')[0] : eventId;
+      console.log('BaseId extraído:', baseId);
 
-      // Encontrar todos os eventos da série:
-      // 1. O evento base (ID = baseId)
-      // 2. Eventos recorrentes (ID começa com baseId_)
-      const eventsToDelete = allUserEvents?.filter(event => {
-        return event.id === baseId || event.id.startsWith(`${baseId}_`);
+      // Encontrar TODOS os eventos da série usando diferentes padrões
+      const seriesEvents = allEvents?.filter(event => {
+        // Evento base exato
+        if (event.id === baseId) {
+          console.log('Encontrou evento base:', event.id);
+          return true;
+        }
+        
+        // Eventos que começam com baseId_
+        if (event.id.startsWith(`${baseId}_`)) {
+          console.log('Encontrou evento recorrente:', event.id);
+          return true;
+        }
+        
+        return false;
       }) || [];
 
-      console.log('Eventos da série encontrados:', eventsToDelete.map(e => ({ id: e.id, title: e.title })));
+      console.log('Eventos da série encontrados:', seriesEvents.map(e => ({ id: e.id, title: e.title })));
 
-      if (eventsToDelete.length === 0) {
-        console.log('Nenhum evento da série encontrado para deletar');
+      if (seriesEvents.length === 0) {
+        console.log('ERRO: Nenhum evento da série encontrado no banco!');
         return;
       }
 
-      // Deletar todos os eventos da série no banco de dados
-      for (const event of eventsToDelete) {
-        console.log('Deletando evento no banco:', event.id);
+      // Deletar cada evento individualmente para ter controle total
+      console.log('Iniciando exclusão dos eventos...');
+      for (const event of seriesEvents) {
+        console.log(`Deletando evento: ${event.id} (${event.title})`);
+        
         const { error: deleteError } = await supabase
           .from('user_events')
           .delete()
@@ -175,33 +181,34 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
           .eq('user_id', user.id);
 
         if (deleteError) {
-          console.error(`Erro ao deletar evento ${event.id}:`, deleteError);
+          console.error(`ERRO ao deletar ${event.id}:`, deleteError);
         } else {
-          console.log(`Evento ${event.id} deletado com sucesso do banco`);
+          console.log(`✓ Evento ${event.id} deletado com sucesso`);
         }
       }
 
-      console.log('Todos os eventos da série deletados do banco');
-
       // Atualizar o estado local removendo todos os eventos da série
-      setEvents(prev => {
-        const eventsBeforeFilter = prev.length;
-        const newEvents = prev.filter(event => {
-          const shouldKeep = event.id !== baseId && !event.id.startsWith(`${baseId}_`);
-          if (!shouldKeep) {
-            console.log('Removendo do estado local:', event.id, event.title);
+      console.log('Atualizando estado local...');
+      setEvents(prevEvents => {
+        const eventsToKeep = prevEvents.filter(event => {
+          const eventBaseId = event.id.includes('_') ? event.id.split('_')[0] : event.id;
+          const shouldRemove = eventBaseId === baseId;
+          
+          if (shouldRemove) {
+            console.log(`Removendo do estado local: ${event.id} (${event.title})`);
           }
-          return shouldKeep;
+          
+          return !shouldRemove;
         });
         
-        console.log(`Estado local: ${eventsBeforeFilter} eventos antes, ${newEvents.length} eventos depois`);
-        return newEvents;
+        console.log(`Estado atualizado: ${prevEvents.length} → ${eventsToKeep.length} eventos`);
+        return eventsToKeep;
       });
 
-      console.log('=== EXCLUSÃO DE SÉRIE CONCLUÍDA COM SUCESSO ===');
+      console.log('=== EXCLUSÃO DE SÉRIE CONCLUÍDA ===');
 
     } catch (error) {
-      console.error('Erro inesperado ao deletar eventos recorrentes:', error);
+      console.error('Erro inesperado na exclusão:', error);
     }
   };
 
