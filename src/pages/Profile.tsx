@@ -7,22 +7,26 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useTranslation } from '../hooks/useTranslation';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ProfileProps {
   onBack: () => void;
 }
 
 interface UserProfile {
-  firstName: string;
-  lastName: string;
+  id: string;
+  first_name: string;
+  last_name: string;
   email: string;
-  profileImage: string | null;
+  profile_image: string | null;
 }
 
 export default function Profile({ onBack }: ProfileProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const { user } = useAuth();
   
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [firstName, setFirstName] = useState('');
@@ -31,22 +35,44 @@ export default function Profile({ onBack }: ProfileProps) {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Load user profile from localStorage on component mount
+  // Load user profile from Supabase on component mount
   useEffect(() => {
-    const savedProfile = localStorage.getItem('userProfile');
-    if (savedProfile) {
-      const profile: UserProfile = JSON.parse(savedProfile);
-      setFirstName(profile.firstName || '');
-      setLastName(profile.lastName || '');
-      setEmail(profile.email || '');
-      setProfileImage(profile.profileImage || null);
+    if (user) {
+      loadUserProfile();
     }
-  }, []);
+  }, [user]);
+
+  const loadUserProfile = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error) {
+        console.error('Error loading profile:', error);
+        return;
+      }
+
+      if (data) {
+        setFirstName(data.first_name || '');
+        setLastName(data.last_name || '');
+        setEmail(data.email || user.email || '');
+        setProfileImage(data.profile_image || null);
+      }
+    } catch (error) {
+      console.error('Exception loading profile:', error);
+    }
+  };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -59,7 +85,9 @@ export default function Profile({ onBack }: ProfileProps) {
     }
   };
 
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
+    if (!user) return;
+
     // Validate required fields
     if (!firstName.trim() || !lastName.trim() || !email.trim()) {
       toast({
@@ -111,32 +139,68 @@ export default function Profile({ onBack }: ProfileProps) {
       }
     }
 
-    // Save profile to localStorage
-    const userProfile: UserProfile = {
-      firstName: firstName.trim(),
-      lastName: lastName.trim(),
-      email: email.trim(),
-      profileImage: profileImage,
-    };
+    setLoading(true);
 
-    localStorage.setItem('userProfile', JSON.stringify(userProfile));
+    try {
+      // Update profile in Supabase
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+          email: email.trim(),
+          profile_image: profileImage,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user.id);
 
-    // Dispatch custom event to notify other components
-    window.dispatchEvent(new Event('profileUpdated'));
+      if (profileError) {
+        console.error('Error updating profile:', profileError);
+        toast({
+          title: "Erro",
+          description: "Erro ao salvar perfil.",
+          variant: "destructive",
+        });
+        return;
+      }
 
-    // If password was changed, save it separately (in a real app, this would be handled securely on the backend)
-    if (newPassword) {
-      localStorage.setItem('userPassword', newPassword);
-      // Clear password fields after successful change
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
+      // Update password if provided
+      if (newPassword) {
+        const { error: passwordError } = await supabase.auth.updateUser({
+          password: newPassword
+        });
+
+        if (passwordError) {
+          console.error('Error updating password:', passwordError);
+          toast({
+            title: "Erro",
+            description: "Erro ao alterar senha.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        // Clear password fields after successful change
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+      }
+
+      toast({
+        title: "Sucesso",
+        description: "Perfil salvo com sucesso!",
+      });
+
+    } catch (error) {
+      console.error('Exception saving profile:', error);
+      toast({
+        title: "Erro",
+        description: "Erro inesperado ao salvar perfil.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
-
-    toast({
-      title: "Sucesso",
-      description: "Perfil salvo com sucesso!",
-    });
   };
 
   return (
@@ -204,6 +268,7 @@ export default function Profile({ onBack }: ProfileProps) {
                     placeholder={`Digite seu ${t('profile.firstName').toLowerCase()}`} 
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
+                    disabled={loading}
                   />
                 </div>
                 <div className="space-y-2">
@@ -213,6 +278,7 @@ export default function Profile({ onBack }: ProfileProps) {
                     placeholder={`Digite seu ${t('profile.lastName').toLowerCase()}`} 
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
+                    disabled={loading}
                   />
                 </div>
               </div>
@@ -224,6 +290,7 @@ export default function Profile({ onBack }: ProfileProps) {
                   placeholder={`Digite seu ${t('profile.email').toLowerCase()}`} 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  disabled={loading}
                 />
               </div>
 
@@ -240,6 +307,7 @@ export default function Profile({ onBack }: ProfileProps) {
                         placeholder="Digite sua senha atual"
                         value={currentPassword}
                         onChange={(e) => setCurrentPassword(e.target.value)}
+                        disabled={loading}
                       />
                       <Button
                         type="button"
@@ -247,6 +315,7 @@ export default function Profile({ onBack }: ProfileProps) {
                         size="icon"
                         className="absolute right-0 top-0 h-full px-3"
                         onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                        disabled={loading}
                       >
                         {showCurrentPassword ? (
                           <EyeOff className="h-4 w-4" />
@@ -265,6 +334,7 @@ export default function Profile({ onBack }: ProfileProps) {
                         placeholder="Digite sua nova senha"
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
+                        disabled={loading}
                       />
                       <Button
                         type="button"
@@ -272,6 +342,7 @@ export default function Profile({ onBack }: ProfileProps) {
                         size="icon"
                         className="absolute right-0 top-0 h-full px-3"
                         onClick={() => setShowNewPassword(!showNewPassword)}
+                        disabled={loading}
                       >
                         {showNewPassword ? (
                           <EyeOff className="h-4 w-4" />
@@ -290,6 +361,7 @@ export default function Profile({ onBack }: ProfileProps) {
                         placeholder="Confirme sua nova senha"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
+                        disabled={loading}
                       />
                       <Button
                         type="button"
@@ -297,6 +369,7 @@ export default function Profile({ onBack }: ProfileProps) {
                         size="icon"
                         className="absolute right-0 top-0 h-full px-3"
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        disabled={loading}
                       >
                         {showConfirmPassword ? (
                           <EyeOff className="h-4 w-4" />
@@ -313,10 +386,18 @@ export default function Profile({ onBack }: ProfileProps) {
 
           {/* Botões de ação */}
           <div className="flex gap-4 pt-6">
-            <Button className="flex-1" onClick={handleSaveProfile}>
-              {t('common.save')}
+            <Button 
+              className="flex-1" 
+              onClick={handleSaveProfile}
+              disabled={loading}
+            >
+              {loading ? 'Salvando...' : t('common.save')}
             </Button>
-            <Button variant="outline" onClick={onBack}>
+            <Button 
+              variant="outline" 
+              onClick={onBack}
+              disabled={loading}
+            >
               {t('common.cancel')}
             </Button>
           </div>

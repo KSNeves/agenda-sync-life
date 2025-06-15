@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Globe } from 'lucide-react';
+import { Globe, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,8 +20,10 @@ function LoginRegisterContent() {
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { language, setLanguage, t } = useLoginLanguage();
-  const { login } = useAuth();
+  const { signIn, signUp, loading } = useAuth();
 
   const languages = [
     { code: 'pt' as const, name: 'Português', flag: '🇧🇷' },
@@ -32,11 +34,28 @@ function LoginRegisterContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (isLogin) {
-      await login(email, password);
-    } else {
-      await login(email, password, firstName, lastName);
+    if (isSubmitting || loading) return;
+    
+    setIsSubmitting(true);
+    
+    try {
+      if (isLogin) {
+        await signIn(email, password);
+      } else {
+        if (!firstName.trim() || !lastName.trim()) {
+          return;
+        }
+        await signUp(email, password, firstName.trim(), lastName.trim());
+      }
+    } finally {
+      setIsSubmitting(false);
     }
+  };
+
+  const isFormValid = () => {
+    if (!email.trim() || !password.trim()) return false;
+    if (!isLogin && (!firstName.trim() || !lastName.trim())) return false;
+    return true;
   };
 
   return (
@@ -50,7 +69,7 @@ function LoginRegisterContent() {
               {t('auth.language')}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" className="bg-card border-border">
             {languages.map((lang) => (
               <DropdownMenuItem
                 key={lang.code}
@@ -89,6 +108,7 @@ function LoginRegisterContent() {
                     onChange={(e) => setFirstName(e.target.value)}
                     placeholder={t('auth.firstNamePlaceholder')}
                     required={!isLogin}
+                    disabled={isSubmitting || loading}
                   />
                 </div>
                 <div className="space-y-2">
@@ -100,6 +120,7 @@ function LoginRegisterContent() {
                     onChange={(e) => setLastName(e.target.value)}
                     placeholder={t('auth.lastNamePlaceholder')}
                     required={!isLogin}
+                    disabled={isSubmitting || loading}
                   />
                 </div>
               </div>
@@ -114,23 +135,53 @@ function LoginRegisterContent() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={t('auth.emailPlaceholder')}
                 required
+                disabled={isSubmitting || loading}
               />
             </div>
             
             <div className="space-y-2">
               <Label htmlFor="password">{t('auth.password')}</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder={t('auth.passwordPlaceholder')}
-                required
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={t('auth.passwordPlaceholder')}
+                  required
+                  disabled={isSubmitting || loading}
+                  className="pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-0 h-full px-3"
+                  onClick={() => setShowPassword(!showPassword)}
+                  disabled={isSubmitting || loading}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
             </div>
 
-            <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
-              {isLogin ? t('auth.login') : t('auth.register')}
+            <Button 
+              type="submit" 
+              className="w-full bg-primary hover:bg-primary/90"
+              disabled={!isFormValid() || isSubmitting || loading}
+            >
+              {isSubmitting || loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {isLogin ? 'Entrando...' : 'Criando conta...'}
+                </>
+              ) : (
+                isLogin ? t('auth.login') : t('auth.register')
+              )}
             </Button>
           </form>
 
@@ -139,13 +190,28 @@ function LoginRegisterContent() {
               {isLogin ? t('auth.dontHaveAccount') : t('auth.alreadyHaveAccount')}{' '}
               <button
                 type="button"
-                onClick={() => setIsLogin(!isLogin)}
+                onClick={() => {
+                  setIsLogin(!isLogin);
+                  setEmail('');
+                  setPassword('');
+                  setFirstName('');
+                  setLastName('');
+                }}
                 className="text-primary hover:text-primary/80 font-medium hover:underline"
+                disabled={isSubmitting || loading}
               >
                 {t('auth.clickHere')}
               </button>
             </p>
           </div>
+
+          {!isLogin && (
+            <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <p className="text-sm text-blue-700 dark:text-blue-300 text-center">
+                💡 Você receberá um email de confirmação após o cadastro
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

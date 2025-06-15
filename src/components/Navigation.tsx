@@ -15,6 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../hooks/useTranslation';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface NavigationProps {
   currentView: string;
@@ -22,51 +23,48 @@ interface NavigationProps {
 }
 
 interface UserProfile {
-  firstName: string;
-  lastName: string;
+  id: string;
+  first_name: string;
+  last_name: string;
   email: string;
-  profileImage: string | null;
+  profile_image: string | null;
 }
 
 export default function Navigation({ currentView, onViewChange }: NavigationProps) {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const { language, setLanguage } = useLanguage();
   const { t } = useTranslation();
-  const { logout } = useAuth();
+  const { user, signOut } = useAuth();
 
-  // Load user profile from localStorage and listen for changes
+  // Load user profile from Supabase
   useEffect(() => {
-    const loadProfile = () => {
-      const savedProfile = localStorage.getItem('userProfile');
-      if (savedProfile) {
-        setUserProfile(JSON.parse(savedProfile));
+    if (user) {
+      loadUserProfile();
+    }
+  }, [user]);
+
+  const loadUserProfile = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error) {
+        console.error('Error loading profile:', error);
+        return;
       }
-    };
 
-    // Load initially
-    loadProfile();
-
-    // Listen for storage changes
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'userProfile') {
-        loadProfile();
+      if (data) {
+        setUserProfile(data);
       }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-
-    // Also listen for custom event when profile is updated in the same tab
-    const handleProfileUpdate = () => {
-      loadProfile();
-    };
-
-    window.addEventListener('profileUpdated', handleProfileUpdate);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('profileUpdated', handleProfileUpdate);
-    };
-  }, []);
+    } catch (error) {
+      console.error('Exception loading profile:', error);
+    }
+  };
 
   const navItems = [
     { id: 'dashboard', label: t('navigation.dashboard'), icon: BarChart3 },
@@ -81,7 +79,7 @@ export default function Navigation({ currentView, onViewChange }: NavigationProp
     { code: 'es' as const, name: 'Español', flag: '🇪🇸' },
   ];
 
-  const handleProfileAction = (action: string) => {
+  const handleProfileAction = async (action: string) => {
     console.log(`Profile action: ${action}`);
     switch (action) {
       case 'profile':
@@ -91,13 +89,30 @@ export default function Navigation({ currentView, onViewChange }: NavigationProp
         onViewChange('settings');
         break;
       case 'logout':
-        logout();
+        await signOut();
         break;
     }
   };
 
   const handleLanguageChange = (languageCode: 'pt' | 'en' | 'es') => {
     setLanguage(languageCode);
+  };
+
+  const getDisplayName = () => {
+    if (userProfile) {
+      return `${userProfile.first_name} ${userProfile.last_name}`;
+    }
+    return user?.email || 'Usuário';
+  };
+
+  const getInitials = () => {
+    if (userProfile && userProfile.first_name && userProfile.last_name) {
+      return `${userProfile.first_name[0]}${userProfile.last_name[0]}`.toUpperCase();
+    }
+    if (user?.email) {
+      return user.email[0].toUpperCase();
+    }
+    return 'U';
   };
 
   return (
@@ -133,15 +148,16 @@ export default function Navigation({ currentView, onViewChange }: NavigationProp
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2 p-2 rounded-full hover:bg-accent transition-colors">
                   <Avatar className="w-8 h-8">
-                    <AvatarImage src={userProfile?.profileImage || undefined} />
-                    <AvatarFallback className="bg-primary">
-                      <User size={16} className="text-primary-foreground" />
+                    <AvatarImage src={userProfile?.profile_image || undefined} />
+                    <AvatarFallback className="bg-primary text-primary-foreground">
+                      {getInitials()}
                     </AvatarFallback>
                   </Avatar>
+                  <span className="hidden sm:block text-sm font-medium">{getDisplayName()}</span>
                   <ChevronDown size={16} className="text-muted-foreground" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuContent align="end" className="w-48 bg-card border-border">
                 <DropdownMenuItem onClick={() => handleProfileAction('profile')}>
                   <User size={16} className="mr-2" />
                   {t('navigation.profile')}
@@ -156,7 +172,7 @@ export default function Navigation({ currentView, onViewChange }: NavigationProp
                     <Globe size={16} className="mr-2" />
                     {t('navigation.language')}
                   </DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent>
+                  <DropdownMenuSubContent className="bg-card border-border">
                     {languages.map((lang) => (
                       <DropdownMenuItem
                         key={lang.code}
