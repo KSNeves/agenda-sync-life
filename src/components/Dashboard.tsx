@@ -243,24 +243,24 @@ export default function Dashboard() {
                     <div className="flex gap-2 flex-shrink-0">
                       <button
                         onClick={() => handleRevisionAction(revision.id, 'start')}
-                        className="flex items-center gap-1 px-2 py-1 sm:px-3 sm:py-1 bg-blue-500 text-white rounded text-xs sm:text-sm hover:bg-blue-600 transition-colors"
+                        className="flex items-center gap-1 px-2 py-2 sm:px-3 sm:py-1 bg-blue-500 text-white rounded text-xs sm:text-sm hover:bg-blue-600 transition-colors"
                       >
-                        <PlayCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-                        {t('dashboard.start')}
+                        <PlayCircle className="w-4 h-4" />
+                        <span className="hidden sm:inline">{t('dashboard.start')}</span>
                       </button>
                       <button
                         onClick={() => handleRevisionAction(revision.id, 'complete')}
-                        className="flex items-center gap-1 px-2 py-1 sm:px-3 sm:py-1 bg-green-500 text-white rounded text-xs sm:text-sm hover:bg-green-600 transition-colors"
+                        className="flex items-center gap-1 px-2 py-2 sm:px-3 sm:py-1 bg-green-500 text-white rounded text-xs sm:text-sm hover:bg-green-600 transition-colors"
                       >
-                        <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-                        {t('dashboard.complete')}
+                        <CheckCircle className="w-4 h-4" />
+                        <span className="hidden sm:inline">{t('dashboard.complete')}</span>
                       </button>
                       <button
                         onClick={() => handleRevisionAction(revision.id, 'postpone')}
-                        className="flex items-center gap-1 px-2 py-1 sm:px-3 sm:py-1 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded text-xs sm:text-sm font-medium transition-colors"
+                        className="flex items-center gap-1 px-2 py-2 sm:px-3 sm:py-1 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded text-xs sm:text-sm font-medium transition-colors"
                       >
-                        <ClockIcon className="w-3 h-3 sm:w-4 sm:h-4" />
-                        {t('dashboard.postpone')}
+                        <ClockIcon className="w-4 h-4" />
+                        <span className="hidden sm:inline">{t('dashboard.postpone')}</span>
                       </button>
                     </div>
                   </div>
