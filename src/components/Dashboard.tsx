@@ -212,7 +212,7 @@ export default function Dashboard() {
       <div className="max-w-6xl mx-auto">
         <header className="mb-8">
           <div>
-            <h1 className="text-4xl font-bold">{t('dashboard.title')}</h1>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">{t('dashboard.title')}</h1>
             <p className="text-muted-foreground mt-2">
               {formatCurrentDate()}
             </p>
@@ -230,7 +230,7 @@ export default function Dashboard() {
             ) : (
               <div className="space-y-3">
                 {todayRevisions.map(revision => (
-                  <div key={revision.id} className="bg-secondary/60 backdrop-blur-sm p-5 rounded-xl flex items-center justify-between gap-4 transition-all duration-300 hover:bg-secondary/80 hover:shadow-lg border border-border/30">
+                  <div key={revision.id} className="bg-secondary/60 backdrop-blur-sm p-5 rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 transition-all duration-300 hover:bg-secondary/80 hover:shadow-lg border border-border/30">
                     <div className="flex-1">
                       <div className="font-semibold text-foreground">{revision.title}</div>
                       {revision.description && (
@@ -240,27 +240,27 @@ export default function Dashboard() {
                       )}
                     </div>
                     
-                    <div className="flex gap-2 flex-shrink-0">
+                    <div className="flex gap-1 sm:gap-2 flex-shrink-0">
                       <button
                         onClick={() => handleRevisionAction(revision.id, 'start')}
-                        className="flex items-center gap-1 px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition-colors"
+                        className="flex items-center gap-1 px-2 sm:px-3 py-1 bg-blue-500 text-white rounded text-xs sm:text-sm hover:bg-blue-600 transition-colors"
                       >
-                        <PlayCircle className="w-4 h-4" />
-                        {t('dashboard.start')}
+                        <PlayCircle className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <span className="hidden xs:inline">{t('dashboard.start')}</span>
                       </button>
                       <button
                         onClick={() => handleRevisionAction(revision.id, 'complete')}
-                        className="flex items-center gap-1 px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600 transition-colors"
+                        className="flex items-center gap-1 px-2 sm:px-3 py-1 bg-green-500 text-white rounded text-xs sm:text-sm hover:bg-green-600 transition-colors"
                       >
-                        <CheckCircle className="w-4 h-4" />
-                        {t('dashboard.complete')}
+                        <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <span className="hidden xs:inline">{t('dashboard.complete')}</span>
                       </button>
                       <button
                         onClick={() => handleRevisionAction(revision.id, 'postpone')}
-                        className="flex items-center gap-1 px-3 py-1 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded text-sm font-medium transition-colors"
+                        className="flex items-center gap-1 px-2 sm:px-3 py-1 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded text-xs sm:text-sm font-medium transition-colors"
                       >
-                        <ClockIcon className="w-4 h-4" />
-                        {t('dashboard.postpone')}
+                        <ClockIcon className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <span className="hidden xs:inline">{t('dashboard.postpone')}</span>
                       </button>
                     </div>
                   </div>
