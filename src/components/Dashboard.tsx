@@ -1,178 +1,306 @@
-
-import React from 'react';
-import { Calendar, Clock, BookOpen, BarChart3 } from 'lucide-react';
-import { useEvents } from '../context/EventsContext';
-import { useRevisions } from '../context/RevisionsContext';
-import { useFlashcards } from '../context/FlashcardsContext';
-import { useTranslation } from '../hooks/useTranslation';
+import React, { useEffect, useState } from 'react';
+import { useApp } from '../context/AppContext';
+import { Task, RevisionItem } from '../types';
+import { Play, Pause, Check, Clock, Calendar, PlayCircle, CheckCircle, ClockIcon } from 'lucide-react';
 import { categorizeRevision } from '../utils/spacedRepetition';
+import StudyTimerModal from './StudyTimerModal';
+import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useTranslation } from '../hooks/useTranslation';
 
 export default function Dashboard() {
-  const { events } = useEvents();
-  const { revisions } = useRevisions();
-  const { decks } = useFlashcards();
+  const { state, dispatch } = useApp();
+  const { tasks, events, revisionItems } = state;
   const { t } = useTranslation();
+  const [isStudyModalOpen, setIsStudyModalOpen] = useState(false);
+  const [selectedRevisionTitle, setSelectedRevisionTitle] = useState('');
+  const [weeklyProgressData, setWeeklyProgressData] = useLocalStorage<Record<string, { completed: number; total: number }>>('weeklyProgressData', {});
 
-  // Categorizar revisões
-  const categorizedRevisions = revisions.map(revision => ({
-    ...revision,
-    category: categorizeRevision(revision)
-  }));
+  // Timer logic
+  useEffect(() => {
+    const interval = setInterval(() => {
+      tasks.forEach(task => {
+        if (task.isRunning && task.startTime) {
+          const elapsedTime = task.elapsedTime + Math.floor((Date.now() - task.startTime) / 1000);
+          dispatch({
+            type: 'UPDATE_TASK_TIMER',
+            payload: { id: task.id, elapsedTime }
+          });
+        }
+      });
+    }, 1000);
 
-  const todayRevisions = categorizedRevisions.filter(r => r.category === 'priority');
-  const pendingRevisions = categorizedRevisions.filter(r => r.category === 'pending');
+    return () => clearInterval(interval);
+  }, [tasks, dispatch]);
 
-  // Eventos de hoje
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-
-  const todayEvents = events.filter(event => {
-    const eventDate = new Date(event.startTime);
-    return eventDate >= today && eventDate < tomorrow;
+  
+  // Get today's tasks (original task system)
+  const todayTasks = tasks.filter(task => {
+    const taskDate = new Date(task.createdAt);
+    return taskDate.toDateString() === today.toDateString() && !task.postponed;
   });
 
-  const totalFlashcards = decks.reduce((total, deck) => total + deck.cards.length, 0);
+  // Get today's revisions
+  const todayRevisions = revisionItems.filter(item => {
+    return categorizeRevision(item) === 'pending';
+  });
+
+  // Calculate daily progress based on completed revisions today
+  const completedRevisionsToday = revisionItems.filter(item => {
+    const wasCompletedToday = item.completedAt && 
+      new Date(item.completedAt).toDateString() === today.toDateString();
+    
+    return wasCompletedToday;
+  }).length;
+  
+  const totalDailyTasks = todayRevisions.length + completedRevisionsToday;
+  const dailyProgress = totalDailyTasks > 0 ? (completedRevisionsToday / totalDailyTasks) * 100 : 0;
+
+  // Update today's progress in localStorage
+  useEffect(() => {
+    const todayKey = today.toDateString();
+    setWeeklyProgressData(prev => ({
+      ...prev,
+      [todayKey]: {
+        completed: completedRevisionsToday,
+        total: totalDailyTasks
+      }
+    }));
+  }, [completedRevisionsToday, totalDailyTasks, today, setWeeklyProgressData]);
+
+  // Weekly progress calculation - baseado em revisões
+  const getWeekProgress = () => {
+    const weekDays = [];
+    const dayNamesShort = [
+      t('weekdays.sun'),
+      t('weekdays.mon'), 
+      t('weekdays.tue'),
+      t('weekdays.wed'),
+      t('weekdays.thu'),
+      t('weekdays.fri'),
+      t('weekdays.sat')
+    ];
+
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - today.getDay() + i);
+      const dateKey = date.toDateString();
+      
+      // Verificar se temos dados salvos para este dia
+      const savedData = weeklyProgressData[dateKey];
+      
+      if (savedData) {
+        // Usar dados salvos
+        weekDays.push({
+          day: dayNamesShort[i],
+          progress: savedData.total > 0 ? (savedData.completed / savedData.total) * 100 : 0,
+          completed: savedData.completed,
+          total: savedData.total
+        });
+      } else if (date.toDateString() === today.toDateString()) {
+        // Para hoje, usar dados em tempo real
+        weekDays.push({
+          day: dayNamesShort[i],
+          progress: totalDailyTasks > 0 ? (completedRevisionsToday / totalDailyTasks) * 100 : 0,
+          completed: completedRevisionsToday,
+          total: totalDailyTasks
+        });
+      } else {
+        // Para dias futuros ou dias sem dados, mostrar vazio
+        weekDays.push({
+          day: dayNamesShort[i],
+          progress: 0,
+          completed: 0,
+          total: 0
+        });
+      }
+    }
+    return weekDays;
+  };
+
+  const formatTime = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleTaskAction = (taskId: string, action: string) => {
+    dispatch({ type: action.toUpperCase() + '_TASK' as any, payload: taskId });
+  };
+
+  const handleRevisionAction = (revisionId: string, action: 'start' | 'complete' | 'postpone') => {
+    const revision = revisionItems.find(item => item.id === revisionId);
+    if (!revision) return;
+
+    if (action === 'start') {
+      setSelectedRevisionTitle(revision.title);
+      setIsStudyModalOpen(true);
+    } else if (action === 'complete') {
+      dispatch({ 
+        type: 'UPDATE_REVISION_ITEM', 
+        payload: { 
+          ...revision, 
+          category: 'completed',
+          completedAt: Date.now() // Garante que a data de conclusão seja hoje
+        }
+      });
+    } else if (action === 'postpone') {
+      const newDate = new Date();
+      newDate.setDate(newDate.getDate() + 1);
+      newDate.setHours(0, 0, 0, 0);
+      
+      dispatch({ 
+        type: 'UPDATE_REVISION_ITEM', 
+        payload: { 
+          ...revision, 
+          nextRevisionDate: newDate.getTime(),
+          category: 'priority'
+        }
+      });
+    }
+  };
+
+  const addSampleTask = () => {
+    const newTask: Task = {
+      id: Date.now().toString(),
+      title: `Nova Tarefa ${tasks.length + 1}`,
+      duration: 60,
+      completed: false,
+      elapsedTime: 0,
+      isRunning: false,
+      createdAt: Date.now(),
+    };
+    dispatch({ type: 'ADD_TASK', payload: newTask });
+  };
+
+  // Usar tradução para a data atual
+  const formatCurrentDate = () => {
+    const options: Intl.DateTimeFormatOptions = { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    };
+    
+    // Usar locale baseado no idioma selecionado com fallback seguro
+    const locale = t('common.locale');
+    const safeLocale = ['pt-BR', 'en-US', 'es-ES'].includes(locale) ? locale : 'en-US';
+    
+    try {
+      return today.toLocaleDateString(safeLocale, options);
+    } catch (error) {
+      // Fallback para inglês se houver erro
+      return today.toLocaleDateString('en-US', options);
+    }
+  };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground mb-2">
-          {t('dashboard.title')}
-        </h1>
-        <p className="text-muted-foreground">
-          {t('dashboard.subtitle')}
-        </p>
-      </div>
-
-      {/* Cards de estatísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-card rounded-lg p-6 border shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                {t('dashboard.todayEvents')}
-              </p>
-              <p className="text-3xl font-bold text-foreground">
-                {todayEvents.length}
-              </p>
-            </div>
-            <Calendar className="h-8 w-8 text-primary" />
+    <div className="min-h-screen bg-background text-foreground p-6">
+      <div className="max-w-6xl mx-auto">
+        <header className="mb-8">
+          <div>
+            <h1 className="text-4xl font-bold">{t('dashboard.title')}</h1>
+            <p className="text-muted-foreground mt-2">
+              {formatCurrentDate()}
+            </p>
           </div>
-        </div>
+        </header>
 
-        <div className="bg-card rounded-lg p-6 border shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                {t('dashboard.priorityRevisions')}
-              </p>
-              <p className="text-3xl font-bold text-foreground">
-                {todayRevisions.length}
-              </p>
-            </div>
-            <Clock className="h-8 w-8 text-orange-500" />
-          </div>
-        </div>
-
-        <div className="bg-card rounded-lg p-6 border shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                {t('dashboard.totalFlashcards')}
-              </p>
-              <p className="text-3xl font-bold text-foreground">
-                {totalFlashcards}
-              </p>
-            </div>
-            <BookOpen className="h-8 w-8 text-green-500" />
-          </div>
-        </div>
-
-        <div className="bg-card rounded-lg p-6 border shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                {t('dashboard.pendingRevisions')}
-              </p>
-              <p className="text-3xl font-bold text-foreground">
-                {pendingRevisions.length}
-              </p>
-            </div>
-            <BarChart3 className="h-8 w-8 text-blue-500" />
-          </div>
-        </div>
-      </div>
-
-      {/* Seções principais */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Eventos de hoje */}
-        <div className="bg-card rounded-lg p-6 border shadow-sm">
-          <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center">
-            <Calendar className="h-5 w-5 mr-2 text-primary" />
-            {t('dashboard.todayEvents')}
-          </h2>
-          {todayEvents.length > 0 ? (
-            <div className="space-y-3">
-              {todayEvents.slice(0, 5).map((event) => (
-                <div key={event.id} className="flex items-center justify-between p-3 bg-background rounded-lg">
-                  <div>
-                    <p className="font-medium text-foreground">{event.title}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(event.startTime).toLocaleTimeString('pt-BR', {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })} - {new Date(event.endTime).toLocaleTimeString('pt-BR', {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </p>
+        <div className="space-y-6">
+          {/* Today's Tasks - First */}
+          <div className="bg-card/80 backdrop-blur-sm p-6 rounded-xl shadow-2xl border border-border/50 hover:shadow-3xl transition-all duration-300">
+            <h3 className="text-lg font-semibold mb-4">{t('dashboard.todayTasks')}</h3>
+            {todayRevisions.length === 0 ? (
+              <div className="text-center text-muted-foreground bg-secondary/40 p-8 rounded-xl border border-dashed border-border/50">
+                {t('dashboard.noRevisionsToday')}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {todayRevisions.map(revision => (
+                  <div key={revision.id} className="bg-secondary/60 backdrop-blur-sm p-5 rounded-xl flex items-center justify-between gap-4 transition-all duration-300 hover:bg-secondary/80 hover:shadow-lg border border-border/30">
+                    <div className="flex-1">
+                      <div className="font-semibold text-foreground">{revision.title}</div>
+                      {revision.description && (
+                        <div className="text-sm text-muted-foreground mt-1">
+                          {revision.description}
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="flex gap-2 flex-shrink-0">
+                      <button
+                        onClick={() => handleRevisionAction(revision.id, 'start')}
+                        className="flex items-center gap-1 px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition-colors"
+                      >
+                        <PlayCircle className="w-4 h-4" />
+                        {t('dashboard.start')}
+                      </button>
+                      <button
+                        onClick={() => handleRevisionAction(revision.id, 'complete')}
+                        className="flex items-center gap-1 px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600 transition-colors"
+                      >
+                        <CheckCircle className="w-4 h-4" />
+                        {t('dashboard.complete')}
+                      </button>
+                      <button
+                        onClick={() => handleRevisionAction(revision.id, 'postpone')}
+                        className="flex items-center gap-1 px-3 py-1 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded text-sm font-medium transition-colors"
+                      >
+                        <ClockIcon className="w-4 h-4" />
+                        {t('dashboard.postpone')}
+                      </button>
+                    </div>
                   </div>
-                  <div className={`w-3 h-3 rounded-full bg-${event.customColor || 'blue'}-500`} />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Daily Progress - Second */}
+          <div className="bg-card/80 backdrop-blur-sm p-6 rounded-xl shadow-2xl border border-border/50 hover:shadow-3xl transition-all duration-300">
+            <h3 className="text-lg font-semibold mb-4">{t('dashboard.dailyProgress')}</h3>
+            <div className="relative mb-4">
+              <div className="w-full h-3 bg-muted/50 rounded-full overflow-hidden shadow-inner">
+                <div 
+                  className="h-full bg-primary rounded-full transition-all duration-700 ease-out min-w-[5px] shadow-sm"
+                  style={{ width: `${dailyProgress}%` }}
+                />
+              </div>
+              <div className="flex justify-between items-center mt-3 text-sm">
+                <span className="font-bold text-foreground">{completedRevisionsToday}/{totalDailyTasks} {t('dashboard.tasks')}</span>
+                <span className="text-muted-foreground">{dailyProgress.toFixed(0)}%</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Weekly Progress - Third */}
+          <div className="bg-card/80 backdrop-blur-sm p-6 rounded-xl shadow-2xl border border-border/50 hover:shadow-3xl transition-all duration-300">
+            <h3 className="text-lg font-semibold mb-4">{t('dashboard.weeklyProgress')}</h3>
+            <div className="space-y-4">
+              {getWeekProgress().map((day, index) => (
+                <div key={index} className="flex items-center gap-4 p-2 rounded-lg hover:bg-muted/20 transition-colors">
+                  <div className="w-20 text-right text-sm font-medium text-muted-foreground">{day.day}</div>
+                  <div className="flex-1 relative">
+                    <div className="w-full h-3 bg-muted/50 rounded-full overflow-hidden shadow-inner">
+                      <div 
+                        className="h-full bg-primary rounded-full transition-all duration-500"
+                        style={{ width: `${day.progress}%` }}
+                      />
+                    </div>
+                  </div>
+                  <div className="text-xs text-muted-foreground">{day.completed}/{day.total}</div>
                 </div>
               ))}
-              {todayEvents.length > 5 && (
-                <p className="text-sm text-muted-foreground text-center">
-                  +{todayEvents.length - 5} {t('dashboard.moreEvents')}
-                </p>
-              )}
             </div>
-          ) : (
-            <p className="text-muted-foreground text-center py-8">
-              {t('dashboard.noEventsToday')}
-            </p>
-          )}
+          </div>
         </div>
 
-        {/* Revisões prioritárias */}
-        <div className="bg-card rounded-lg p-6 border shadow-sm">
-          <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center">
-            <Clock className="h-5 w-5 mr-2 text-orange-500" />
-            {t('dashboard.priorityRevisions')}
-          </h2>
-          {todayRevisions.length > 0 ? (
-            <div className="space-y-3">
-              {todayRevisions.slice(0, 5).map((revision) => (
-                <div key={revision.id} className="p-3 bg-background rounded-lg">
-                  <p className="font-medium text-foreground">{revision.title}</p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {t('dashboard.revisionCount', { count: revision.revisionCount })}
-                  </p>
-                </div>
-              ))}
-              {todayRevisions.length > 5 && (
-                <p className="text-sm text-muted-foreground text-center">
-                  +{todayRevisions.length - 5} {t('dashboard.moreRevisions')}
-                </p>
-              )}
-            </div>
-          ) : (
-            <p className="text-muted-foreground text-center py-8">
-              {t('dashboard.noPriorityRevisions')}
-            </p>
-          )}
-        </div>
+        <StudyTimerModal
+          isOpen={isStudyModalOpen}
+          onClose={() => setIsStudyModalOpen(false)}
+          revisionTitle={selectedRevisionTitle}
+        />
       </div>
     </div>
   );

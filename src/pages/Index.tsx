@@ -1,10 +1,8 @@
 
 import React, { useState } from 'react';
+import { AppProvider } from '../context/AppContext';
 import { PomodoroProvider } from '../context/PomodoroContext';
 import { FlashcardsProvider } from '../context/FlashcardsContext';
-import { RevisionsProvider } from '../context/RevisionsContext';
-import { EventsProvider } from '../context/EventsContext';
-import { SettingsProvider } from '../context/SettingsContext';
 import { LanguageProvider } from '../context/LanguageContext';
 import Navigation from '../components/Navigation';
 import Dashboard from '../components/Dashboard';
@@ -42,25 +40,21 @@ const Index = () => {
 
   return (
     <LanguageProvider>
-      <SettingsProvider>
-        <EventsProvider>
-          <RevisionsProvider>
-            <PomodoroProvider>
-              <FlashcardsProvider>
-                <div className="min-h-screen bg-background">
-                  {currentView !== 'settings' && currentView !== 'profile' && (
-                    <Navigation currentView={currentView} onViewChange={setCurrentView} />
-                  )}
-                  <main>
-                    {renderCurrentView()}
-                  </main>
-                  <EventModal />
-                </div>
-              </FlashcardsProvider>
-            </PomodoroProvider>
-          </RevisionsProvider>
-        </EventsProvider>
-      </SettingsProvider>
+      <AppProvider>
+        <PomodoroProvider>
+          <FlashcardsProvider>
+            <div className="min-h-screen bg-background">
+              {currentView !== 'settings' && currentView !== 'profile' && (
+                <Navigation currentView={currentView} onViewChange={setCurrentView} />
+              )}
+              <main>
+                {renderCurrentView()}
+              </main>
+              <EventModal />
+            </div>
+          </FlashcardsProvider>
+        </PomodoroProvider>
+      </AppProvider>
     </LanguageProvider>
   );
 };
