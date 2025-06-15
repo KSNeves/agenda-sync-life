@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { AppProvider } from '../context/AppContext';
 import { PomodoroProvider } from '../context/PomodoroContext';
@@ -13,6 +12,8 @@ import Flashcards from '../components/Flashcards';
 import Settings from './Settings';
 import Profile from './Profile';
 import EventModal from '../components/EventModal';
+import { useSubscription } from '../hooks/useSubscription';
+import SubscriptionBlocker from '../components/SubscriptionBlocker';
 
 const Index = () => {
   const [currentView, setCurrentView] = useState('dashboard');
@@ -38,12 +39,18 @@ const Index = () => {
     }
   };
 
+  const { isBlocked, upgradeToPremium } = useSubscription();
+
+  if (isBlocked) {
+    return <SubscriptionBlocker onUpgrade={upgradeToPremium} />;
+  }
+
   return (
     <LanguageProvider>
       <AppProvider>
         <PomodoroProvider>
           <FlashcardsProvider>
-            <div className="min-h-screen bg-background">
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
               {currentView !== 'settings' && currentView !== 'profile' && (
                 <Navigation currentView={currentView} onViewChange={setCurrentView} />
               )}
