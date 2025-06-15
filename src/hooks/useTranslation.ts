@@ -1,10 +1,12 @@
 import { useContext } from 'react';
 import { LanguageContext } from '../context/LanguageContext';
 
+interface TranslationData {
+  [key: string]: string | TranslationData;
+}
+
 interface Translation {
-  [key: string]: {
-    [key: string]: string;
-  };
+  [key: string]: TranslationData;
 }
 
 const translations: Translation = {
@@ -340,7 +342,7 @@ const translations: Translation = {
       interval: 'Interval',
       nextReview: 'Next Review',
       status: 'Status',
-      lapses: 'Lapses',
+      lapses: 'Lapsos',
       learningStep: 'Learning Step',
       lastReviewed: 'Last Reviewed',
       noCards: 'No cards in this deck.',
