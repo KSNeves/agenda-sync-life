@@ -6,6 +6,8 @@ import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { useFlashcards } from '../../context/FlashcardsContext';
+import { useSubscription } from '../../context/SubscriptionContext';
+import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '../../hooks/useTranslation';
 
 interface CreateDeckModalProps {
@@ -17,10 +19,33 @@ export default function CreateDeckModal({ isOpen, onClose }: CreateDeckModalProp
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const { createDeck } = useFlashcards();
+  const { subscribed, planType, trialEndDate } = useSubscription();
+  const { toast } = useToast();
   const { t } = useTranslation();
+
+  // Check if trial has expired
+  const isTrialExpired = () => {
+    if (subscribed && planType === 'premium') return false;
+    if (planType === 'free') return true;
+    if (!trialEndDate) return false;
+    
+    const today = new Date();
+    const endDate = new Date(trialEndDate);
+    return today > endDate;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (isTrialExpired()) {
+      toast({
+        title: "Período de teste expirado",
+        description: "Faça upgrade para continuar criando decks.",
+        variant: "destructive"
+      });
+      onClose();
+      return;
+    }
     
     if (name.trim()) {
       console.log('🔥 Creating deck with name:', name.trim());

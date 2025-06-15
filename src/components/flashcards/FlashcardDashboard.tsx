@@ -1,10 +1,12 @@
 
 import React, { useState } from 'react';
-import { Plus, BookOpen, Clock, TrendingUp, Upload, Trash2 } from 'lucide-react';
+import { Plus, BookOpen, Clock, TrendingUp, Upload, Trash2, Lock } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { useFlashcards } from '../../context/FlashcardsContext';
+import { useSubscription } from '../../context/SubscriptionContext';
+import { useToast } from '@/components/ui/use-toast';
 import CreateDeckModal from './CreateDeckModal';
 import ImportDeckModal from './ImportDeckModal';
 import DeckView from './DeckView';
@@ -13,12 +15,33 @@ import { useTranslation } from '../../hooks/useTranslation';
 
 export default function FlashcardDashboard() {
   const { decks, deleteDeck, getDecksStats, isLoaded } = useFlashcards();
+  const { subscribed, planType, trialEndDate } = useSubscription();
+  const { toast } = useToast();
   const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [selectedDeck, setSelectedDeck] = useState<string | null>(null);
   const [studyMode, setStudyMode] = useState<string | null>(null);
+
+  // Check if trial has expired
+  const isTrialExpired = () => {
+    if (subscribed && planType === 'premium') return false;
+    if (planType === 'free') return true;
+    if (!trialEndDate) return false;
+    
+    const today = new Date();
+    const endDate = new Date(trialEndDate);
+    return today > endDate;
+  };
+
+  const showUpgradeMessage = () => {
+    toast({
+      title: "Período de teste expirado",
+      description: "Faça upgrade para continuar usando todos os recursos.",
+      variant: "destructive"
+    });
+  };
 
   const stats = getDecksStats();
   
@@ -32,6 +55,30 @@ export default function FlashcardDashboard() {
     if (confirm(t('flashcards.confirmDelete'))) {
       deleteDeck(deckId);
     }
+  };
+
+  const handleCreateDeck = () => {
+    if (isTrialExpired()) {
+      showUpgradeMessage();
+      return;
+    }
+    setIsCreateModalOpen(true);
+  };
+
+  const handleImportDeck = () => {
+    if (isTrialExpired()) {
+      showUpgradeMessage();
+      return;
+    }
+    setIsImportModalOpen(true);
+  };
+
+  const handleDeckClick = (deckId: string) => {
+    if (isTrialExpired()) {
+      showUpgradeMessage();
+      return;
+    }
+    setSelectedDeck(deckId);
   };
 
   console.log('🎯 Dashboard render - Total decks:', decks.length, 'Filtered decks:', filteredDecks.length, 'Is loaded:', isLoaded);
@@ -76,24 +123,45 @@ export default function FlashcardDashboard() {
             <p className="text-muted-foreground mt-2">{t('flashcards.subtitle')}</p>
           </div>
           <div className="flex gap-3">
-            <Button 
-              onClick={() => {
-                console.log('🎯 Opening create modal');
-                setIsCreateModalOpen(true);
-              }}
-              className="flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              {t('flashcards.createDeck')}
-            </Button>
-            <Button 
-              variant="outline" 
-              className="flex items-center gap-2"
-              onClick={() => setIsImportModalOpen(true)}
-            >
-              <Upload className="w-4 h-4" />
-              {t('flashcards.importDeck')}
-            </Button>
+            {isTrialExpired() ? (
+              <>
+                <Button 
+                  onClick={showUpgradeMessage}
+                  className="flex items-center gap-2 bg-gray-400 cursor-not-allowed"
+                  disabled
+                >
+                  <Lock className="w-4 h-4" />
+                  {t('flashcards.createDeck')}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="flex items-center gap-2 cursor-not-allowed"
+                  onClick={showUpgradeMessage}
+                  disabled
+                >
+                  <Lock className="w-4 h-4" />
+                  {t('flashcards.importDeck')}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button 
+                  onClick={handleCreateDeck}
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  {t('flashcards.createDeck')}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="flex items-center gap-2"
+                  onClick={handleImportDeck}
+                >
+                  <Upload className="w-4 h-4" />
+                  {t('flashcards.importDeck')}
+                </Button>
+              </>
+            )}
           </div>
         </div>
 
@@ -162,25 +230,32 @@ export default function FlashcardDashboard() {
               {filteredDecks.map(deck => (
                 <Card 
                   key={deck.id} 
-                  className="hover:shadow-md cursor-pointer transition-all relative group"
-                  onClick={() => setSelectedDeck(deck.id)}
+                  className={`hover:shadow-md transition-all relative group ${
+                    isTrialExpired() ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
+                  }`}
+                  onClick={() => handleDeckClick(deck.id)}
                 >
                   <CardHeader>
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
-                        <CardTitle className="text-lg">{deck.name}</CardTitle>
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          {deck.name}
+                          {isTrialExpired() && <Lock className="w-4 h-4 text-gray-500" />}
+                        </CardTitle>
                         {deck.description && (
                           <p className="text-muted-foreground text-sm">{deck.description}</p>
                         )}
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
-                        onClick={(e) => handleDeleteDeck(e, deck.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      {!isTrialExpired() && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                          onClick={(e) => handleDeleteDeck(e, deck.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      )}
                     </div>
                   </CardHeader>
                   <CardContent>

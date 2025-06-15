@@ -1,19 +1,43 @@
+
 import React, { useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Task, RevisionItem } from '../types';
-import { Play, Pause, Check, Clock, Calendar, PlayCircle, CheckCircle, ClockIcon } from 'lucide-react';
+import { Play, Pause, Check, Clock, Calendar, PlayCircle, CheckCircle, ClockIcon, Lock } from 'lucide-react';
 import { categorizeRevision, calculateNextRevisionDate, adjustDateForNonStudyDays } from '../utils/spacedRepetition';
 import StudyTimerModal from './StudyTimerModal';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useTranslation } from '../hooks/useTranslation';
+import { useSubscription } from '../context/SubscriptionContext';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function Dashboard() {
   const { state, dispatch } = useApp();
   const { tasks, events, revisionItems } = state;
   const { t } = useTranslation();
+  const { toast } = useToast();
+  const { subscribed, planType, trialEndDate } = useSubscription();
   const [isStudyModalOpen, setIsStudyModalOpen] = useState(false);
   const [selectedRevisionTitle, setSelectedRevisionTitle] = useState('');
   const [weeklyProgressData, setWeeklyProgressData] = useLocalStorage<Record<string, { completed: number; total: number }>>('weeklyProgressData', {});
+
+  // Check if trial has expired
+  const isTrialExpired = () => {
+    if (subscribed && planType === 'premium') return false;
+    if (planType === 'free') return true;
+    if (!trialEndDate) return false;
+    
+    const today = new Date();
+    const endDate = new Date(trialEndDate);
+    return today > endDate;
+  };
+
+  const showUpgradeMessage = () => {
+    toast({
+      title: "Período de teste expirado",
+      description: "Faça upgrade para continuar usando todos os recursos.",
+      variant: "destructive"
+    });
+  };
 
   // Timer logic
   useEffect(() => {
@@ -130,6 +154,12 @@ export default function Dashboard() {
   };
 
   const handleRevisionAction = (revisionId: string, action: 'start' | 'complete' | 'postpone') => {
+    // Check if trial expired before allowing revision actions
+    if (isTrialExpired()) {
+      showUpgradeMessage();
+      return;
+    }
+
     const revision = revisionItems.find(item => item.id === revisionId);
     if (!revision) return;
 
@@ -241,27 +271,39 @@ export default function Dashboard() {
                     </div>
                     
                     <div className="flex gap-2 flex-shrink-0">
-                      <button
-                        onClick={() => handleRevisionAction(revision.id, 'start')}
-                        className="flex items-center gap-1 px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition-colors"
-                      >
-                        <PlayCircle className="w-4 h-4" />
-                        {t('dashboard.start')}
-                      </button>
-                      <button
-                        onClick={() => handleRevisionAction(revision.id, 'complete')}
-                        className="flex items-center gap-1 px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600 transition-colors"
-                      >
-                        <CheckCircle className="w-4 h-4" />
-                        {t('dashboard.complete')}
-                      </button>
-                      <button
-                        onClick={() => handleRevisionAction(revision.id, 'postpone')}
-                        className="flex items-center gap-1 px-3 py-1 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded text-sm font-medium transition-colors"
-                      >
-                        <ClockIcon className="w-4 h-4" />
-                        {t('dashboard.postpone')}
-                      </button>
+                      {isTrialExpired() ? (
+                        <button
+                          onClick={showUpgradeMessage}
+                          className="flex items-center gap-1 px-3 py-1 bg-gray-400 text-white rounded text-sm cursor-not-allowed"
+                        >
+                          <Lock className="w-4 h-4" />
+                          {t('dashboard.locked')}
+                        </button>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => handleRevisionAction(revision.id, 'start')}
+                            className="flex items-center gap-1 px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition-colors"
+                          >
+                            <PlayCircle className="w-4 h-4" />
+                            {t('dashboard.start')}
+                          </button>
+                          <button
+                            onClick={() => handleRevisionAction(revision.id, 'complete')}
+                            className="flex items-center gap-1 px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600 transition-colors"
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                            {t('dashboard.complete')}
+                          </button>
+                          <button
+                            onClick={() => handleRevisionAction(revision.id, 'postpone')}
+                            className="flex items-center gap-1 px-3 py-1 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded text-sm font-medium transition-colors"
+                          >
+                            <ClockIcon className="w-4 h-4" />
+                            {t('dashboard.postpone')}
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 ))}
