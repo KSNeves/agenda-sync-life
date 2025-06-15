@@ -29,15 +29,19 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
   });
 
   const { user, isAuthenticated } = useAuth();
+  
+  // Track if a check is already in progress to prevent multiple concurrent calls
+  const [isCheckingInProgress, setIsCheckingInProgress] = useState(false);
 
   // Check subscription status
   const checkSubscription = async () => {
-    if (!isAuthenticated || !user) {
+    if (!isAuthenticated || !user || isCheckingInProgress) {
       setState(prev => ({ ...prev, isLoading: false }));
       return;
     }
 
     try {
+      setIsCheckingInProgress(true);
       setState(prev => ({ ...prev, isLoading: true }));
 
       // Get trial info from Supabase
@@ -79,24 +83,31 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
           });
       }
 
-      // Check Stripe subscription status
-      const { data: stripeData, error } = await supabase.functions.invoke('check-subscription');
+      // Check Stripe subscription status with timeout
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout')), 10000)
+      );
+
+      const stripeCheckPromise = supabase.functions.invoke('check-subscription');
       
-      if (error) {
-        console.error('Error checking subscription:', error);
-        setState(prev => ({ 
-          ...prev, 
-          isLoading: false,
-          planType,
-          trialEndDate
-        }));
-        return;
+      let stripeData = null;
+      try {
+        const result = await Promise.race([stripeCheckPromise, timeoutPromise]);
+        stripeData = result.data;
+      } catch (error) {
+        console.error('Error checking Stripe subscription (using fallback):', error);
+        // Continue with trial/local data if Stripe check fails
       }
 
       // Se não está subscrito no Stripe mas o trial ainda está ativo, manter o trial
       let finalPlanType: 'free_trial' | 'free' | 'premium' = planType;
-      if (stripeData.subscribed) {
+      let subscriptionEnd = null;
+      let isSubscribed = false;
+
+      if (stripeData?.subscribed) {
         finalPlanType = 'premium';
+        subscriptionEnd = stripeData.subscription_end;
+        isSubscribed = true;
       } else if (planType === 'free_trial') {
         // Verificar se o trial realmente ainda está ativo
         const trialEnd = new Date(trialEndDate);
@@ -107,15 +118,17 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       }
 
       setState({
-        subscribed: stripeData.subscribed || false,
+        subscribed: isSubscribed,
         planType: finalPlanType,
-        subscriptionEnd: stripeData.subscription_end,
+        subscriptionEnd,
         trialEndDate,
         isLoading: false,
       });
     } catch (error) {
       console.error('Error in checkSubscription:', error);
       setState(prev => ({ ...prev, isLoading: false }));
+    } finally {
+      setIsCheckingInProgress(false);
     }
   };
 
@@ -155,9 +168,9 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
 
   // Check subscription on auth state change
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && user && !isCheckingInProgress) {
       checkSubscription();
-    } else {
+    } else if (!isAuthenticated) {
       setState({
         subscribed: false,
         planType: 'free_trial',
@@ -165,41 +178,60 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
         trialEndDate: null,
         isLoading: false,
       });
+      setIsCheckingInProgress(false);
     }
   }, [isAuthenticated, user]);
 
-  // Check for URL parameters (success/cancel)
+  // Check for URL parameters (success/cancel) - only once
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('success') === 'true') {
+      // Clear URL params immediately
+      window.history.replaceState({}, document.title, window.location.pathname);
+      
+      // Delay check to give Stripe time to process
       setTimeout(() => {
-        checkSubscription();
-      }, 2000); // Give Stripe time to process
+        if (isAuthenticated && user && !isCheckingInProgress) {
+          checkSubscription();
+        }
+      }, 3000);
     }
-  }, []);
+  }, []); // Empty dependency array to run only once
 
-  // Verificar status da assinatura periodicamente para detectar cancelamentos ou problemas de pagamento
+  // Verificar status da assinatura periodicamente - com controle de frequência
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || isCheckingInProgress) return;
 
     const interval = setInterval(() => {
-      checkSubscription();
-    }, 30000); // Verificar a cada 30 segundos
+      if (!isCheckingInProgress) {
+        checkSubscription();
+      }
+    }, 60000); // Reduzido para 60 segundos para evitar spam
 
     return () => clearInterval(interval);
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isCheckingInProgress]);
 
-  // Verificar quando a página ganha foco (usuário volta para a aba)
+  // Verificar quando a página ganha foco - com debounce
   useEffect(() => {
     if (!isAuthenticated) return;
 
+    let focusTimeout: NodeJS.Timeout;
+    
     const handleFocus = () => {
-      checkSubscription();
+      clearTimeout(focusTimeout);
+      focusTimeout = setTimeout(() => {
+        if (!isCheckingInProgress) {
+          checkSubscription();
+        }
+      }, 1000); // Debounce de 1 segundo
     };
 
     window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
-  }, [isAuthenticated]);
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      clearTimeout(focusTimeout);
+    };
+  }, [isAuthenticated, isCheckingInProgress]);
 
   return (
     <SubscriptionContext.Provider value={{
