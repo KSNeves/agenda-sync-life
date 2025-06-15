@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
@@ -220,7 +221,7 @@ export default function Schedule() {
             </div>
           </div>
           
-          <h2 className="text-xs sm:text-sm lg:text-xl font-semibold text-foreground truncate">
+          <h2 className="text-xs sm:text-sm md:text-lg lg:text-xl font-semibold text-foreground truncate">
             {getWeekTitle()}
           </h2>
         </div>

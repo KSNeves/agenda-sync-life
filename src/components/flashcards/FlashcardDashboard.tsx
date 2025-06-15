@@ -67,15 +67,17 @@ export default function FlashcardDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-6">
+    <div className="min-h-screen bg-background text-foreground p-2 sm:p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 md:mb-8 gap-4">
           <div>
-            <h1 className="text-4xl font-bold">{t('flashcards.title')}</h1>
-            <p className="text-muted-foreground mt-2">{t('flashcards.subtitle')}</p>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">{t('flashcards.title')}</h1>
+            <p className="text-muted-foreground mt-2 text-sm sm:text-base">{t('flashcards.subtitle')}</p>
           </div>
-          <div className="flex gap-3">
+          
+          {/* Desktop buttons */}
+          <div className="hidden sm:flex gap-3">
             <Button 
               onClick={() => {
                 console.log('🎯 Opening create modal');
@@ -89,6 +91,28 @@ export default function FlashcardDashboard() {
             <Button 
               variant="outline" 
               className="flex items-center gap-2"
+              onClick={() => setIsImportModalOpen(true)}
+            >
+              <Upload className="w-4 h-4" />
+              {t('flashcards.importDeck')}
+            </Button>
+          </div>
+          
+          {/* Mobile buttons - stacked */}
+          <div className="flex flex-col gap-2 w-full sm:hidden">
+            <Button 
+              onClick={() => {
+                console.log('🎯 Opening create modal');
+                setIsCreateModalOpen(true);
+              }}
+              className="flex items-center gap-2 w-full"
+            >
+              <Plus className="w-4 h-4" />
+              {t('flashcards.createDeck')}
+            </Button>
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-2 w-full"
               onClick={() => setIsImportModalOpen(true)}
             >
               <Upload className="w-4 h-4" />
