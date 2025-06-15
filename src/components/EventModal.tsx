@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
+import { useSupabaseEvents } from '../context/SupabaseEventsContext';
+import { useSupabaseRevisions } from '../context/SupabaseRevisionsContext';
 import { CalendarEvent, RevisionItem } from '../types';
 import { X } from 'lucide-react';
 import { Checkbox } from './ui/checkbox';
@@ -18,6 +20,8 @@ const eventColors = [
 
 export default function EventModal() {
   const { state, dispatch } = useApp();
+  const { addEvent, updateEvent, deleteEvent, deleteRecurringEvents } = useSupabaseEvents();
+  const { addRevisionItem } = useSupabaseRevisions();
   const { t } = useTranslation();
   const { isEventModalOpen, selectedEvent } = state;
 
@@ -40,8 +44,8 @@ export default function EventModal() {
 
   useEffect(() => {
     if (selectedEvent) {
-      // Corrigido: formatação correta do datetime-local
-      const formatDateTimeLocal = (date: Date) => {
+      const formatDateTimeLocal = (timestamp: number) => {
+        const date = new Date(timestamp);
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
@@ -53,8 +57,8 @@ export default function EventModal() {
       setFormData({
         title: selectedEvent.title,
         description: selectedEvent.description || '',
-        startTime: formatDateTimeLocal(new Date(selectedEvent.startTime)),
-        endTime: formatDateTimeLocal(new Date(selectedEvent.endTime)),
+        startTime: formatDateTimeLocal(selectedEvent.startTime),
+        endTime: formatDateTimeLocal(selectedEvent.endTime),
         type: selectedEvent.type,
         location: selectedEvent.location || '',
         professor: selectedEvent.professor || '',
@@ -66,7 +70,6 @@ export default function EventModal() {
       });
       setAddToRevision(false);
     } else {
-      // New event - set default times
       const now = new Date();
       const startTime = new Date(state.selectedDate);
       startTime.setHours(now.getHours(), 0, 0, 0);
@@ -97,7 +100,6 @@ export default function EventModal() {
     }
   }, [selectedEvent, state.selectedDate]);
 
-  // Função para criar eventos recorrentes
   const createRecurringEvents = (baseEvent: CalendarEvent) => {
     const events: CalendarEvent[] = [baseEvent];
     const startDate = new Date(baseEvent.startTime);
@@ -105,7 +107,6 @@ export default function EventModal() {
     const eventDuration = endDate.getTime() - startDate.getTime();
 
     if (formData.recurrence.type === 'daily') {
-      // Criar eventos diários por 30 dias
       for (let i = 1; i <= 30; i++) {
         const newStart = new Date(startDate);
         newStart.setDate(startDate.getDate() + i);
@@ -114,36 +115,33 @@ export default function EventModal() {
         events.push({
           ...baseEvent,
           id: `${baseEvent.id}_${i}`,
-          startTime: newStart,
-          endTime: newEnd,
+          startTime: newStart.getTime(),
+          endTime: newEnd.getTime(),
         });
       }
     } else if (formData.recurrence.type === 'weekly') {
       if (formData.recurrence.weekdays.length > 0) {
-        // Criar eventos para os dias específicos da semana por 12 semanas
         for (let week = 0; week < 12; week++) {
           formData.recurrence.weekdays.forEach(weekday => {
             if (week === 0 && weekday === startDate.getDay()) {
-              return; // Pular o evento original
+              return;
             }
 
             const newStart = new Date(startDate);
             newStart.setDate(startDate.getDate() - startDate.getDay() + weekday + (week * 7));
             const newEnd = new Date(newStart.getTime() + eventDuration);
 
-            // Só adicionar se a data for futura ou atual
             if (newStart >= new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate())) {
               events.push({
                 ...baseEvent,
                 id: `${baseEvent.id}_${week}_${weekday}`,
-                startTime: newStart,
-                endTime: newEnd,
+                startTime: newStart.getTime(),
+                endTime: newEnd.getTime(),
               });
             }
           });
         }
       } else {
-        // Criar eventos semanais por 12 semanas
         for (let i = 1; i <= 12; i++) {
           const newStart = new Date(startDate);
           newStart.setDate(startDate.getDate() + (i * 7));
@@ -152,38 +150,10 @@ export default function EventModal() {
           events.push({
             ...baseEvent,
             id: `${baseEvent.id}_${i}`,
-            startTime: newStart,
-            endTime: newEnd,
+            startTime: newStart.getTime(),
+            endTime: newEnd.getTime(),
           });
         }
-      }
-    } else if (formData.recurrence.type === 'monthly') {
-      // Criar eventos mensais por 12 meses
-      for (let i = 1; i <= 12; i++) {
-        const newStart = new Date(startDate);
-        newStart.setMonth(startDate.getMonth() + i);
-        const newEnd = new Date(newStart.getTime() + eventDuration);
-
-        events.push({
-          ...baseEvent,
-          id: `${baseEvent.id}_${i}`,
-          startTime: newStart,
-          endTime: newEnd,
-        });
-      }
-    } else if (formData.recurrence.type === 'yearly') {
-      // Criar eventos anuais por 5 anos
-      for (let i = 1; i <= 5; i++) {
-        const newStart = new Date(startDate);
-        newStart.setFullYear(startDate.getFullYear() + i);
-        const newEnd = new Date(newStart.getTime() + eventDuration);
-
-        events.push({
-          ...baseEvent,
-          id: `${baseEvent.id}_${i}`,
-          startTime: newStart,
-          endTime: newEnd,
-        });
       }
     }
 
@@ -197,8 +167,8 @@ export default function EventModal() {
       id: selectedEvent?.id || Date.now().toString(),
       title: formData.title,
       description: formData.description,
-      startTime: new Date(formData.startTime),
-      endTime: new Date(formData.endTime),
+      startTime: new Date(formData.startTime).getTime(),
+      endTime: new Date(formData.endTime).getTime(),
       type: formData.type,
       location: formData.location,
       professor: formData.professor,
@@ -207,20 +177,18 @@ export default function EventModal() {
     };
 
     if (selectedEvent) {
-      dispatch({ type: 'UPDATE_EVENT', payload: eventData });
+      updateEvent(eventData);
     } else {
       if (formData.recurrence.type !== 'none') {
-        // Criar eventos recorrentes
         const recurringEvents = createRecurringEvents(eventData);
         recurringEvents.forEach(event => {
-          dispatch({ type: 'ADD_EVENT', payload: event });
+          addEvent(event);
         });
       } else {
-        dispatch({ type: 'ADD_EVENT', payload: eventData });
+        addEvent(eventData);
       }
     }
 
-    // Se a opção de adicionar à revisão estiver marcada, criar item de revisão
     if (addToRevision) {
       const eventStartDate = new Date(formData.startTime);
       eventStartDate.setHours(0, 0, 0, 0);
@@ -232,8 +200,7 @@ export default function EventModal() {
         formData.professor && `${t('event.professor')}: ${formData.professor}`,
       ].filter(Boolean).join('\n\n');
 
-      const revisionItem: RevisionItem = {
-        id: Date.now().toString(),
+      const revisionItem: Omit<RevisionItem, 'id'> = {
         title: `${t('revision.title')}: ${formData.title}`,
         description: revisionContent,
         category: 'pending',
@@ -243,7 +210,7 @@ export default function EventModal() {
         intervalDays: 1,
       };
 
-      dispatch({ type: 'ADD_REVISION_ITEM', payload: revisionItem });
+      addRevisionItem(revisionItem);
     }
 
     handleClose();
@@ -251,18 +218,15 @@ export default function EventModal() {
 
   const handleDelete = () => {
     if (selectedEvent) {
-      // Verificar se é um evento recorrente
       if (selectedEvent.recurrence && selectedEvent.recurrence.type !== 'none') {
-        // Excluir todos os eventos relacionados
         const baseId = selectedEvent.id.split('_')[0];
-        dispatch({ type: 'DELETE_RECURRING_EVENTS', payload: baseId });
+        deleteRecurringEvents(baseId);
       } else {
-        // Verificar se faz parte de uma série recorrente (ID contém underscore)
         if (selectedEvent.id.includes('_')) {
           const baseId = selectedEvent.id.split('_')[0];
-          dispatch({ type: 'DELETE_RECURRING_EVENTS', payload: baseId });
+          deleteRecurringEvents(baseId);
         } else {
-          dispatch({ type: 'DELETE_EVENT', payload: selectedEvent.id });
+          deleteEvent(selectedEvent.id);
         }
       }
       handleClose();
@@ -403,7 +367,6 @@ export default function EventModal() {
             </div>
           </div>
 
-          {/* Seção de recorrência */}
           <div className="recurrence-options" style={{ marginTop: '32px' }}>
             <div className="form-group">
               <label>{t('event.recurrence')}</label>
@@ -443,7 +406,6 @@ export default function EventModal() {
             )}
           </div>
 
-          {/* Seção para adicionar à revisão espaçada */}
           <div className="form-group" style={{ marginTop: '24px' }}>
             <div className="flex items-center space-x-3">
               <Checkbox

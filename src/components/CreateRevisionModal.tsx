@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useApp } from '../context/AppContext';
+import { useSupabaseRevisions } from '../context/SupabaseRevisionsContext';
 import { RevisionItem } from '../types';
 import {
   Dialog,
@@ -21,7 +21,7 @@ interface CreateRevisionModalProps {
 }
 
 export default function CreateRevisionModal({ isOpen, onClose }: CreateRevisionModalProps) {
-  const { dispatch } = useApp();
+  const { addRevisionItem } = useSupabaseRevisions();
   const { t } = useTranslation();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -54,21 +54,21 @@ export default function CreateRevisionModal({ isOpen, onClose }: CreateRevisionM
 
     const now = Date.now();
     const today = new Date(now);
-    today.setHours(0, 0, 0, 0); // Define para o início do dia
+    today.setHours(0, 0, 0, 0);
 
-    const newRevision: RevisionItem = {
-      id: Date.now().toString(),
+    const newRevision: Omit<RevisionItem, 'id'> = {
       title: title.trim(),
       description: content.trim() || undefined,
+      subject: subject.trim() || undefined,
       category: 'pending',
       createdAt: now,
       revisionCount: 0,
-      nextRevisionDate: today.getTime(), // Começa hoje
+      nextRevisionDate: today.getTime(),
       intervalDays: 1,
       nonStudyDays: nonStudyDays.length > 0 ? nonStudyDays : undefined,
     };
 
-    dispatch({ type: 'ADD_REVISION_ITEM', payload: newRevision });
+    addRevisionItem(newRevision);
     
     // Reset form
     setTitle('');

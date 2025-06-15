@@ -20,7 +20,6 @@ export function SupabaseRevisionsProvider({ children }: { children: ReactNode })
   const [revisionItems, setRevisionItems] = useState<RevisionItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Load revisions from Supabase
   const loadRevisions = async () => {
     if (!user) return;
     
@@ -41,9 +40,9 @@ export function SupabaseRevisionsProvider({ children }: { children: ReactNode })
         nextRevisionDate: new Date(revision.next_revision_date).getTime(),
         revisionCount: revision.revision_count || 0,
         intervalDays: revision.interval_days || 1,
-        category: revision.category || 'today',
+        category: (revision.category || 'pending') as 'pending' | 'completed' | 'priority',
         completedAt: revision.completed_at ? new Date(revision.completed_at).getTime() : undefined,
-        nonStudyDays: revision.non_study_days || [],
+        nonStudyDays: revision.non_study_days?.map(day => parseInt(day)) || [],
       }));
 
       setRevisionItems(transformedRevisions);
@@ -52,7 +51,6 @@ export function SupabaseRevisionsProvider({ children }: { children: ReactNode })
     }
   };
 
-  // Load data when user changes
   useEffect(() => {
     if (user) {
       loadRevisions();
@@ -70,7 +68,6 @@ export function SupabaseRevisionsProvider({ children }: { children: ReactNode })
     
     setRevisionItems(prev => [...prev, newItem]);
 
-    // Save to Supabase
     supabase
       .from('user_revisions')
       .insert({
@@ -84,7 +81,7 @@ export function SupabaseRevisionsProvider({ children }: { children: ReactNode })
         interval_days: item.intervalDays,
         category: item.category,
         completed_at: item.completedAt ? new Date(item.completedAt).toISOString() : null,
-        non_study_days: item.nonStudyDays,
+        non_study_days: item.nonStudyDays?.map(day => day.toString()) || [],
       })
       .then(({ error }) => {
         if (error) {
@@ -109,7 +106,7 @@ export function SupabaseRevisionsProvider({ children }: { children: ReactNode })
           interval_days: item.intervalDays,
           category: item.category,
           completed_at: item.completedAt ? new Date(item.completedAt).toISOString() : null,
-          non_study_days: item.nonStudyDays,
+          non_study_days: item.nonStudyDays?.map(day => day.toString()) || [],
         })
         .eq('id', item.id)
         .eq('user_id', user.id);

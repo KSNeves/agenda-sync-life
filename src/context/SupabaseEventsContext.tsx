@@ -21,7 +21,6 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Load events from Supabase
   const loadEvents = async () => {
     if (!user) return;
     
@@ -39,7 +38,7 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
         description: event.description || '',
         startTime: new Date(event.start_time).getTime(),
         endTime: new Date(event.end_time).getTime(),
-        isAllDay: event.is_all_day || false,
+        type: 'other' as const,
         color: event.color || '#3B82F6',
       }));
 
@@ -49,7 +48,6 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Load data when user changes
   useEffect(() => {
     if (user) {
       loadEvents();
@@ -64,7 +62,6 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
 
     setEvents(prev => [...prev, event]);
 
-    // Save to Supabase
     supabase
       .from('user_events')
       .insert({
@@ -74,7 +71,6 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
         description: event.description,
         start_time: new Date(event.startTime).toISOString(),
         end_time: new Date(event.endTime).toISOString(),
-        is_all_day: event.isAllDay,
         color: event.color,
       })
       .then(({ error }) => {
@@ -96,7 +92,6 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
           description: event.description,
           start_time: new Date(event.startTime).toISOString(),
           end_time: new Date(event.endTime).toISOString(),
-          is_all_day: event.isAllDay,
           color: event.color,
         })
         .eq('id', event.id)
@@ -122,7 +117,6 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
     }));
 
     if (user) {
-      // Delete the base event and all recurring instances
       supabase
         .from('user_events')
         .delete()

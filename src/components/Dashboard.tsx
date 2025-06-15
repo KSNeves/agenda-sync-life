@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { useApp } from '../context/AppContext';
+import { useSupabaseRevisions } from '../context/SupabaseRevisionsContext';
 import { Task, RevisionItem } from '../types';
 import { Play, Pause, Check, Clock, Calendar, PlayCircle, CheckCircle, ClockIcon } from 'lucide-react';
 import { categorizeRevision } from '../utils/spacedRepetition';
@@ -9,44 +9,18 @@ import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useTranslation } from '../hooks/useTranslation';
 
 export default function Dashboard() {
-  const { state, dispatch, updateRevisionItem } = useApp();
-  const { tasks, revisionItems } = state;
+  const { revisionItems, updateRevisionItem } = useSupabaseRevisions();
   const { t } = useTranslation();
   const [isStudyModalOpen, setIsStudyModalOpen] = useState(false);
   const [selectedRevisionTitle, setSelectedRevisionTitle] = useState('');
   const [weeklyProgressData, setWeeklyProgressData] = useLocalStorage<Record<string, { completed: number; total: number }>>('weeklyProgressData', {});
 
-  // Timer logic
-  useEffect(() => {
-    const interval = setInterval(() => {
-      tasks.forEach(task => {
-        if (task.isRunning && task.startTime) {
-          const elapsedTime = task.elapsedTime + Math.floor((Date.now() - task.startTime) / 1000);
-          dispatch({
-            type: 'UPDATE_TASK_TIMER',
-            payload: { id: task.id, elapsedTime }
-          });
-        }
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [tasks, dispatch]);
-
   const today = new Date();
   
-  // Get today's tasks (original task system)
-  const todayTasks = tasks.filter(task => {
-    const taskDate = new Date(task.createdAt);
-    return taskDate.toDateString() === today.toDateString() && !task.postponed;
-  });
-
-  // Get today's revisions
   const todayRevisions = revisionItems.filter(item => {
     return categorizeRevision(item) === 'pending';
   });
 
-  // Calculate daily progress based on completed revisions today
   const completedRevisionsToday = revisionItems.filter(item => {
     const wasCompletedToday = item.completedAt && 
       new Date(item.completedAt).toDateString() === today.toDateString();
@@ -57,7 +31,6 @@ export default function Dashboard() {
   const totalDailyTasks = todayRevisions.length + completedRevisionsToday;
   const dailyProgress = totalDailyTasks > 0 ? (completedRevisionsToday / totalDailyTasks) * 100 : 0;
 
-  // Update today's progress in localStorage
   useEffect(() => {
     const todayKey = today.toDateString();
     setWeeklyProgressData(prev => ({
@@ -69,7 +42,6 @@ export default function Dashboard() {
     }));
   }, [completedRevisionsToday, totalDailyTasks, today, setWeeklyProgressData]);
 
-  // Weekly progress calculation
   const getWeekProgress = () => {
     const weekDays = [];
     const dayNamesShort = [
@@ -115,17 +87,6 @@ export default function Dashboard() {
     return weekDays;
   };
 
-  const formatTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const handleTaskAction = (taskId: string, action: string) => {
-    dispatch({ type: action.toUpperCase() + '_TASK' as any, payload: taskId });
-  };
-
   const handleRevisionAction = (revisionId: string, action: 'start' | 'complete' | 'postpone') => {
     const revision = revisionItems.find(item => item.id === revisionId);
     if (!revision) return;
@@ -150,19 +111,6 @@ export default function Dashboard() {
         category: 'priority'
       });
     }
-  };
-
-  const addSampleTask = () => {
-    const newTask: Task = {
-      id: Date.now().toString(),
-      title: `Nova Tarefa ${tasks.length + 1}`,
-      duration: 60,
-      completed: false,
-      elapsedTime: 0,
-      isRunning: false,
-      createdAt: Date.now(),
-    };
-    dispatch({ type: 'ADD_TASK', payload: newTask });
   };
 
   const formatCurrentDate = () => {
