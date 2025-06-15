@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
 import { Task, CalendarEvent, RevisionItem } from '../types';
 import { useSupabaseCalendarEvents, useSupabaseRevisions } from '../hooks/useSupabaseData';
@@ -30,6 +29,7 @@ type AppAction =
   | { type: 'UPDATE_REVISION_ITEM'; payload: RevisionItem }
   | { type: 'DELETE_REVISION_ITEM'; payload: string }
   | { type: 'SET_REVISION_ITEMS'; payload: RevisionItem[] }
+  | { type: 'CLEAR_REVISION_ITEMS' }
   | { type: 'SET_SELECTED_DATE'; payload: Date }
   | { type: 'OPEN_EVENT_MODAL'; payload: CalendarEvent | null }
   | { type: 'CLOSE_EVENT_MODAL' }
@@ -172,6 +172,12 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return {
         ...state,
         revisionItems: state.revisionItems.filter(item => item.id !== action.payload)
+      };
+
+    case 'CLEAR_REVISION_ITEMS':
+      return {
+        ...state,
+        revisionItems: []
       };
 
     // Calendar navigation actions
