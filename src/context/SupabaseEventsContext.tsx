@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { CalendarEvent } from '../types';
 import { supabase } from '@/integrations/supabase/client';
@@ -117,17 +118,47 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const deleteRecurringEvents = (baseId: string) => {
-    setEvents(prev => prev.filter(event => {
-      return event.id !== baseId && !event.id.startsWith(`${baseId}_`);
-    }));
+  const deleteRecurringEvents = (eventId: string) => {
+    // Identifica o baseId do evento (remove sufixos de recorrência)
+    const baseId = eventId.includes('_') ? eventId.split('_')[0] : eventId;
+    
+    console.log('Deleting recurring events for baseId:', baseId);
+    
+    // Remove todos os eventos que começam com o baseId (incluindo o próprio evento base)
+    setEvents(prev => {
+      const eventsToDelete = prev.filter(event => 
+        event.id === baseId || event.id.startsWith(`${baseId}_`)
+      );
+      
+      console.log('Events to delete:', eventsToDelete.map(e => e.id));
+      
+      return prev.filter(event => 
+        event.id !== baseId && !event.id.startsWith(`${baseId}_`)
+      );
+    });
 
     if (user) {
-      supabase
-        .from('user_events')
-        .delete()
-        .or(`id.eq.${baseId},id.like.${baseId}_%`)
-        .eq('user_id', user.id);
+      // Delete no Supabase usando LIKE para pegar todos os eventos da série
+      Promise.all([
+        // Delete o evento base
+        supabase
+          .from('user_events')
+          .delete()
+          .eq('id', baseId)
+          .eq('user_id', user.id),
+        // Delete todos os eventos recorrentes
+        supabase
+          .from('user_events')
+          .delete()
+          .like('id', `${baseId}_%`)
+          .eq('user_id', user.id)
+      ]).then(results => {
+        results.forEach(({ error }, index) => {
+          if (error) {
+            console.error(`Error deleting ${index === 0 ? 'base' : 'recurring'} events:`, error);
+          }
+        });
+      });
     }
   };
 
