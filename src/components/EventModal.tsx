@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { useSupabaseEvents } from '../context/SupabaseEventsContext';
@@ -34,7 +33,7 @@ export default function EventModal() {
     type: 'other' as CalendarEvent['type'],
     location: '',
     professor: '',
-    customColor: 'blue',
+    selectedColorHex: '#3b82f6', // Armazenar diretamente o hex
     recurrence: {
       type: 'none' as 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly',
       weekdays: [] as number[],
@@ -43,16 +42,9 @@ export default function EventModal() {
 
   const [addToRevision, setAddToRevision] = useState(false);
 
-  // Função para encontrar o valor da cor baseado no hex
-  const getColorValueFromHex = (hexColor: string) => {
-    const colorConfig = eventColors.find(c => c.preview.toLowerCase() === hexColor.toLowerCase());
-    return colorConfig?.value || 'blue';
-  };
-
-  // Função para obter o hex baseado no valor da cor
-  const getHexFromColorValue = (colorValue: string) => {
-    const colorConfig = eventColors.find(c => c.value === colorValue);
-    return colorConfig?.preview || '#3b82f6';
+  // Função para encontrar a cor baseado no hex
+  const findColorByHex = (hexColor: string) => {
+    return eventColors.find(c => c.preview.toLowerCase() === hexColor.toLowerCase()) || eventColors[0];
   };
 
   useEffect(() => {
@@ -69,11 +61,9 @@ export default function EventModal() {
 
       // Pegar a cor correta do evento
       const eventColor = selectedEvent.color || selectedEvent.customColor || '#3b82f6';
-      const colorValue = getColorValueFromHex(eventColor);
 
       console.log('🔍 Carregando evento editável:', selectedEvent.title);
       console.log('🎨 Cor original do evento:', eventColor);
-      console.log('🎨 Valor da cor mapeado:', colorValue);
 
       setFormData({
         title: selectedEvent.title,
@@ -83,7 +73,7 @@ export default function EventModal() {
         type: selectedEvent.type,
         location: selectedEvent.location || '',
         professor: selectedEvent.professor || '',
-        customColor: colorValue,
+        selectedColorHex: eventColor,
         recurrence: {
           type: selectedEvent.recurrence?.type || 'none',
           weekdays: selectedEvent.recurrence?.weekdays || [],
@@ -115,7 +105,7 @@ export default function EventModal() {
         type: 'other',
         location: '',
         professor: '',
-        customColor: 'blue',
+        selectedColorHex: '#3b82f6',
         recurrence: { type: 'none', weekdays: [] },
       });
       setAddToRevision(false);
@@ -186,12 +176,8 @@ export default function EventModal() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Converter o valor da cor para hex
-    const eventColor = getHexFromColorValue(formData.customColor);
-    
     console.log('💾 Salvando evento...');
-    console.log('🎨 Valor da cor do formulário:', formData.customColor);
-    console.log('🎨 Cor hex para salvar:', eventColor);
+    console.log('🎨 Cor selecionada para salvar:', formData.selectedColorHex);
     
     const eventData: CalendarEvent = {
       id: selectedEvent?.id || Date.now().toString(),
@@ -202,8 +188,8 @@ export default function EventModal() {
       type: formData.type,
       location: formData.location,
       professor: formData.professor,
-      color: eventColor,
-      customColor: eventColor,
+      color: formData.selectedColorHex,
+      customColor: formData.selectedColorHex,
       recurrence: formData.recurrence.type !== 'none' ? formData.recurrence : undefined,
     };
 
@@ -259,15 +245,12 @@ export default function EventModal() {
       console.log('🗑️ ID contém underscore?', selectedEvent.id.includes('_'));
 
       if (selectedEvent.recurrence && selectedEvent.recurrence.type !== 'none') {
-        // Evento com recorrência definida - deletar toda a série
         console.log('🗑️ Deletando série por recorrência definida');
         deleteRecurringEvents(selectedEvent.id);
       } else if (selectedEvent.id.includes('_')) {
-        // Evento gerado de uma série (ID contém underscore) - deletar toda a série
         console.log('🗑️ Deletando série por ID com underscore');
         deleteRecurringEvents(selectedEvent.id);
       } else {
-        // Evento único
         console.log('🗑️ Deletando evento único');
         deleteEvent(selectedEvent.id);
       }
@@ -293,15 +276,9 @@ export default function EventModal() {
 
   if (!isEventModalOpen) return null;
 
-  const weekdays = [
-    t('event.weekdays.sun'),
-    t('event.weekdays.mon'),
-    t('event.weekdays.tue'),
-    t('event.weekdays.wed'),
-    t('event.weekdays.thu'),
-    t('event.weekdays.fri'),
-    t('event.weekdays.sat'),
-  ];
+  const weekdays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+  const selectedColor = findColorByHex(formData.selectedColorHex);
 
   return (
     <div className="event-modal-overlay" onClick={handleClose}>
@@ -399,11 +376,11 @@ export default function EventModal() {
                   key={color.value}
                   type="button"
                   onClick={() => {
-                    console.log('🎨 Cor clicada:', color.value, color.preview);
-                    setFormData(prev => ({ ...prev, customColor: color.value }));
+                    console.log('🎨 Cor clicada:', color.preview);
+                    setFormData(prev => ({ ...prev, selectedColorHex: color.preview }));
                   }}
                   className={`color-option ${color.bg} ${
-                    formData.customColor === color.value ? 'selected' : ''
+                    formData.selectedColorHex === color.preview ? 'selected' : ''
                   }`}
                   title={color.name}
                   style={{ backgroundColor: color.preview }}
@@ -411,7 +388,7 @@ export default function EventModal() {
               ))}
             </div>
             <div className="mt-2 text-sm text-gray-600">
-              Cor selecionada: {eventColors.find(c => c.value === formData.customColor)?.name}
+              Cor selecionada: {selectedColor.name}
             </div>
           </div>
 
