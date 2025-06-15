@@ -270,7 +270,7 @@ export default function Schedule() {
 
           {/* Visualização do Dia */}
           <ScrollArea className="flex-1">
-            <div className="relative min-w-[150px]">
+            <div className="relative w-full overflow-hidden">
               {/* Linha da hora atual */}
               {currentTimePosition !== null && (
                 <div
@@ -290,7 +290,7 @@ export default function Schedule() {
               )}
 
               {/* Container para eventos */}
-              <div className="absolute inset-0 z-10 ml-1 sm:ml-2 md:ml-20">
+              <div className="absolute inset-0 z-10" style={{ marginLeft: '12px' }}>
                 {getEventsForDay(currentWeek).map(event => {
                   const position = getEventPosition(event);
                   const eventStyle = getEventStyle(event);
@@ -300,7 +300,7 @@ export default function Schedule() {
                   return (
                     <div
                       key={event.id}
-                      className="absolute left-0.5 right-0.5 md:left-2 md:right-2 rounded-lg p-1 md:p-2 text-xs font-medium cursor-pointer hover:shadow-xl transition-all duration-200 border-2 z-20"
+                      className="absolute left-1 right-1 rounded-lg p-1 text-xs font-medium cursor-pointer hover:shadow-xl transition-all duration-200 border-2 z-20"
                       style={{
                         ...position,
                         ...eventStyle,
@@ -327,17 +327,17 @@ export default function Schedule() {
 
               {/* Grade de linhas de hora */}
               {hours.map((hour) => (
-                <div key={hour} className="flex border-b border-border/20 h-8 sm:h-10 md:h-16">
-                  {/* Coluna de Horário */}
-                  <div className="w-1 sm:w-6 md:w-20 flex items-start justify-end pr-0.5 md:pr-2 pt-0 text-muted-foreground border-r border-border/50">
-                    <span className="-mt-2 text-[6px] sm:text-[8px] md:text-sm">
-                      {hour.toString().padStart(2, '0')}:00
+                <div key={hour} className="flex border-b border-border/20 h-8">
+                  {/* Coluna de Horário - reduzida drasticamente para mobile */}
+                  <div className="w-3 flex items-start justify-end pr-0.5 pt-0 text-muted-foreground border-r border-border/50 flex-shrink-0">
+                    <span className="-mt-2 text-[6px] leading-tight">
+                      {hour.toString().padStart(2, '0')}
                     </span>
                   </div>
                   
                   {/* Área do Dia */}
                   <div
-                    className="flex-1 hover:bg-secondary/20 cursor-pointer transition-colors"
+                    className="flex-1 hover:bg-secondary/20 cursor-pointer transition-colors min-w-0"
                     onClick={() => {
                       const startTime = new Date(currentWeek);
                       startTime.setHours(hour, 0, 0, 0);
