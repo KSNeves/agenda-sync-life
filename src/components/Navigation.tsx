@@ -113,13 +113,13 @@ export default function Navigation({ currentView, onViewChange }: NavigationProp
                   <button
                     key={item.id}
                     onClick={() => onViewChange(item.id)}
-                    className={`flex items-center gap-1 md:gap-2 py-3 md:py-4 px-1 md:px-2 border-b-2 transition-colors ${
+                    className={`flex flex-col md:flex-row items-center gap-1 md:gap-2 py-3 md:py-4 px-1 md:px-2 border-b-2 transition-colors ${
                       currentView === item.id
                         ? 'border-primary text-primary'
                         : 'border-transparent text-muted-foreground hover:text-foreground'
                     }`}
                   >
-                    <Icon size={14} className="md:hidden" />
+                    <Icon size={16} className="md:hidden" />
                     <Icon size={18} className="hidden md:block" />
                     <span className="font-medium text-xs md:text-sm">{item.label}</span>
                   </button>
