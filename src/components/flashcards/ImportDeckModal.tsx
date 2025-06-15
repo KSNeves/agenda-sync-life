@@ -1,10 +1,9 @@
 
 import React, { useState } from 'react';
-import { X, Upload, FileText, AlertCircle } from 'lucide-react';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
+import { X, Upload, FileText } from 'lucide-react';
 import { useFlashcards } from '../../context/FlashcardsContext';
-import { toast } from '../ui/sonner';
+import { FlashcardDeck, Flashcard } from '../../types/flashcard.types';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface ImportDeckModalProps {
   isOpen: boolean;
@@ -12,208 +11,226 @@ interface ImportDeckModalProps {
 }
 
 export default function ImportDeckModal({ isOpen, onClose }: ImportDeckModalProps) {
-  const { createDeck, addCard } = useFlashcards();
-  const [deckName, setDeckName] = useState('');
-  const [isImporting, setIsImporting] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
+  const { addDeck } = useFlashcards();
+  const { t } = useTranslation();
+  const [importMethod, setImportMethod] = useState<'file' | 'text'>('file');
+  const [textInput, setTextInput] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const parseCSVContent = (csvContent: string) => {
-    const lines = csvContent.split('\n').filter(line => line.trim());
-    const cards = [];
-
-    for (const line of lines) {
-      // Parse CSV line considering quoted fields
-      const matches = line.match(/("(?:[^"\\]|\\.)*"|[^,]*),("(?:[^"\\]|\\.)*"|[^,]*)/);
+  const parseTextToDeck = async (text: string): Promise<string> => {
+    const lines = text.split('\n').filter(line => line.trim());
+    const cards: Flashcard[] = [];
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
       
-      if (matches && matches.length >= 3) {
-        const front = matches[1].replace(/^"|"$/g, '').replace(/""/g, '"');
-        const back = matches[2].replace(/^"|"$/g, '').replace(/""/g, '"');
-        
-        if (front.trim() && back.trim()) {
-          cards.push({ front: front.trim(), back: back.trim() });
-        }
-      } else {
-        // Fallback for simple CSV without quotes
+      // Tenta diferentes formatos de separação
+      let front = '';
+      let back = '';
+      
+      if (line.includes('\t')) {
+        // Separado por tab
+        const parts = line.split('\t');
+        front = parts[0]?.trim() || '';
+        back = parts[1]?.trim() || '';
+      } else if (line.includes('|')) {
+        // Separado por pipe
+        const parts = line.split('|');
+        front = parts[0]?.trim() || '';
+        back = parts[1]?.trim() || '';
+      } else if (line.includes(';')) {
+        // Separado por ponto e vírgula
+        const parts = line.split(';');
+        front = parts[0]?.trim() || '';
+        back = parts[1]?.trim() || '';
+      } else if (line.includes(',')) {
+        // Separado por vírgula
         const parts = line.split(',');
-        if (parts.length >= 2) {
-          const front = parts[0].trim();
-          const back = parts[1].trim();
-          if (front && back) {
-            cards.push({ front, back });
-          }
-        }
+        front = parts[0]?.trim() || '';
+        back = parts[1]?.trim() || '';
       }
-    }
-
-    return cards;
-  };
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = event.target.files?.[0];
-    if (selectedFile) {
-      if (selectedFile.type === 'text/csv' || selectedFile.name.endsWith('.csv')) {
-        setFile(selectedFile);
-        // Usar o nome do arquivo como nome padrão do deck
-        const fileName = selectedFile.name.replace('.csv', '');
-        setDeckName(fileName);
-      } else {
-        toast('Erro', {
-          description: 'Por favor, selecione um arquivo CSV válido.',
+      
+      if (front && back) {
+        cards.push({
+          id: `card_${Date.now()}_${i}`,
+          front,
+          back,
+          interval: 1,
+          repetitions: 0,
+          easeFactor: 2.5,
+          nextReview: Date.now(),
         });
       }
     }
+    
+    if (cards.length === 0) {
+      throw new Error(t('flashcards.import.noValidCards'));
+    }
+    
+    const newDeck: FlashcardDeck = {
+      id: `deck_${Date.now()}`,
+      name: t('flashcards.import.importedDeck'),
+      description: t('flashcards.import.importedDescription'),
+      cards,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+    
+    await addDeck(newDeck);
+    return newDeck.id;
   };
 
-  const handleImport = async () => {
-    if (!file || !deckName.trim()) {
-      toast('Erro', {
-        description: 'Por favor, selecione um arquivo e digite um nome para o deck.',
-      });
-      return;
-    }
+  const handleFileImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-    setIsImporting(true);
-
+    setIsProcessing(true);
+    
     try {
-      const csvContent = await file.text();
-      const cards = parseCSVContent(csvContent);
-
-      if (cards.length === 0) {
-        toast('Erro', {
-          description: 'Nenhum card válido foi encontrado no arquivo CSV.',
-        });
-        setIsImporting(false);
-        return;
-      }
-
-      // Criar o deck
-      const deckId = createDeck({
-        name: deckName,
-        description: `Importado de ${file.name} - ${cards.length} cards`
-      });
-
-      // Adicionar todos os cards ao deck
-      for (const card of cards) {
-        addCard(deckId, card);
-      }
-
-      toast('Sucesso!', {
-        description: `Deck "${deckName}" importado com ${cards.length} cards.`,
-      });
-
-      // Reset form
-      setDeckName('');
-      setFile(null);
+      const text = await file.text();
+      await parseTextToDeck(text);
       onClose();
     } catch (error) {
-      console.error('Erro ao importar deck:', error);
-      toast('Erro', {
-        description: 'Erro ao processar o arquivo CSV. Verifique o formato.',
-      });
+      console.error('Error importing file:', error);
+      alert(t('flashcards.import.error'));
     } finally {
-      setIsImporting(false);
+      setIsProcessing(false);
+      // Reset file input
+      event.target.value = '';
     }
   };
 
-  const resetForm = () => {
-    setDeckName('');
-    setFile(null);
-    setIsImporting(false);
+  const handleTextImport = async () => {
+    if (!textInput.trim()) return;
+    
+    setIsProcessing(true);
+    
+    try {
+      await parseTextToDeck(textInput);
+      setTextInput('');
+      onClose();
+    } catch (error) {
+      console.error('Error importing text:', error);
+      alert(t('flashcards.import.error'));
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-background rounded-lg p-6 w-full max-w-md mx-4">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Importar Deck (CSV)</h2>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => {
-              resetForm();
-              onClose();
-            }}
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-card rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-6 border-b">
+          <h2 className="text-xl font-bold text-foreground">
+            {t('flashcards.import.title')}
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-muted-foreground hover:text-foreground transition-colors"
           >
-            <X className="w-4 h-4" />
-          </Button>
+            <X size={24} />
+          </button>
         </div>
 
-        <div className="space-y-4">
-          {/* Informações sobre o formato */}
-          <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg">
-            <div className="flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 text-blue-500 mt-0.5" />
-              <div className="text-sm text-blue-700 dark:text-blue-300">
-                <p className="font-medium mb-1">Formato CSV compatível com Anki:</p>
-                <p>• Primeira coluna: Frente do card</p>
-                <p>• Segunda coluna: Verso do card</p>
-                <p>• Exemplo: "Pergunta","Resposta"</p>
-              </div>
+        <div className="p-6">
+          <div className="mb-6">
+            <div className="flex space-x-4 mb-4">
+              <button
+                onClick={() => setImportMethod('file')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  importMethod === 'file'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                }`}
+              >
+                <Upload className="inline-block w-4 h-4 mr-2" />
+                {t('flashcards.import.fromFile')}
+              </button>
+              <button
+                onClick={() => setImportMethod('text')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  importMethod === 'text'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                }`}
+              >
+                <FileText className="inline-block w-4 h-4 mr-2" />
+                {t('flashcards.import.fromText')}
+              </button>
             </div>
           </div>
 
-          {/* Upload de arquivo */}
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Arquivo CSV
-            </label>
-            <Input
-              type="file"
-              accept=".csv"
-              onChange={handleFileChange}
-              className="cursor-pointer"
-            />
-            {file && (
-              <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
-                <FileText className="w-4 h-4" />
-                <span>{file.name}</span>
+          {importMethod === 'file' ? (
+            <div>
+              <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
+                <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <p className="text-foreground font-medium mb-2">
+                  {t('flashcards.import.selectFile')}
+                </p>
+                <p className="text-muted-foreground text-sm mb-4">
+                  {t('flashcards.import.supportedFormats')}
+                </p>
+                <input
+                  type="file"
+                  accept=".txt,.csv,.tsv"
+                  onChange={handleFileImport}
+                  disabled={isProcessing}
+                  className="hidden"
+                  id="file-input"
+                />
+                <label
+                  htmlFor="file-input"
+                  className={`inline-block px-4 py-2 bg-primary text-primary-foreground rounded-lg cursor-pointer hover:bg-primary/90 transition-colors ${
+                    isProcessing ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                >
+                  {isProcessing ? t('flashcards.import.processing') : t('flashcards.import.chooseFile')}
+                </label>
               </div>
-            )}
-          </div>
+            </div>
+          ) : (
+            <div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  {t('flashcards.import.pasteContent')}
+                </label>
+                <textarea
+                  value={textInput}
+                  onChange={(e) => setTextInput(e.target.value)}
+                  rows={10}
+                  placeholder={t('flashcards.import.placeholder')}
+                  className="w-full p-3 border border-border rounded-lg bg-background text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                  disabled={isProcessing}
+                />
+              </div>
+              <button
+                onClick={handleTextImport}
+                disabled={!textInput.trim() || isProcessing}
+                className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isProcessing ? t('flashcards.import.processing') : t('flashcards.import.import')}
+              </button>
+            </div>
+          )}
 
-          {/* Nome do deck */}
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Nome do Deck
-            </label>
-            <Input
-              placeholder="Digite o nome do deck..."
-              value={deckName}
-              onChange={(e) => setDeckName(e.target.value)}
-            />
-          </div>
-
-          {/* Botões */}
-          <div className="flex gap-3 pt-2">
-            <Button
-              variant="outline"
-              onClick={() => {
-                resetForm();
-                onClose();
-              }}
-              className="flex-1"
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleImport}
-              disabled={!file || !deckName.trim() || isImporting}
-              className="flex-1 flex items-center gap-2"
-            >
-              {isImporting ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Importando...
-                </>
-              ) : (
-                <>
-                  <Upload className="w-4 h-4" />
-                  Importar
-                </>
-              )}
-            </Button>
+          <div className="mt-6 p-4 bg-secondary rounded-lg">
+            <h3 className="font-medium text-foreground mb-2">
+              {t('flashcards.import.formatInfo')}
+            </h3>
+            <ul className="text-sm text-muted-foreground space-y-1">
+              <li>• {t('flashcards.import.format1')}</li>
+              <li>• {t('flashcards.import.format2')}</li>
+              <li>• {t('flashcards.import.format3')}</li>
+              <li>• {t('flashcards.import.format4')}</li>
+            </ul>
+            <div className="mt-3 p-3 bg-background rounded border-l-4 border-primary">
+              <p className="text-xs text-muted-foreground font-mono">
+                {t('flashcards.import.example')}
+              </p>
+            </div>
           </div>
         </div>
       </div>

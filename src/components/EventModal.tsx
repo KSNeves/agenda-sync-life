@@ -1,5 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
-import { useApp } from '../context/AppContext';
+import { useEvents } from '../context/EventsContext';
+import { useRevisions } from '../context/RevisionsContext';
 import { CalendarEvent, RevisionItem } from '../types';
 import { X } from 'lucide-react';
 import { Checkbox } from './ui/checkbox';
@@ -17,9 +19,17 @@ const eventColors = [
 ];
 
 export default function EventModal() {
-  const { state, dispatch } = useApp();
+  const { 
+    isModalOpen, 
+    selectedEvent, 
+    selectedDate,
+    closeModal, 
+    addEvent, 
+    updateEvent, 
+    deleteEvent 
+  } = useEvents();
+  const { addRevision } = useRevisions();
   const { t } = useTranslation();
-  const { isEventModalOpen, selectedEvent } = state;
 
   const [formData, setFormData] = useState({
     title: '',
@@ -68,7 +78,7 @@ export default function EventModal() {
     } else {
       // New event - set default times
       const now = new Date();
-      const startTime = new Date(state.selectedDate);
+      const startTime = new Date(selectedDate);
       startTime.setHours(now.getHours(), 0, 0, 0);
       const endTime = new Date(startTime);
       endTime.setHours(startTime.getHours() + 1);
@@ -95,7 +105,7 @@ export default function EventModal() {
       });
       setAddToRevision(false);
     }
-  }, [selectedEvent, state.selectedDate]);
+  }, [selectedEvent, selectedDate]);
 
   // Função para criar eventos recorrentes
   const createRecurringEvents = (baseEvent: CalendarEvent) => {
@@ -190,7 +200,7 @@ export default function EventModal() {
     return events;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const eventData: CalendarEvent = {
@@ -206,71 +216,66 @@ export default function EventModal() {
       recurrence: formData.recurrence.type !== 'none' ? formData.recurrence : undefined,
     };
 
-    if (selectedEvent) {
-      dispatch({ type: 'UPDATE_EVENT', payload: eventData });
-    } else {
-      if (formData.recurrence.type !== 'none') {
-        // Criar eventos recorrentes
-        const recurringEvents = createRecurringEvents(eventData);
-        recurringEvents.forEach(event => {
-          dispatch({ type: 'ADD_EVENT', payload: event });
-        });
+    try {
+      if (selectedEvent) {
+        await updateEvent(eventData);
       } else {
-        dispatch({ type: 'ADD_EVENT', payload: eventData });
-      }
-    }
-
-    // Se a opção de adicionar à revisão estiver marcada, criar item de revisão
-    if (addToRevision) {
-      const eventStartDate = new Date(formData.startTime);
-      eventStartDate.setHours(0, 0, 0, 0);
-
-      const revisionContent = [
-        formData.title,
-        formData.description && `${t('event.description')}: ${formData.description}`,
-        formData.location && `${t('event.location')}: ${formData.location}`,
-        formData.professor && `${t('event.professor')}: ${formData.professor}`,
-      ].filter(Boolean).join('\n\n');
-
-      const revisionItem: RevisionItem = {
-        id: Date.now().toString(),
-        title: `${t('revision.title')}: ${formData.title}`,
-        description: revisionContent,
-        category: 'pending',
-        createdAt: Date.now(),
-        revisionCount: 0,
-        nextRevisionDate: eventStartDate.getTime(),
-        intervalDays: 1,
-      };
-
-      dispatch({ type: 'ADD_REVISION_ITEM', payload: revisionItem });
-    }
-
-    handleClose();
-  };
-
-  const handleDelete = () => {
-    if (selectedEvent) {
-      // Verificar se é um evento recorrente
-      if (selectedEvent.recurrence && selectedEvent.recurrence.type !== 'none') {
-        // Excluir todos os eventos relacionados
-        const baseId = selectedEvent.id.split('_')[0];
-        dispatch({ type: 'DELETE_RECURRING_EVENTS', payload: baseId });
-      } else {
-        // Verificar se faz parte de uma série recorrente (ID contém underscore)
-        if (selectedEvent.id.includes('_')) {
-          const baseId = selectedEvent.id.split('_')[0];
-          dispatch({ type: 'DELETE_RECURRING_EVENTS', payload: baseId });
+        if (formData.recurrence.type !== 'none') {
+          // Criar eventos recorrentes
+          const recurringEvents = createRecurringEvents(eventData);
+          for (const event of recurringEvents) {
+            await addEvent(event);
+          }
         } else {
-          dispatch({ type: 'DELETE_EVENT', payload: selectedEvent.id });
+          await addEvent(eventData);
         }
       }
+
+      // Se a opção de adicionar à revisão estiver marcada, criar item de revisão
+      if (addToRevision) {
+        const eventStartDate = new Date(formData.startTime);
+        eventStartDate.setHours(0, 0, 0, 0);
+
+        const revisionContent = [
+          formData.title,
+          formData.description && `${t('event.description')}: ${formData.description}`,
+          formData.location && `${t('event.location')}: ${formData.location}`,
+          formData.professor && `${t('event.professor')}: ${formData.professor}`,
+        ].filter(Boolean).join('\n\n');
+
+        const revisionItem: RevisionItem = {
+          id: Date.now().toString(),
+          title: `${t('revision.title')}: ${formData.title}`,
+          description: revisionContent,
+          category: 'pending',
+          createdAt: Date.now(),
+          revisionCount: 0,
+          nextRevisionDate: eventStartDate.getTime(),
+          intervalDays: 1,
+        };
+
+        await addRevision(revisionItem);
+      }
+
       handleClose();
+    } catch (error) {
+      console.error('Error saving event:', error);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (selectedEvent) {
+      try {
+        await deleteEvent(selectedEvent.id);
+        handleClose();
+      } catch (error) {
+        console.error('Error deleting event:', error);
+      }
     }
   };
 
   const handleClose = () => {
-    dispatch({ type: 'CLOSE_EVENT_MODAL' });
+    closeModal();
   };
 
   const toggleWeekday = (day: number) => {
@@ -285,7 +290,7 @@ export default function EventModal() {
     }));
   };
 
-  if (!isEventModalOpen) return null;
+  if (!isModalOpen) return null;
 
   const weekdays = [
     t('event.weekdays.sun'),
