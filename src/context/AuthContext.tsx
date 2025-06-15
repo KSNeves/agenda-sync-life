@@ -2,15 +2,16 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
-  signUp: (email: string, password: string, firstName: string, lastName: string) => Promise<{ error?: string }>;
-  signIn: (email: string, password: string) => Promise<{ error?: string }>;
-  signOut: () => Promise<void>;
   loading: boolean;
+  signUp: (email: string, password: string, firstName: string, lastName: string) => Promise<{ error: any }>;
+  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signOut: () => Promise<void>;
+  isAuthenticated: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -19,21 +20,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   useEffect(() => {
-    // Set up auth state listener FIRST
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        if (event === 'SIGNED_IN') {
+          toast.success('Login realizado com sucesso!');
+        } else if (event === 'SIGNED_OUT') {
+          toast.success('Logout realizado com sucesso!');
+        }
       }
     );
 
-    // THEN check for existing session
+    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session check:', session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -43,151 +50,79 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signUp = async (email: string, password: string, firstName: string, lastName: string) => {
-    try {
-      setLoading(true);
-      const redirectUrl = `${window.location.origin}/`;
-      
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: redirectUrl,
-          data: {
-            first_name: firstName,
-            last_name: lastName,
-          }
+    setLoading(true);
+    
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/`,
+        data: {
+          first_name: firstName,
+          last_name: lastName,
         }
-      });
-
-      if (error) {
-        console.error('SignUp error:', error);
-        let errorMessage = 'Erro ao criar conta';
-        
-        if (error.message.includes('User already registered')) {
-          errorMessage = 'Este email já está cadastrado. Tente fazer login.';
-        } else if (error.message.includes('Password should be')) {
-          errorMessage = 'A senha deve ter pelo menos 6 caracteres.';
-        } else if (error.message.includes('Invalid email')) {
-          errorMessage = 'Email inválido.';
-        }
-        
-        toast({
-          title: "Erro no cadastro",
-          description: errorMessage,
-          variant: "destructive",
-        });
-        
-        return { error: errorMessage };
       }
+    });
 
-      if (data.user && !data.session) {
-        toast({
-          title: "Confirme seu email",
-          description: "Enviamos um link de confirmação para seu email. Clique nele para ativar sua conta.",
-        });
-      }
-
-      return {};
-    } catch (error) {
-      console.error('SignUp exception:', error);
-      const errorMessage = 'Erro inesperado ao criar conta';
-      toast({
-        title: "Erro",
-        description: errorMessage,
-        variant: "destructive",
-      });
-      return { error: errorMessage };
-    } finally {
+    if (error) {
+      console.error('Signup error:', error);
+      toast.error(error.message);
       setLoading(false);
+      return { error };
     }
+
+    toast.success('Conta criada com sucesso! Verifique seu email para confirmar.');
+    setLoading(false);
+    return { error: null };
   };
 
   const signIn = async (email: string, password: string) => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+    setLoading(true);
+    
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
 
-      if (error) {
-        console.error('SignIn error:', error);
-        let errorMessage = 'Erro ao fazer login';
-        
-        if (error.message.includes('Invalid login credentials')) {
-          errorMessage = 'Email ou senha incorretos.';
-        } else if (error.message.includes('Email not confirmed')) {
-          errorMessage = 'Email não confirmado. Verifique sua caixa de entrada e clique no link de confirmação.';
-        } else if (error.message.includes('too many requests')) {
-          errorMessage = 'Muitas tentativas. Tente novamente em alguns minutos.';
-        }
-        
-        toast({
-          title: "Erro no login",
-          description: errorMessage,
-          variant: "destructive",
-        });
-        
-        return { error: errorMessage };
+    if (error) {
+      console.error('Signin error:', error);
+      
+      // Handle email not confirmed error specifically
+      if (error.message === 'Email not confirmed') {
+        toast.error('Por favor, confirme seu email antes de fazer login. Verifique sua caixa de entrada.');
+      } else {
+        toast.error(error.message);
       }
-
-      if (data.user) {
-        toast({
-          title: "Login realizado!",
-          description: "Bem-vindo de volta!",
-        });
-      }
-
-      return {};
-    } catch (error) {
-      console.error('SignIn exception:', error);
-      const errorMessage = 'Erro inesperado ao fazer login';
-      toast({
-        title: "Erro",
-        description: errorMessage,
-        variant: "destructive",
-      });
-      return { error: errorMessage };
-    } finally {
+      
       setLoading(false);
+      return { error };
     }
+
+    setLoading(false);
+    return { error: null };
   };
 
   const signOut = async () => {
-    try {
-      setLoading(true);
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('SignOut error:', error);
-        toast({
-          title: "Erro",
-          description: "Erro ao fazer logout",
-          variant: "destructive",
-        });
-      } else {
-        // Clear localStorage data
-        localStorage.removeItem('user');
-        localStorage.removeItem('userProfile');
-        toast({
-          title: "Logout realizado",
-          description: "Até logo!",
-        });
-      }
-    } catch (error) {
-      console.error('SignOut exception:', error);
-    } finally {
-      setLoading(false);
+    setLoading(true);
+    const { error } = await supabase.auth.signOut();
+    
+    if (error) {
+      console.error('Signout error:', error);
+      toast.error(error.message);
     }
+    
+    setLoading(false);
   };
 
   return (
     <AuthContext.Provider value={{
       user,
       session,
+      loading,
       signUp,
       signIn,
       signOut,
-      loading
+      isAuthenticated: !!user && !!session
     }}>
       {children}
     </AuthContext.Provider>

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useSupabaseRevisions } from '../context/SupabaseRevisionsContext';
+import { useApp } from '../context/AppContext';
 import { RevisionItem } from '../types';
 import {
   Dialog,
@@ -22,7 +22,7 @@ interface EditRevisionModalProps {
 }
 
 export default function EditRevisionModal({ isOpen, onClose, revision }: EditRevisionModalProps) {
-  const { updateRevisionItem } = useSupabaseRevisions();
+  const { dispatch } = useApp();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [nonStudyDays, setNonStudyDays] = useState<number[]>([]);
@@ -47,7 +47,7 @@ export default function EditRevisionModal({ isOpen, onClose, revision }: EditRev
       nonStudyDays: nonStudyDays.length > 0 ? nonStudyDays : undefined,
     };
 
-    updateRevisionItem(updatedRevision);
+    dispatch({ type: 'UPDATE_REVISION_ITEM', payload: updatedRevision });
     onClose();
   };
 

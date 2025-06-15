@@ -15,15 +15,14 @@ export interface CalendarEvent {
   id: string;
   title: string;
   description?: string;
-  startTime: number; // timestamp
-  endTime: number; // timestamp
+  startTime: Date;
+  endTime: Date;
   type: 'class' | 'study' | 'exam' | 'personal' | 'other';
   color?: string;
-  customColor?: string;
-  isAllDay?: boolean;
+  customColor?: string; // Nova propriedade para cor personalizada
   recurrence?: {
     type: 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly';
-    weekdays?: number[];
+    weekdays?: number[]; // 0-6, domingo a sábado
     endDate?: Date;
   };
   location?: string;
@@ -34,14 +33,13 @@ export interface RevisionItem {
   id: string;
   title: string;
   description?: string;
-  subject?: string;
   category: 'pending' | 'completed' | 'priority';
   createdAt: number;
   completedAt?: number;
-  revisionCount: number;
-  nextRevisionDate: number;
-  intervalDays: number;
-  nonStudyDays?: number[];
+  revisionCount: number; // Quantas revisões já foram feitas
+  nextRevisionDate: number; // Timestamp da próxima revisão
+  intervalDays: number; // Intervalo atual em dias
+  nonStudyDays?: number[]; // Dias da semana que não estuda (0 = domingo, 6 = sábado)
 }
 
 export type CalendarView = 'day' | 'week' | 'month';

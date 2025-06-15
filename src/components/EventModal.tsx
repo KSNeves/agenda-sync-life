@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { useSupabaseEvents } from '../context/SupabaseEventsContext';
-import { useSupabaseRevisions } from '../context/SupabaseRevisionsContext';
 import { CalendarEvent, RevisionItem } from '../types';
 import { X } from 'lucide-react';
 import { Checkbox } from './ui/checkbox';
@@ -20,8 +18,6 @@ const eventColors = [
 
 export default function EventModal() {
   const { state, dispatch } = useApp();
-  const { addEvent, updateEvent, deleteEvent, deleteRecurringEvents } = useSupabaseEvents();
-  const { addRevisionItem } = useSupabaseRevisions();
   const { t } = useTranslation();
   const { isEventModalOpen, selectedEvent } = state;
 
@@ -33,7 +29,7 @@ export default function EventModal() {
     type: 'other' as CalendarEvent['type'],
     location: '',
     professor: '',
-    selectedColorHex: '#3b82f6', // Armazenar diretamente o hex
+    customColor: 'blue',
     recurrence: {
       type: 'none' as 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly',
       weekdays: [] as number[],
@@ -42,15 +38,10 @@ export default function EventModal() {
 
   const [addToRevision, setAddToRevision] = useState(false);
 
-  // Função para encontrar a cor baseado no hex
-  const findColorByHex = (hexColor: string) => {
-    return eventColors.find(c => c.preview.toLowerCase() === hexColor.toLowerCase()) || eventColors[0];
-  };
-
   useEffect(() => {
     if (selectedEvent) {
-      const formatDateTimeLocal = (timestamp: number) => {
-        const date = new Date(timestamp);
+      // Corrigido: formatação correta do datetime-local
+      const formatDateTimeLocal = (date: Date) => {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
@@ -59,21 +50,15 @@ export default function EventModal() {
         return `${year}-${month}-${day}T${hours}:${minutes}`;
       };
 
-      // Pegar a cor correta do evento
-      const eventColor = selectedEvent.color || selectedEvent.customColor || '#3b82f6';
-
-      console.log('🔍 Carregando evento editável:', selectedEvent.title);
-      console.log('🎨 Cor original do evento:', eventColor);
-
       setFormData({
         title: selectedEvent.title,
         description: selectedEvent.description || '',
-        startTime: formatDateTimeLocal(selectedEvent.startTime),
-        endTime: formatDateTimeLocal(selectedEvent.endTime),
+        startTime: formatDateTimeLocal(new Date(selectedEvent.startTime)),
+        endTime: formatDateTimeLocal(new Date(selectedEvent.endTime)),
         type: selectedEvent.type,
         location: selectedEvent.location || '',
         professor: selectedEvent.professor || '',
-        selectedColorHex: eventColor,
+        customColor: selectedEvent.customColor || 'blue',
         recurrence: {
           type: selectedEvent.recurrence?.type || 'none',
           weekdays: selectedEvent.recurrence?.weekdays || [],
@@ -81,7 +66,7 @@ export default function EventModal() {
       });
       setAddToRevision(false);
     } else {
-      // ... keep existing code (new event initialization)
+      // New event - set default times
       const now = new Date();
       const startTime = new Date(state.selectedDate);
       startTime.setHours(now.getHours(), 0, 0, 0);
@@ -105,14 +90,14 @@ export default function EventModal() {
         type: 'other',
         location: '',
         professor: '',
-        selectedColorHex: '#3b82f6',
+        customColor: 'blue',
         recurrence: { type: 'none', weekdays: [] },
       });
       setAddToRevision(false);
     }
   }, [selectedEvent, state.selectedDate]);
 
-  // ... keep existing code (createRecurringEvents function)
+  // Função para criar eventos recorrentes
   const createRecurringEvents = (baseEvent: CalendarEvent) => {
     const events: CalendarEvent[] = [baseEvent];
     const startDate = new Date(baseEvent.startTime);
@@ -120,6 +105,7 @@ export default function EventModal() {
     const eventDuration = endDate.getTime() - startDate.getTime();
 
     if (formData.recurrence.type === 'daily') {
+      // Criar eventos diários por 30 dias
       for (let i = 1; i <= 30; i++) {
         const newStart = new Date(startDate);
         newStart.setDate(startDate.getDate() + i);
@@ -128,33 +114,36 @@ export default function EventModal() {
         events.push({
           ...baseEvent,
           id: `${baseEvent.id}_${i}`,
-          startTime: newStart.getTime(),
-          endTime: newEnd.getTime(),
+          startTime: newStart,
+          endTime: newEnd,
         });
       }
     } else if (formData.recurrence.type === 'weekly') {
       if (formData.recurrence.weekdays.length > 0) {
+        // Criar eventos para os dias específicos da semana por 12 semanas
         for (let week = 0; week < 12; week++) {
           formData.recurrence.weekdays.forEach(weekday => {
             if (week === 0 && weekday === startDate.getDay()) {
-              return;
+              return; // Pular o evento original
             }
 
             const newStart = new Date(startDate);
             newStart.setDate(startDate.getDate() - startDate.getDay() + weekday + (week * 7));
             const newEnd = new Date(newStart.getTime() + eventDuration);
 
+            // Só adicionar se a data for futura ou atual
             if (newStart >= new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate())) {
               events.push({
                 ...baseEvent,
                 id: `${baseEvent.id}_${week}_${weekday}`,
-                startTime: newStart.getTime(),
-                endTime: newEnd.getTime(),
+                startTime: newStart,
+                endTime: newEnd,
               });
             }
           });
         }
       } else {
+        // Criar eventos semanais por 12 semanas
         for (let i = 1; i <= 12; i++) {
           const newStart = new Date(startDate);
           newStart.setDate(startDate.getDate() + (i * 7));
@@ -163,10 +152,38 @@ export default function EventModal() {
           events.push({
             ...baseEvent,
             id: `${baseEvent.id}_${i}`,
-            startTime: newStart.getTime(),
-            endTime: newEnd.getTime(),
+            startTime: newStart,
+            endTime: newEnd,
           });
         }
+      }
+    } else if (formData.recurrence.type === 'monthly') {
+      // Criar eventos mensais por 12 meses
+      for (let i = 1; i <= 12; i++) {
+        const newStart = new Date(startDate);
+        newStart.setMonth(startDate.getMonth() + i);
+        const newEnd = new Date(newStart.getTime() + eventDuration);
+
+        events.push({
+          ...baseEvent,
+          id: `${baseEvent.id}_${i}`,
+          startTime: newStart,
+          endTime: newEnd,
+        });
+      }
+    } else if (formData.recurrence.type === 'yearly') {
+      // Criar eventos anuais por 5 anos
+      for (let i = 1; i <= 5; i++) {
+        const newStart = new Date(startDate);
+        newStart.setFullYear(startDate.getFullYear() + i);
+        const newEnd = new Date(newStart.getTime() + eventDuration);
+
+        events.push({
+          ...baseEvent,
+          id: `${baseEvent.id}_${i}`,
+          startTime: newStart,
+          endTime: newEnd,
+        });
       }
     }
 
@@ -176,41 +193,35 @@ export default function EventModal() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    console.log('💾 Salvando evento...');
-    console.log('🎨 Cor selecionada para salvar:', formData.selectedColorHex);
-    
     const eventData: CalendarEvent = {
       id: selectedEvent?.id || Date.now().toString(),
       title: formData.title,
       description: formData.description,
-      startTime: new Date(formData.startTime).getTime(),
-      endTime: new Date(formData.endTime).getTime(),
+      startTime: new Date(formData.startTime),
+      endTime: new Date(formData.endTime),
       type: formData.type,
       location: formData.location,
       professor: formData.professor,
-      color: formData.selectedColorHex,
-      customColor: formData.selectedColorHex,
+      customColor: formData.customColor,
       recurrence: formData.recurrence.type !== 'none' ? formData.recurrence : undefined,
     };
 
-    console.log('📦 Dados completos do evento:', eventData);
-
     if (selectedEvent) {
-      updateEvent(eventData);
+      dispatch({ type: 'UPDATE_EVENT', payload: eventData });
     } else {
       if (formData.recurrence.type !== 'none') {
+        // Criar eventos recorrentes
         const recurringEvents = createRecurringEvents(eventData);
         recurringEvents.forEach(event => {
-          addEvent(event);
+          dispatch({ type: 'ADD_EVENT', payload: event });
         });
       } else {
-        addEvent(eventData);
+        dispatch({ type: 'ADD_EVENT', payload: eventData });
       }
     }
 
+    // Se a opção de adicionar à revisão estiver marcada, criar item de revisão
     if (addToRevision) {
-      console.log('📚 Adicionando evento à revisão...');
-      
       const eventStartDate = new Date(formData.startTime);
       eventStartDate.setHours(0, 0, 0, 0);
 
@@ -221,7 +232,8 @@ export default function EventModal() {
         formData.professor && `${t('event.professor')}: ${formData.professor}`,
       ].filter(Boolean).join('\n\n');
 
-      const revisionItem: Omit<RevisionItem, 'id'> = {
+      const revisionItem: RevisionItem = {
+        id: Date.now().toString(),
         title: `${t('revision.title')}: ${formData.title}`,
         description: revisionContent,
         category: 'pending',
@@ -231,7 +243,7 @@ export default function EventModal() {
         intervalDays: 1,
       };
 
-      addRevisionItem(revisionItem);
+      dispatch({ type: 'ADD_REVISION_ITEM', payload: revisionItem });
     }
 
     handleClose();
@@ -239,20 +251,19 @@ export default function EventModal() {
 
   const handleDelete = () => {
     if (selectedEvent) {
-      console.log('🗑️ Iniciando exclusão de evento:', selectedEvent.id);
-      console.log('🗑️ Título do evento:', selectedEvent.title);
-      console.log('🗑️ Tem recorrência?', selectedEvent.recurrence);
-      console.log('🗑️ ID contém underscore?', selectedEvent.id.includes('_'));
-
+      // Verificar se é um evento recorrente
       if (selectedEvent.recurrence && selectedEvent.recurrence.type !== 'none') {
-        console.log('🗑️ Deletando série por recorrência definida');
-        deleteRecurringEvents(selectedEvent.id);
-      } else if (selectedEvent.id.includes('_')) {
-        console.log('🗑️ Deletando série por ID com underscore');
-        deleteRecurringEvents(selectedEvent.id);
+        // Excluir todos os eventos relacionados
+        const baseId = selectedEvent.id.split('_')[0];
+        dispatch({ type: 'DELETE_RECURRING_EVENTS', payload: baseId });
       } else {
-        console.log('🗑️ Deletando evento único');
-        deleteEvent(selectedEvent.id);
+        // Verificar se faz parte de uma série recorrente (ID contém underscore)
+        if (selectedEvent.id.includes('_')) {
+          const baseId = selectedEvent.id.split('_')[0];
+          dispatch({ type: 'DELETE_RECURRING_EVENTS', payload: baseId });
+        } else {
+          dispatch({ type: 'DELETE_EVENT', payload: selectedEvent.id });
+        }
       }
       handleClose();
     }
@@ -276,9 +287,15 @@ export default function EventModal() {
 
   if (!isEventModalOpen) return null;
 
-  const weekdays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-
-  const selectedColor = findColorByHex(formData.selectedColorHex);
+  const weekdays = [
+    t('event.weekdays.sun'),
+    t('event.weekdays.mon'),
+    t('event.weekdays.tue'),
+    t('event.weekdays.wed'),
+    t('event.weekdays.thu'),
+    t('event.weekdays.fri'),
+    t('event.weekdays.sat'),
+  ];
 
   return (
     <div className="event-modal-overlay" onClick={handleClose}>
@@ -375,23 +392,18 @@ export default function EventModal() {
                 <button
                   key={color.value}
                   type="button"
-                  onClick={() => {
-                    console.log('🎨 Cor clicada:', color.preview);
-                    setFormData(prev => ({ ...prev, selectedColorHex: color.preview }));
-                  }}
+                  onClick={() => setFormData(prev => ({ ...prev, customColor: color.value }))}
                   className={`color-option ${color.bg} ${
-                    formData.selectedColorHex === color.preview ? 'selected' : ''
+                    formData.customColor === color.value ? 'selected' : ''
                   }`}
                   title={color.name}
                   style={{ backgroundColor: color.preview }}
                 />
               ))}
             </div>
-            <div className="mt-2 text-sm text-gray-600">
-              Cor selecionada: {selectedColor.name}
-            </div>
           </div>
 
+          {/* Seção de recorrência */}
           <div className="recurrence-options" style={{ marginTop: '32px' }}>
             <div className="form-group">
               <label>{t('event.recurrence')}</label>
@@ -431,6 +443,7 @@ export default function EventModal() {
             )}
           </div>
 
+          {/* Seção para adicionar à revisão espaçada */}
           <div className="form-group" style={{ marginTop: '24px' }}>
             <div className="flex items-center space-x-3">
               <Checkbox

@@ -1,6 +1,5 @@
-
 import React, { useEffect, useState } from 'react';
-import { useSupabaseRevisions } from '../context/SupabaseRevisionsContext';
+import { useApp } from '../context/AppContext';
 import { Task, RevisionItem } from '../types';
 import { Play, Pause, Check, Clock, Calendar, PlayCircle, CheckCircle, ClockIcon } from 'lucide-react';
 import { categorizeRevision } from '../utils/spacedRepetition';
@@ -9,18 +8,44 @@ import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useTranslation } from '../hooks/useTranslation';
 
 export default function Dashboard() {
-  const { revisionItems, updateRevisionItem } = useSupabaseRevisions();
+  const { state, dispatch } = useApp();
+  const { tasks, events, revisionItems } = state;
   const { t } = useTranslation();
   const [isStudyModalOpen, setIsStudyModalOpen] = useState(false);
   const [selectedRevisionTitle, setSelectedRevisionTitle] = useState('');
   const [weeklyProgressData, setWeeklyProgressData] = useLocalStorage<Record<string, { completed: number; total: number }>>('weeklyProgressData', {});
 
+  // Timer logic
+  useEffect(() => {
+    const interval = setInterval(() => {
+      tasks.forEach(task => {
+        if (task.isRunning && task.startTime) {
+          const elapsedTime = task.elapsedTime + Math.floor((Date.now() - task.startTime) / 1000);
+          dispatch({
+            type: 'UPDATE_TASK_TIMER',
+            payload: { id: task.id, elapsedTime }
+          });
+        }
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [tasks, dispatch]);
+
   const today = new Date();
   
+  // Get today's tasks (original task system)
+  const todayTasks = tasks.filter(task => {
+    const taskDate = new Date(task.createdAt);
+    return taskDate.toDateString() === today.toDateString() && !task.postponed;
+  });
+
+  // Get today's revisions
   const todayRevisions = revisionItems.filter(item => {
     return categorizeRevision(item) === 'pending';
   });
 
+  // Calculate daily progress based on completed revisions today
   const completedRevisionsToday = revisionItems.filter(item => {
     const wasCompletedToday = item.completedAt && 
       new Date(item.completedAt).toDateString() === today.toDateString();
@@ -31,6 +56,7 @@ export default function Dashboard() {
   const totalDailyTasks = todayRevisions.length + completedRevisionsToday;
   const dailyProgress = totalDailyTasks > 0 ? (completedRevisionsToday / totalDailyTasks) * 100 : 0;
 
+  // Update today's progress in localStorage
   useEffect(() => {
     const todayKey = today.toDateString();
     setWeeklyProgressData(prev => ({
@@ -42,6 +68,7 @@ export default function Dashboard() {
     }));
   }, [completedRevisionsToday, totalDailyTasks, today, setWeeklyProgressData]);
 
+  // Weekly progress calculation - baseado em revisões
   const getWeekProgress = () => {
     const weekDays = [];
     const dayNamesShort = [
@@ -59,9 +86,11 @@ export default function Dashboard() {
       date.setDate(today.getDate() - today.getDay() + i);
       const dateKey = date.toDateString();
       
+      // Verificar se temos dados salvos para este dia
       const savedData = weeklyProgressData[dateKey];
       
       if (savedData) {
+        // Usar dados salvos
         weekDays.push({
           day: dayNamesShort[i],
           progress: savedData.total > 0 ? (savedData.completed / savedData.total) * 100 : 0,
@@ -69,6 +98,7 @@ export default function Dashboard() {
           total: savedData.total
         });
       } else if (date.toDateString() === today.toDateString()) {
+        // Para hoje, usar dados em tempo real
         weekDays.push({
           day: dayNamesShort[i],
           progress: totalDailyTasks > 0 ? (completedRevisionsToday / totalDailyTasks) * 100 : 0,
@@ -76,6 +106,7 @@ export default function Dashboard() {
           total: totalDailyTasks
         });
       } else {
+        // Para dias futuros ou dias sem dados, mostrar vazio
         weekDays.push({
           day: dayNamesShort[i],
           progress: 0,
@@ -87,6 +118,17 @@ export default function Dashboard() {
     return weekDays;
   };
 
+  const formatTime = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleTaskAction = (taskId: string, action: string) => {
+    dispatch({ type: action.toUpperCase() + '_TASK' as any, payload: taskId });
+  };
+
   const handleRevisionAction = (revisionId: string, action: 'start' | 'complete' | 'postpone') => {
     const revision = revisionItems.find(item => item.id === revisionId);
     if (!revision) return;
@@ -95,24 +137,44 @@ export default function Dashboard() {
       setSelectedRevisionTitle(revision.title);
       setIsStudyModalOpen(true);
     } else if (action === 'complete') {
-      updateRevisionItem({ 
-        ...revision, 
-        category: 'completed',
-        completedAt: Date.now()
+      dispatch({ 
+        type: 'UPDATE_REVISION_ITEM', 
+        payload: { 
+          ...revision, 
+          category: 'completed',
+          completedAt: Date.now() // Garante que a data de conclusão seja hoje
+        }
       });
     } else if (action === 'postpone') {
       const newDate = new Date();
       newDate.setDate(newDate.getDate() + 1);
       newDate.setHours(0, 0, 0, 0);
       
-      updateRevisionItem({ 
-        ...revision, 
-        nextRevisionDate: newDate.getTime(),
-        category: 'priority'
+      dispatch({ 
+        type: 'UPDATE_REVISION_ITEM', 
+        payload: { 
+          ...revision, 
+          nextRevisionDate: newDate.getTime(),
+          category: 'priority'
+        }
       });
     }
   };
 
+  const addSampleTask = () => {
+    const newTask: Task = {
+      id: Date.now().toString(),
+      title: `Nova Tarefa ${tasks.length + 1}`,
+      duration: 60,
+      completed: false,
+      elapsedTime: 0,
+      isRunning: false,
+      createdAt: Date.now(),
+    };
+    dispatch({ type: 'ADD_TASK', payload: newTask });
+  };
+
+  // Usar tradução para a data atual
   const formatCurrentDate = () => {
     const options: Intl.DateTimeFormatOptions = { 
       weekday: 'long', 
@@ -121,12 +183,14 @@ export default function Dashboard() {
       day: 'numeric' 
     };
     
+    // Usar locale baseado no idioma selecionado com fallback seguro
     const locale = t('common.locale');
     const safeLocale = ['pt-BR', 'en-US', 'es-ES'].includes(locale) ? locale : 'en-US';
     
     try {
       return today.toLocaleDateString(safeLocale, options);
     } catch (error) {
+      // Fallback para inglês se houver erro
       return today.toLocaleDateString('en-US', options);
     }
   };
@@ -144,7 +208,7 @@ export default function Dashboard() {
         </header>
 
         <div className="space-y-6">
-          {/* Today's Tasks */}
+          {/* Today's Tasks - First */}
           <div className="bg-card/80 backdrop-blur-sm p-6 rounded-xl shadow-2xl border border-border/50 hover:shadow-3xl transition-all duration-300">
             <h3 className="text-lg font-semibold mb-4">{t('dashboard.todayTasks')}</h3>
             {todayRevisions.length === 0 ? (
@@ -193,7 +257,7 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Daily Progress */}
+          {/* Daily Progress - Second */}
           <div className="bg-card/80 backdrop-blur-sm p-6 rounded-xl shadow-2xl border border-border/50 hover:shadow-3xl transition-all duration-300">
             <h3 className="text-lg font-semibold mb-4">{t('dashboard.dailyProgress')}</h3>
             <div className="relative mb-4">
@@ -210,7 +274,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Weekly Progress */}
+          {/* Weekly Progress - Third */}
           <div className="bg-card/80 backdrop-blur-sm p-6 rounded-xl shadow-2xl border border-border/50 hover:shadow-3xl transition-all duration-300">
             <h3 className="text-lg font-semibold mb-4">{t('dashboard.weeklyProgress')}</h3>
             <div className="space-y-4">

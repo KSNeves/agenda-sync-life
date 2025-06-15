@@ -1,15 +1,15 @@
-
 import React, { useState, useEffect } from 'react';
-import { useSupabaseRevisions } from '../context/SupabaseRevisionsContext';
+import { useApp } from '../context/AppContext';
 import { RevisionItem } from '../types';
 import { Plus, Calendar, Clock, Hash } from 'lucide-react';
-import { categorizeRevision, calculateNextRevisionDate, adjustDateForNonStudyDays } from '../utils/spacedRepetition';
+import { categorizeRevision } from '../utils/spacedRepetition';
 import CreateRevisionModal from './CreateRevisionModal';
 import ViewRevisionModal from './ViewRevisionModal';
 import { useTranslation } from '../hooks/useTranslation';
 
 export default function Revision() {
-  const { revisionItems, updateRevisionItem, deleteRevisionItem } = useSupabaseRevisions();
+  const { state, dispatch } = useApp();
+  const { revisionItems } = state;
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'pending' | 'completed' | 'priority'>('pending');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -21,47 +21,28 @@ export default function Revision() {
     revisionItems.forEach(item => {
       const currentCategory = categorizeRevision(item);
       if (item.category !== currentCategory) {
-        updateRevisionItem({ ...item, category: currentCategory });
+        dispatch({ 
+          type: 'UPDATE_REVISION_ITEM', 
+          payload: { ...item, category: currentCategory }
+        });
       }
     });
-  }, [revisionItems, updateRevisionItem]);
+  }, [revisionItems, dispatch]);
 
   const filteredItems = revisionItems.filter(item => item.category === activeTab);
 
   const toggleItemCompletion = (item: RevisionItem) => {
-    if (item.category === 'completed') {
-      // Se já está completa, volta para pending
-      const updatedItem: RevisionItem = {
-        ...item,
-        category: 'pending',
-        completedAt: undefined
-      };
-      updateRevisionItem(updatedItem);
-    } else {
-      // Completa a revisão e calcula a próxima data
-      const now = Date.now();
-      const newRevisionCount = item.revisionCount + 1;
-      
-      // Calcula a próxima data de revisão usando o algoritmo de repetição espaçada
-      const { nextDate, intervalDays } = calculateNextRevisionDate(newRevisionCount, now);
-      
-      // Ajusta para dias não-úteis se especificado
-      const adjustedNextDate = adjustDateForNonStudyDays(nextDate, item.nonStudyDays);
-      
-      const updatedItem: RevisionItem = {
-        ...item,
-        category: 'priority',
-        completedAt: now,
-        revisionCount: newRevisionCount,
-        nextRevisionDate: adjustedNextDate,
-        intervalDays: intervalDays
-      };
+    const updatedItem: RevisionItem = {
+      ...item,
+      category: item.category === 'completed' ? 'pending' : 'completed',
+    };
 
-      updateRevisionItem(updatedItem);
-    }
+    dispatch({ type: 'UPDATE_REVISION_ITEM', payload: updatedItem });
   };
 
   const postponeItem = (item: RevisionItem) => {
+    // Se a revisão é para hoje ou passado, adia para amanhã
+    // Se a revisão é futura, adia por mais um dia a partir da data programada
     const currentRevisionDate = new Date(item.nextRevisionDate);
     const newDate = new Date(currentRevisionDate);
     newDate.setDate(currentRevisionDate.getDate() + 1);
@@ -70,10 +51,10 @@ export default function Revision() {
     const updatedItem: RevisionItem = {
       ...item,
       nextRevisionDate: newDate.getTime(),
-      category: 'priority',
+      category: 'priority', // Vai para próximas
     };
 
-    updateRevisionItem(updatedItem);
+    dispatch({ type: 'UPDATE_REVISION_ITEM', payload: updatedItem });
   };
 
   const viewRevisionContent = (item: RevisionItem) => {
@@ -82,7 +63,7 @@ export default function Revision() {
   };
 
   const deleteItem = (id: string) => {
-    deleteRevisionItem(id);
+    dispatch({ type: 'DELETE_REVISION_ITEM', payload: id });
   };
 
   const getTabLabel = (tab: string) => {

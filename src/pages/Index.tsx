@@ -4,7 +4,6 @@ import { AppProvider } from '../context/AppContext';
 import { PomodoroProvider } from '../context/PomodoroContext';
 import { FlashcardsProvider } from '../context/FlashcardsContext';
 import { LanguageProvider } from '../context/LanguageContext';
-import { SupabaseSettingsProvider } from '../context/SupabaseSettingsContext';
 import Navigation from '../components/Navigation';
 import Dashboard from '../components/Dashboard';
 import Calendar from '../components/Calendar';
@@ -41,23 +40,21 @@ const Index = () => {
 
   return (
     <LanguageProvider>
-      <SupabaseSettingsProvider>
-        <AppProvider>
-          <PomodoroProvider>
-            <FlashcardsProvider>
-              <div className="min-h-screen bg-background">
-                {currentView !== 'settings' && currentView !== 'profile' && (
-                  <Navigation currentView={currentView} onViewChange={setCurrentView} />
-                )}
-                <main>
-                  {renderCurrentView()}
-                </main>
-                <EventModal />
-              </div>
-            </FlashcardsProvider>
-          </PomodoroProvider>
-        </AppProvider>
-      </SupabaseSettingsProvider>
+      <AppProvider>
+        <PomodoroProvider>
+          <FlashcardsProvider>
+            <div className="min-h-screen bg-background">
+              {currentView !== 'settings' && currentView !== 'profile' && (
+                <Navigation currentView={currentView} onViewChange={setCurrentView} />
+              )}
+              <main>
+                {renderCurrentView()}
+              </main>
+              <EventModal />
+            </div>
+          </FlashcardsProvider>
+        </PomodoroProvider>
+      </AppProvider>
     </LanguageProvider>
   );
 };
