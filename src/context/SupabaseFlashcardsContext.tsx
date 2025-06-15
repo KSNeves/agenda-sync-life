@@ -4,6 +4,7 @@ import { Flashcard, Deck } from '../types/flashcard.types';
 import { calculateNextReview } from '../utils/ankiAlgorithm';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
+import { generateUUID } from '../utils/uuid';
 import { toast } from '@/components/ui/use-toast';
 
 interface FlashcardsContextType {
@@ -108,7 +109,8 @@ export function SupabaseFlashcardsProvider({ children }: { children: ReactNode }
   const createDeck = (deckData: { name: string; description?: string }) => {
     if (!user) return '';
 
-    const deckId = Date.now().toString();
+    // Generate a proper UUID
+    const deckId = generateUUID();
     
     const newDeck: Deck = {
       id: deckId,
@@ -174,7 +176,8 @@ export function SupabaseFlashcardsProvider({ children }: { children: ReactNode }
   const addCard = (deckId: string, cardData: { front: string; back: string }) => {
     if (!user) return;
 
-    const cardId = Date.now().toString();
+    // Generate a proper UUID
+    const cardId = generateUUID();
     const newCard: Flashcard = {
       id: cardId,
       front: cardData.front,

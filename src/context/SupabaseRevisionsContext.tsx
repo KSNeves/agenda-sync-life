@@ -1,8 +1,8 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { RevisionItem } from '../types';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
+import { generateUUID } from '../utils/uuid';
 
 interface RevisionsContextType {
   revisionItems: RevisionItem[];
@@ -63,7 +63,8 @@ export function SupabaseRevisionsProvider({ children }: { children: ReactNode })
   const addRevisionItem = (item: Omit<RevisionItem, 'id'>) => {
     if (!user) return;
 
-    const id = Date.now().toString();
+    // Generate a proper UUID
+    const id = generateUUID();
     const newItem: RevisionItem = { ...item, id };
     
     setRevisionItems(prev => [...prev, newItem]);

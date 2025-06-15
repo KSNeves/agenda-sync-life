@@ -1,8 +1,8 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { CalendarEvent } from '../types';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
+import { generateUUID } from '../utils/uuid';
 
 interface EventsContextType {
   events: CalendarEvent[];
@@ -40,6 +40,7 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
         endTime: new Date(event.end_time).getTime(),
         type: 'other' as const,
         color: event.color || '#3B82F6',
+        isAllDay: event.is_all_day || false,
       }));
 
       setEvents(transformedEvents);
@@ -60,23 +61,27 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
   const addEvent = (event: CalendarEvent) => {
     if (!user) return;
 
-    setEvents(prev => [...prev, event]);
+    // Generate a proper UUID
+    const eventWithUUID = { ...event, id: generateUUID() };
+    
+    setEvents(prev => [...prev, eventWithUUID]);
 
     supabase
       .from('user_events')
       .insert({
-        id: event.id,
+        id: eventWithUUID.id,
         user_id: user.id,
-        title: event.title,
-        description: event.description,
-        start_time: new Date(event.startTime).toISOString(),
-        end_time: new Date(event.endTime).toISOString(),
-        color: event.color,
+        title: eventWithUUID.title,
+        description: eventWithUUID.description,
+        start_time: new Date(eventWithUUID.startTime).toISOString(),
+        end_time: new Date(eventWithUUID.endTime).toISOString(),
+        color: eventWithUUID.color,
+        is_all_day: eventWithUUID.isAllDay || false,
       })
       .then(({ error }) => {
         if (error) {
           console.error('Error creating event:', error);
-          setEvents(prev => prev.filter(e => e.id !== event.id));
+          setEvents(prev => prev.filter(e => e.id !== eventWithUUID.id));
         }
       });
   };
@@ -93,6 +98,7 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
           start_time: new Date(event.startTime).toISOString(),
           end_time: new Date(event.endTime).toISOString(),
           color: event.color,
+          is_all_day: event.isAllDay || false,
         })
         .eq('id', event.id)
         .eq('user_id', user.id);
