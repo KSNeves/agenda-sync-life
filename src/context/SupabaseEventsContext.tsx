@@ -36,10 +36,14 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
 
       console.log('Eventos carregados do banco:', data?.length || 0);
-      console.log('Dados brutos do banco:', data);
 
       const transformedEvents: CalendarEvent[] = data.map(event => {
-        console.log('Transformando evento:', event.id, 'cor do banco:', event.color);
+        console.log(`Transformando evento ${event.id}:`);
+        console.log('- Título:', event.title);
+        console.log('- Cor do banco:', event.color);
+        
+        // Garantir que sempre temos uma cor válida
+        const eventColor = event.color || '#3B82F6';
         
         return {
           id: event.id,
@@ -48,13 +52,17 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
           startTime: new Date(event.start_time).getTime(),
           endTime: new Date(event.end_time).getTime(),
           type: 'other' as const,
-          color: event.color || '#3B82F6',
-          customColor: event.color || '#3B82F6', // Garantir que customColor seja definido
+          color: eventColor,
+          customColor: eventColor,
           isAllDay: event.is_all_day || false,
         };
       });
 
-      console.log('Eventos transformados:', transformedEvents);
+      console.log('Eventos transformados para o state:', transformedEvents.length);
+      transformedEvents.forEach(event => {
+        console.log(`- ${event.title}: cor=${event.color}`);
+      });
+      
       setEvents(transformedEvents);
     } catch (error) {
       console.error('Error loading events:', error);
@@ -75,14 +83,14 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
 
     const eventWithUUID = { ...event, id: generateUUID() };
     
-    // Garantir que temos uma cor válida para salvar
+    // Garantir que temos uma cor válida - priorizar color, depois customColor
     const colorToSave = event.color || event.customColor || '#3B82F6';
     
-    console.log('Adicionando evento:', eventWithUUID);
-    console.log('Cor a ser salva:', colorToSave);
-    console.log('Dados completos do evento:', event);
+    console.log('=== ADICIONANDO EVENTO ===');
+    console.log('Evento original:', event);
+    console.log('Cor a ser salva no banco:', colorToSave);
     
-    // Atualizar estado local primeiro
+    // Atualizar estado local primeiro com cor correta
     const eventWithCorrectColor = {
       ...eventWithUUID,
       color: colorToSave,
@@ -91,6 +99,7 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
     
     setEvents(prev => [...prev, eventWithCorrectColor]);
 
+    // Salvar no banco
     supabase
       .from('user_events')
       .insert({
@@ -100,23 +109,27 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
         description: eventWithUUID.description,
         start_time: new Date(eventWithUUID.startTime).toISOString(),
         end_time: new Date(eventWithUUID.endTime).toISOString(),
-        color: colorToSave,
+        color: colorToSave, // Salvar a cor correta no banco
         is_all_day: eventWithUUID.isAllDay || false,
       })
       .then(({ error }) => {
         if (error) {
           console.error('Error creating event:', error);
+          // Reverter estado local em caso de erro
           setEvents(prev => prev.filter(e => e.id !== eventWithUUID.id));
         } else {
-          console.log('Evento salvo com sucesso no banco. Cor salva:', colorToSave);
+          console.log('✓ Evento salvo com sucesso no banco com cor:', colorToSave);
         }
       });
   };
 
   const updateEvent = (event: CalendarEvent) => {
+    if (!user) return;
+
     const colorToSave = event.color || event.customColor || '#3B82F6';
     
-    console.log('Atualizando evento:', event.id);
+    console.log('=== ATUALIZANDO EVENTO ===');
+    console.log('ID do evento:', event.id);
     console.log('Nova cor:', colorToSave);
     
     // Atualizar estado local com cor correta
@@ -128,27 +141,26 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
     
     setEvents(prev => prev.map(e => e.id === event.id ? updatedEvent : e));
 
-    if (user) {
-      supabase
-        .from('user_events')
-        .update({
-          title: event.title,
-          description: event.description,
-          start_time: new Date(event.startTime).toISOString(),
-          end_time: new Date(event.endTime).toISOString(),
-          color: colorToSave,
-          is_all_day: event.isAllDay || false,
-        })
-        .eq('id', event.id)
-        .eq('user_id', user.id)
-        .then(({ error }) => {
-          if (error) {
-            console.error('Error updating event:', error);
-          } else {
-            console.log('Evento atualizado com sucesso. Nova cor:', colorToSave);
-          }
-        });
-    }
+    // Atualizar no banco
+    supabase
+      .from('user_events')
+      .update({
+        title: event.title,
+        description: event.description,
+        start_time: new Date(event.startTime).toISOString(),
+        end_time: new Date(event.endTime).toISOString(),
+        color: colorToSave, // Atualizar cor no banco
+        is_all_day: event.isAllDay || false,
+      })
+      .eq('id', event.id)
+      .eq('user_id', user.id)
+      .then(({ error }) => {
+        if (error) {
+          console.error('Error updating event:', error);
+        } else {
+          console.log('✓ Evento atualizado com sucesso. Nova cor:', colorToSave);
+        }
+      });
   };
 
   const deleteEvent = (id: string) => {
@@ -166,7 +178,7 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
           if (error) {
             console.error('Error deleting event:', error);
           } else {
-            console.log('Evento deletado com sucesso:', id);
+            console.log('✓ Evento deletado com sucesso:', id);
           }
         });
     }
@@ -210,14 +222,13 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
       ) || [];
 
       console.log('Eventos da série encontrados:', seriesEvents.length);
-      console.log('Títulos dos eventos da série:', seriesEvents.map(e => `${e.id}: "${e.title}"`));
 
       if (seriesEvents.length === 0) {
         console.log('Nenhum evento da série encontrado');
         return;
       }
 
-      // Deletar todos os eventos da série no banco usando Promise.all para paralelizar
+      // Deletar todos os eventos da série no banco
       const deletePromises = seriesEvents.map(async (event) => {
         console.log(`Deletando do banco: ${event.id} (${event.title})`);
         
@@ -241,7 +252,7 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
       
       console.log(`${successfulDeletes}/${seriesEvents.length} eventos deletados com sucesso`);
 
-      // Atualizar estado local removendo todos os eventos com o mesmo título (case insensitive)
+      // Atualizar estado local removendo todos os eventos com o mesmo título
       setEvents(prevEvents => {
         const filteredEvents = prevEvents.filter(event => 
           event.title.trim().toLowerCase() !== targetEvent.title.trim().toLowerCase()
