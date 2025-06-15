@@ -5,6 +5,7 @@ import CalendarMonth from './CalendarMonth';
 import CalendarDay from './CalendarDay';
 import { useTranslation } from '../hooks/useTranslation';
 import { useLanguage } from '../context/LanguageContext';
+import { ScrollArea } from './ui/scroll-area';
 
 export default function Schedule() {
   const { state, dispatch } = useApp();
@@ -182,57 +183,61 @@ export default function Schedule() {
 
   // Render header comum para todos os modos
   const renderHeader = () => (
-    <div className="bg-card/50 backdrop-blur-sm border-b border-border/50 p-6">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-4">
+    <div className="bg-card/50 backdrop-blur-sm border-b border-border/50 p-3 md:p-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 w-full md:w-auto">
           <button
             onClick={createEvent}
-            className="bg-primary text-primary-foreground px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary/90 transition-colors"
+            className="bg-primary text-primary-foreground px-3 py-2 md:px-4 rounded-lg flex items-center gap-2 hover:bg-primary/90 transition-colors text-sm"
           >
-            <Plus size={16} />
+            <Plus size={14} />
             {t('schedule.createEvent')}
           </button>
-          <button
-            onClick={goToToday}
-            className="px-4 py-2 text-foreground hover:bg-secondary/50 rounded-lg transition-colors"
-          >
-            {t('schedule.today')}
-          </button>
-          <div className="flex items-center gap-2">
+          
+          <div className="flex items-center gap-2 w-full md:w-auto">
             <button
-              onClick={() => navigateWeek('prev')}
-              className="p-2 hover:bg-secondary/50 rounded-lg transition-colors"
+              onClick={goToToday}
+              className="px-3 py-2 md:px-4 text-foreground hover:bg-secondary/50 rounded-lg transition-colors text-sm"
             >
-              <ChevronLeft size={20} />
+              {t('schedule.today')}
             </button>
-            <button
-              onClick={() => navigateWeek('next')}
-              className="p-2 hover:bg-secondary/50 rounded-lg transition-colors"
-            >
-              <ChevronRight size={20} />
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => navigateWeek('prev')}
+                className="p-2 hover:bg-secondary/50 rounded-lg transition-colors"
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <button
+                onClick={() => navigateWeek('next')}
+                className="p-2 hover:bg-secondary/50 rounded-lg transition-colors"
+              >
+                <ChevronRight size={18} />
+              </button>
+            </div>
           </div>
-          <h2 className="text-xl font-semibold text-foreground">
+          
+          <h2 className="text-lg md:text-xl font-semibold text-foreground truncate">
             {getWeekTitle()}
           </h2>
         </div>
 
-        <div className="flex border border-border/50 rounded-lg overflow-hidden bg-card/30">
+        <div className="flex border border-border/50 rounded-lg overflow-hidden bg-card/30 w-full md:w-auto">
           <button 
             onClick={() => setViewMode('day')}
-            className={`px-4 py-2 ${viewMode === 'day' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/50'} transition-colors`}
+            className={`px-3 py-2 md:px-4 text-sm flex-1 md:flex-none ${viewMode === 'day' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/50'} transition-colors`}
           >
             {t('schedule.day')}
           </button>
           <button 
             onClick={() => setViewMode('week')}
-            className={`px-4 py-2 ${viewMode === 'week' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/50'} transition-colors`}
+            className={`px-3 py-2 md:px-4 text-sm flex-1 md:flex-none ${viewMode === 'week' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/50'} transition-colors`}
           >
             {t('schedule.week')}
           </button>
           <button 
             onClick={() => setViewMode('month')}
-            className={`px-4 py-2 ${viewMode === 'month' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/50'} transition-colors`}
+            className={`px-3 py-2 md:px-4 text-sm flex-1 md:flex-none ${viewMode === 'month' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/50'} transition-colors`}
           >
             {t('schedule.month')}
           </button>
@@ -261,7 +266,7 @@ export default function Schedule() {
           {renderHeader()}
 
           {/* Visualização do Dia */}
-          <div className="flex-1 overflow-auto">
+          <ScrollArea className="flex-1">
             <div className="relative">
               {/* Linha da hora atual */}
               {currentTimePosition !== null && (
@@ -282,7 +287,7 @@ export default function Schedule() {
               )}
 
               {/* Container para eventos */}
-              <div className="absolute inset-0 z-10 ml-20">
+              <div className="absolute inset-0 z-10 ml-12 md:ml-20">
                 {getEventsForDay(currentWeek).map(event => {
                   const position = getEventPosition(event);
                   const eventStyle = getEventStyle(event);
@@ -292,7 +297,7 @@ export default function Schedule() {
                   return (
                     <div
                       key={event.id}
-                      className="absolute left-2 right-2 rounded-lg p-2 text-xs font-medium cursor-pointer hover:shadow-xl transition-all duration-200 border-2 z-20"
+                      className="absolute left-1 right-1 md:left-2 md:right-2 rounded-lg p-1 md:p-2 text-xs font-medium cursor-pointer hover:shadow-xl transition-all duration-200 border-2 z-20"
                       style={{
                         ...position,
                         ...eventStyle,
@@ -302,7 +307,7 @@ export default function Schedule() {
                         dispatch({ type: 'OPEN_EVENT_MODAL', payload: event });
                       }}
                     >
-                      <div className="truncate font-semibold text-white">{event.title}</div>
+                      <div className="truncate font-semibold text-white text-xs">{event.title}</div>
                       <div className="truncate opacity-90 text-xs text-white">
                         {startTime.toLocaleTimeString('pt-BR', { 
                           hour: '2-digit', 
@@ -321,7 +326,7 @@ export default function Schedule() {
               {hours.map((hour) => (
                 <div key={hour} className="flex border-b border-border/20 h-16">
                   {/* Coluna de Horário */}
-                  <div className="w-20 flex items-start justify-end pr-2 pt-0 text-sm text-muted-foreground border-r border-border/50">
+                  <div className="w-12 md:w-20 flex items-start justify-end pr-1 md:pr-2 pt-0 text-xs md:text-sm text-muted-foreground border-r border-border/50">
                     <span className="-mt-2">
                       {hour.toString().padStart(2, '0')}:00
                     </span>
@@ -340,7 +345,7 @@ export default function Schedule() {
                 </div>
               ))}
             </div>
-          </div>
+          </ScrollArea>
         </div>
       </div>
     );
@@ -353,20 +358,20 @@ export default function Schedule() {
         {renderHeader()}
 
         {/* Grade do Calendário */}
-        <div className="flex-1 overflow-auto">
-          <div className="min-w-[800px]">
+        <ScrollArea className="flex-1">
+          <div className="overflow-x-auto">
             {/* Header dos Dias */}
-            <div className="grid grid-cols-8 border-b border-border/50 bg-card/30">
-              <div className="w-20"></div>
+            <div className="grid grid-cols-8 border-b border-border/50 bg-card/30 min-w-[600px]">
+              <div className="w-12 md:w-20"></div>
               {weekDays.map((day, index) => {
                 const isToday = day.toDateString() === new Date().toDateString();
                 
                 return (
-                  <div key={index} className={`p-4 text-center border-r border-border/50 last:border-r-0 ${isToday ? 'bg-blue-50' : ''}`}>
+                  <div key={index} className={`p-2 md:p-4 text-center border-r border-border/50 last:border-r-0 ${isToday ? 'bg-blue-50' : ''}`}>
                     <div className={`text-xs font-medium mb-1 ${isToday ? 'text-blue-600' : 'text-muted-foreground'}`}>
                       {dayNamesShort[index]}
                     </div>
-                    <div className={`text-2xl font-semibold ${isToday ? 'text-blue-600 bg-blue-100 rounded-full w-10 h-10 flex items-center justify-center mx-auto' : 'text-foreground'}`}>
+                    <div className={`text-lg md:text-2xl font-semibold ${isToday ? 'text-blue-600 bg-blue-100 rounded-full w-6 h-6 md:w-10 md:h-10 flex items-center justify-center mx-auto' : 'text-foreground'}`}>
                       {day.getDate()}
                     </div>
                   </div>
@@ -375,7 +380,7 @@ export default function Schedule() {
             </div>
 
             {/* Grade de Horários */}
-            <div className="relative">
+            <div className="relative min-w-[600px]">
               {/* Linha da hora atual */}
               {currentTimePosition !== null && (
                 <div
@@ -396,7 +401,7 @@ export default function Schedule() {
 
               {/* Container para eventos */}
               <div className="absolute inset-0 z-10 grid grid-cols-8">
-                <div className="w-20"></div>
+                <div className="w-12 md:w-20"></div>
                 {weekDays.map((day, dayIndex) => {
                   const dayEvents = getEventsForDay(day);
                   const isToday = day.toDateString() === new Date().toDateString();
@@ -412,7 +417,7 @@ export default function Schedule() {
                         return (
                           <div
                             key={event.id}
-                            className="absolute left-1 right-1 rounded-lg p-2 text-xs font-medium cursor-pointer hover:shadow-xl transition-all duration-200 border-2 z-20"
+                            className="absolute left-0.5 right-0.5 md:left-1 md:right-1 rounded-lg p-1 md:p-2 text-xs font-medium cursor-pointer hover:shadow-xl transition-all duration-200 border-2 z-20"
                             style={{
                               ...position,
                               ...eventStyle,
@@ -422,8 +427,8 @@ export default function Schedule() {
                               dispatch({ type: 'OPEN_EVENT_MODAL', payload: event });
                             }}
                           >
-                            <div className="truncate font-semibold text-white">{event.title}</div>
-                            <div className="truncate opacity-90 text-xs text-white">
+                            <div className="truncate font-semibold text-white text-xs">{event.title}</div>
+                            <div className="truncate opacity-90 text-xs text-white hidden md:block">
                               {startTime.toLocaleTimeString('pt-BR', { 
                                 hour: '2-digit', 
                                 minute: '2-digit' 
@@ -444,7 +449,7 @@ export default function Schedule() {
               {hours.map((hour, hourIndex) => (
                 <div key={hour} className="grid grid-cols-8 border-b border-border/20 h-16">
                   {/* Coluna de Horário */}
-                  <div className="w-20 flex items-start justify-end pr-2 pt-0 text-sm text-muted-foreground border-r border-border/50">
+                  <div className="w-12 md:w-20 flex items-start justify-end pr-1 md:pr-2 pt-0 text-xs md:text-sm text-muted-foreground border-r border-border/50">
                     <span className="-mt-2">
                       {hour.toString().padStart(2, '0')}:00
                     </span>
@@ -470,7 +475,7 @@ export default function Schedule() {
               ))}
             </div>
           </div>
-        </div>
+        </ScrollArea>
       </div>
     </div>
   );
