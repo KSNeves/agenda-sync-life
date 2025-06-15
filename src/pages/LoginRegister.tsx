@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Navigate } from 'react-router-dom';
 import { Globe, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,15 +23,11 @@ function LoginRegisterContent() {
   const [lastName, setLastName] = useState('');
   const { language, setLanguage, t } = useLoginLanguage();
   const { signIn, signUp, loading, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
 
   // Redirect if already authenticated
-  useEffect(() => {
-    if (isAuthenticated) {
-      console.log('User is authenticated, redirecting to dashboard...');
-      navigate('/', { replace: true });
-    }
-  }, [isAuthenticated, navigate]);
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
 
   const languages = [
     { code: 'pt' as const, name: 'Português', flag: '🇧🇷' },
@@ -47,28 +43,14 @@ function LoginRegisterContent() {
     }
 
     if (isLogin) {
-      console.log('Attempting to sign in...');
-      const { error } = await signIn(email, password);
-      if (!error) {
-        console.log('Sign in successful, navigating to dashboard...');
-        navigate('/', { replace: true });
-      }
+      await signIn(email, password);
     } else {
       if (!firstName || !lastName) {
         return;
       }
-      const { error } = await signUp(email, password, firstName, lastName);
-      if (!error) {
-        // For signup, user might need to verify email first
-        // So we don't redirect immediately
-      }
+      await signUp(email, password, firstName, lastName);
     }
   };
-
-  // Don't render the form if user is authenticated
-  if (isAuthenticated) {
-    return null;
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-gray-900 flex items-center justify-center p-4">
@@ -191,13 +173,6 @@ function LoginRegisterContent() {
               >
                 {t('auth.clickHere')}
               </button>
-            </p>
-          </div>
-
-          {/* Email confirmation notice */}
-          <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-            <p className="text-xs text-blue-700 dark:text-blue-300 text-center">
-              💡 Dica: Se você já tem uma conta mas não consegue entrar, verifique seu email para confirmar a conta primeiro.
             </p>
           </div>
         </CardContent>

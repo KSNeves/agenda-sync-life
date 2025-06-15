@@ -25,7 +25,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
@@ -40,7 +39,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session check:', session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -65,7 +63,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (error) {
-      console.error('Signup error:', error);
       toast.error(error.message);
       setLoading(false);
       return { error };
@@ -85,15 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (error) {
-      console.error('Signin error:', error);
-      
-      // Handle email not confirmed error specifically
-      if (error.message === 'Email not confirmed') {
-        toast.error('Por favor, confirme seu email antes de fazer login. Verifique sua caixa de entrada.');
-      } else {
-        toast.error(error.message);
-      }
-      
+      toast.error(error.message);
       setLoading(false);
       return { error };
     }
@@ -107,7 +96,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase.auth.signOut();
     
     if (error) {
-      console.error('Signout error:', error);
       toast.error(error.message);
     }
     
@@ -122,7 +110,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signUp,
       signIn,
       signOut,
-      isAuthenticated: !!user && !!session
+      isAuthenticated: !!user
     }}>
       {children}
     </AuthContext.Provider>
