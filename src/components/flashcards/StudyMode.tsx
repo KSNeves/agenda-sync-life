@@ -70,6 +70,20 @@ export default function StudyMode({ deckId, onExit }: StudyModeProps) {
     );
   }
 
+  // Add safety check for currentCard
+  if (!currentCard) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white p-6">
+        <div className="max-w-4xl mx-auto text-center">
+          <p className="text-yellow-400 mb-4">
+            {t('flashcards.loadingCard')}
+          </p>
+          <Button onClick={onExit}>{t('common.back')}</Button>
+        </div>
+      </div>
+    );
+  }
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'learning': return 'text-red-400';
