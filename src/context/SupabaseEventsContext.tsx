@@ -127,83 +127,77 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    // Identifica o baseId do evento (remove sufixos de recorrência)
-    const baseId = eventId.includes('_') ? eventId.split('_')[0] : eventId;
+    // Identifica o baseId do evento (remove sufixos de recorrência se existirem)
+    let baseId = eventId;
+    if (eventId.includes('_')) {
+      // Se o ID contém underscore, pega apenas a parte antes do primeiro underscore
+      baseId = eventId.split('_')[0];
+    }
     console.log('BaseId calculado:', baseId);
 
     try {
-      // Primeiro, listar TODOS os eventos do usuário para debug
-      const { data: allUserEvents, error: allEventsError } = await supabase
+      // Buscar TODOS os eventos do usuário para garantir que encontramos os relacionados
+      const { data: allUserEvents, error: fetchError } = await supabase
         .from('user_events')
         .select('id, title')
         .eq('user_id', user.id);
 
-      if (allEventsError) {
-        console.error('Erro ao buscar todos os eventos:', allEventsError);
+      if (fetchError) {
+        console.error('Erro ao buscar eventos do usuário:', fetchError);
         return;
       }
 
-      console.log('Todos os eventos do usuário no banco:', allUserEvents?.map(e => ({ id: e.id, title: e.title })) || []);
+      console.log('Todos os eventos do usuário:', allUserEvents?.map(e => ({ id: e.id, title: e.title })) || []);
 
-      // Buscar eventos que começam com o baseId ou são exatamente o baseId
-      const eventsToDeleteQuery = supabase
-        .from('user_events')
-        .select('id, title')
-        .eq('user_id', user.id);
+      // Filtrar eventos que pertencem à série:
+      // 1. O evento base (ID exato)
+      // 2. Eventos recorrentes (que começam com baseId + "_")
+      const eventsToDelete = allUserEvents?.filter(event => {
+        const isBaseEvent = event.id === baseId;
+        const isRecurringEvent = event.id.startsWith(`${baseId}_`);
+        return isBaseEvent || isRecurringEvent;
+      }) || [];
 
-      // Usar filtro manual em JavaScript para garantir compatibilidade
-      const { data: allEvents, error: fetchAllError } = await eventsToDeleteQuery;
-
-      if (fetchAllError) {
-        console.error('Erro ao buscar eventos para filtrar:', fetchAllError);
-        return;
-      }
-
-      // Filtrar manualmente os eventos que pertencem à série
-      const eventsToDelete = allEvents?.filter(event => 
-        event.id === baseId || event.id.startsWith(`${baseId}_`)
-      ) || [];
-
-      console.log('Eventos encontrados para deletar:', eventsToDelete.map(e => ({ id: e.id, title: e.title })));
+      console.log('Eventos da série encontrados para deletar:', eventsToDelete.map(e => ({ id: e.id, title: e.title })));
 
       if (eventsToDelete.length === 0) {
-        console.log('Nenhum evento encontrado para deletar');
+        console.log('Nenhum evento da série encontrado para deletar');
         return;
       }
 
-      // Deletar cada evento individualmente para garantir que todos sejam removidos
-      const deletePromises = eventsToDelete.map(event => 
-        supabase
+      // Deletar os eventos no banco de dados usando Promise.all para garantir que todos sejam deletados
+      const deletePromises = eventsToDelete.map(event => {
+        console.log('Deletando evento no banco:', event.id);
+        return supabase
           .from('user_events')
           .delete()
           .eq('id', event.id)
-          .eq('user_id', user.id)
-      );
+          .eq('user_id', user.id);
+      });
 
-      const results = await Promise.all(deletePromises);
+      const deleteResults = await Promise.all(deletePromises);
       
-      // Verificar se houve erros
-      const errors = results.filter(result => result.error);
-      if (errors.length > 0) {
-        console.error('Erros ao deletar eventos:', errors);
+      // Verificar se houve erros nas exclusões
+      const deleteErrors = deleteResults.filter(result => result.error);
+      if (deleteErrors.length > 0) {
+        console.error('Erros ao deletar eventos no banco:', deleteErrors.map(r => r.error));
         return;
       }
 
-      console.log('Todos os eventos deletados com sucesso do banco de dados');
+      console.log('Todos os eventos da série deletados do banco com sucesso');
 
-      // Remover da lista local todos os eventos que correspondem ao padrão
+      // Remover os eventos do estado local
       setEvents(prev => {
-        const eventsToRemove = prev.filter(event => 
-          event.id === baseId || event.id.startsWith(`${baseId}_`)
-        );
+        const eventsBeforeFilter = prev.length;
+        const newEvents = prev.filter(event => {
+          const shouldKeep = event.id !== baseId && !event.id.startsWith(`${baseId}_`);
+          if (!shouldKeep) {
+            console.log('Removendo do estado local:', event.id, event.title);
+          }
+          return shouldKeep;
+        });
         
-        console.log('Removendo do estado local:', eventsToRemove.map(e => ({ id: e.id, title: e.title })));
-        
-        const newEvents = prev.filter(event => 
-          event.id !== baseId && !event.id.startsWith(`${baseId}_`)
-        );
-        
-        console.log('Estado local após remoção - total de eventos:', newEvents.length);
+        console.log(`Estado local: ${eventsBeforeFilter} eventos antes, ${newEvents.length} eventos depois`);
         return newEvents;
       });
 
