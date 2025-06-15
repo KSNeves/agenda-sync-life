@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ArrowLeft, Bell, Palette, Timer, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,7 +9,8 @@ import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../hooks/useTranslation';
 import { usePomodoro } from '../context/PomodoroContext';
-import { useApp } from '../context/AppContext';
+import { useSupabaseEvents } from '../context/SupabaseEventsContext';
+import { useSupabaseRevisions } from '../context/SupabaseRevisionsContext';
 import { useFlashcards } from '../hooks/useFlashcards';
 import { toast } from '@/components/ui/use-toast';
 
@@ -23,17 +23,12 @@ export default function Settings({ onBack }: SettingsProps) {
   const { language, setLanguage } = useLanguage();
   const { t } = useTranslation();
   const { settings, updateSettings } = usePomodoro();
-  const { dispatch } = useApp();
+  const { clearEvents } = useSupabaseEvents();
+  const { clearRevisions } = useSupabaseRevisions();
   const { deleteAllDecks } = useFlashcards();
   
   const [notifications, setNotifications] = useState(true);
   const [studyReminders, setStudyReminders] = useState(true);
-
-  const languageOptions = [
-    { value: 'en', label: 'English' },
-    { value: 'es', label: 'Español' },
-    { value: 'pt', label: 'Português' },
-  ];
 
   // Generate time options in 5-minute intervals
   const generateTimeOptions = (min: number, max: number) => {
@@ -49,7 +44,7 @@ export default function Settings({ onBack }: SettingsProps) {
   const longBreakOptions = generateTimeOptions(5, 60); // 5 to 60 minutes
 
   const handleDeleteSchedule = () => {
-    dispatch({ type: 'CLEAR_EVENTS' });
+    clearEvents();
     toast({
       title: t('settings.scheduleDeleted'),
       description: t('settings.deleteSchedule.desc'),
@@ -58,13 +53,13 @@ export default function Settings({ onBack }: SettingsProps) {
 
   const handleDeleteAllData = () => {
     // Clear schedule events
-    dispatch({ type: 'CLEAR_EVENTS' });
+    clearEvents();
     
     // Clear flashcards
     deleteAllDecks();
     
     // Clear revision items
-    dispatch({ type: 'CLEAR_REVISIONS' });
+    clearRevisions();
     
     // Reset pomodoro settings to default
     updateSettings({
