@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
@@ -272,7 +270,7 @@ export default function Schedule() {
 
           {/* Visualização do Dia */}
           <ScrollArea className="flex-1">
-            <div className="relative min-w-[320px]">
+            <div className="relative min-w-[280px]">
               {/* Linha da hora atual */}
               {currentTimePosition !== null && (
                 <div
@@ -485,4 +483,3 @@ export default function Schedule() {
     </div>
   );
 }
-
