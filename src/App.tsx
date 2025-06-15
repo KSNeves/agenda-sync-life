@@ -12,6 +12,7 @@ import Index from "./pages/Index";
 import LoginRegister from "./pages/LoginRegister";
 import NotFound from "./pages/NotFound";
 import UpgradeModal from "./components/UpgradeModal";
+import { useEffect } from "react";
 
 const queryClient = new QueryClient();
 
@@ -20,6 +21,20 @@ function AppWithSubscription() {
   
   // Mostrar modal obrigatório se o período de teste expirou
   const shouldShowUpgradeModal = !isLoading && !subscribed && planType === 'free';
+
+  // Listen for navigation to profile event
+  useEffect(() => {
+    const handleNavigateToProfile = () => {
+      // Dispatch event to Index component to show profile
+      window.dispatchEvent(new CustomEvent('showProfile'));
+    };
+
+    window.addEventListener('navigateToProfile', handleNavigateToProfile);
+    
+    return () => {
+      window.removeEventListener('navigateToProfile', handleNavigateToProfile);
+    };
+  }, []);
 
   return (
     <>

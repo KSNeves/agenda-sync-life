@@ -29,6 +29,11 @@ export default function UpgradeModal({ isOpen }: UpgradeModalProps) {
     }
   };
 
+  const handleGoToProfile = () => {
+    // Dispatch custom event to navigate to profile
+    window.dispatchEvent(new CustomEvent('navigateToProfile'));
+  };
+
   return (
     <Dialog open={isOpen} modal>
       <DialogContent 
@@ -111,6 +116,16 @@ export default function UpgradeModal({ isOpen }: UpgradeModalProps) {
               <li>• Suporte prioritário</li>
               <li>• Todas as funcionalidades premium</li>
             </ul>
+          </div>
+
+          <div className="text-center">
+            <Button 
+              variant="outline" 
+              onClick={handleGoToProfile}
+              className="w-full"
+            >
+              Ver opções de assinatura na página de perfil
+            </Button>
           </div>
         </div>
       </DialogContent>

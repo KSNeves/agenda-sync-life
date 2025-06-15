@@ -6,7 +6,7 @@ import { Clock, Crown } from 'lucide-react';
 import { useSubscription } from '../context/SubscriptionContext';
 
 export default function TrialBanner() {
-  const { planType, trialEndDate, subscribed, createCheckout } = useSubscription();
+  const { planType, trialEndDate, subscribed } = useSubscription();
 
   // Don't show banner for premium users
   if (subscribed && planType === 'premium') {
@@ -26,12 +26,9 @@ export default function TrialBanner() {
   const daysRemaining = getDaysRemaining();
   const isTrialExpired = planType === 'free' || daysRemaining <= 0;
 
-  const handleUpgrade = async () => {
-    try {
-      await createCheckout('price_1RaE4jF5hbq3sDLKCtBPcScq'); // Monthly plan
-    } catch (error) {
-      console.error('Error upgrading:', error);
-    }
+  const handleUpgrade = () => {
+    // Dispatch custom event to navigate to profile
+    window.dispatchEvent(new CustomEvent('navigateToProfile'));
   };
 
   return (
