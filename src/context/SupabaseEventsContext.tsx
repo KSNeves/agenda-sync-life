@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { CalendarEvent } from '../types';
 import { supabase } from '@/integrations/supabase/client';
@@ -119,7 +118,7 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
   };
 
   const deleteRecurringEvents = async (eventId: string) => {
-    console.log('=== EXCLUSÃO DE SÉRIE - VERSÃO FINAL ===');
+    console.log('=== EXCLUSÃO DE SÉRIE - VERSÃO CORRIGIDA ===');
     console.log('ID do evento recebido:', eventId);
     
     if (!user) {
@@ -128,7 +127,7 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      // Primeiro, buscar TODOS os eventos do usuário no banco
+      // Buscar TODOS os eventos do usuário
       const { data: allEvents, error: fetchError } = await supabase
         .from('user_events')
         .select('*')
@@ -141,35 +140,29 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
 
       console.log('Total de eventos no banco:', allEvents?.length || 0);
 
-      // Extrair o baseId do evento
-      const baseId = eventId.includes('_') ? eventId.split('_')[0] : eventId;
-      console.log('BaseId extraído:', baseId);
-
-      // Encontrar TODOS os eventos da série usando diferentes padrões
-      const seriesEvents = allEvents?.filter(event => {
-        // Evento base exato
-        if (event.id === baseId) {
-          console.log('Encontrou evento base:', event.id);
-          return true;
-        }
-        
-        // Eventos que começam com baseId_
-        if (event.id.startsWith(`${baseId}_`)) {
-          console.log('Encontrou evento recorrente:', event.id);
-          return true;
-        }
-        
-        return false;
-      }) || [];
-
-      console.log('Eventos da série encontrados:', seriesEvents.map(e => ({ id: e.id, title: e.title })));
-
-      if (seriesEvents.length === 0) {
-        console.log('ERRO: Nenhum evento da série encontrado no banco!');
+      // Primeiro, encontrar o evento base procurando pelo título e horário
+      const targetEvent = allEvents?.find(e => e.id === eventId);
+      if (!targetEvent) {
+        console.log('Evento alvo não encontrado');
         return;
       }
 
-      // Deletar cada evento individualmente para ter controle total
+      console.log('Evento alvo encontrado:', targetEvent.title);
+
+      // Procurar TODOS os eventos com o mesmo título (eventos da série)
+      const seriesEvents = allEvents?.filter(event => {
+        return event.title === targetEvent.title;
+      }) || [];
+
+      console.log('Eventos da série encontrados (mesmo título):', seriesEvents.length);
+      console.log('IDs dos eventos:', seriesEvents.map(e => e.id));
+
+      if (seriesEvents.length === 0) {
+        console.log('ERRO: Nenhum evento da série encontrado!');
+        return;
+      }
+
+      // Deletar TODOS os eventos da série
       console.log('Iniciando exclusão dos eventos...');
       for (const event of seriesEvents) {
         console.log(`Deletando evento: ${event.id} (${event.title})`);
@@ -187,12 +180,11 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
         }
       }
 
-      // Atualizar o estado local removendo todos os eventos da série
+      // Atualizar o estado local removendo TODOS os eventos com o mesmo título
       console.log('Atualizando estado local...');
       setEvents(prevEvents => {
         const eventsToKeep = prevEvents.filter(event => {
-          const eventBaseId = event.id.includes('_') ? event.id.split('_')[0] : event.id;
-          const shouldRemove = eventBaseId === baseId;
+          const shouldRemove = event.title === targetEvent.title;
           
           if (shouldRemove) {
             console.log(`Removendo do estado local: ${event.id} (${event.title})`);
