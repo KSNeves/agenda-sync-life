@@ -1,52 +1,28 @@
+
 import React, { useEffect, useState } from 'react';
-import { useApp } from '../context/AppContext';
-import { Task, RevisionItem } from '../types';
 import { Play, Pause, Check, Clock, Calendar, PlayCircle, CheckCircle, ClockIcon } from 'lucide-react';
 import { categorizeRevision } from '../utils/spacedRepetition';
 import StudyTimerModal from './StudyTimerModal';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useTranslation } from '../hooks/useTranslation';
+import { useRevisions } from '../context/RevisionsContext';
 
 export default function Dashboard() {
-  const { state, dispatch } = useApp();
-  const { tasks, events, revisionItems } = state;
+  const { revisions, updateRevision } = useRevisions();
   const { t } = useTranslation();
   const [isStudyModalOpen, setIsStudyModalOpen] = useState(false);
   const [selectedRevisionTitle, setSelectedRevisionTitle] = useState('');
   const [weeklyProgressData, setWeeklyProgressData] = useLocalStorage<Record<string, { completed: number; total: number }>>('weeklyProgressData', {});
 
-  // Timer logic
-  useEffect(() => {
-    const interval = setInterval(() => {
-      tasks.forEach(task => {
-        if (task.isRunning && task.startTime) {
-          const elapsedTime = task.elapsedTime + Math.floor((Date.now() - task.startTime) / 1000);
-          dispatch({
-            type: 'UPDATE_TASK_TIMER',
-            payload: { id: task.id, elapsedTime }
-          });
-        }
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [tasks, dispatch]);
-
   const today = new Date();
   
-  // Get today's tasks (original task system)
-  const todayTasks = tasks.filter(task => {
-    const taskDate = new Date(task.createdAt);
-    return taskDate.toDateString() === today.toDateString() && !task.postponed;
-  });
-
   // Get today's revisions
-  const todayRevisions = revisionItems.filter(item => {
+  const todayRevisions = revisions.filter(item => {
     return categorizeRevision(item) === 'pending';
   });
 
   // Calculate daily progress based on completed revisions today
-  const completedRevisionsToday = revisionItems.filter(item => {
+  const completedRevisionsToday = revisions.filter(item => {
     const wasCompletedToday = item.completedAt && 
       new Date(item.completedAt).toDateString() === today.toDateString();
     
@@ -118,60 +94,30 @@ export default function Dashboard() {
     return weekDays;
   };
 
-  const formatTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const handleTaskAction = (taskId: string, action: string) => {
-    dispatch({ type: action.toUpperCase() + '_TASK' as any, payload: taskId });
-  };
-
-  const handleRevisionAction = (revisionId: string, action: 'start' | 'complete' | 'postpone') => {
-    const revision = revisionItems.find(item => item.id === revisionId);
+  const handleRevisionAction = async (revisionId: string, action: 'start' | 'complete' | 'postpone') => {
+    const revision = revisions.find(item => item.id === revisionId);
     if (!revision) return;
 
     if (action === 'start') {
       setSelectedRevisionTitle(revision.title);
       setIsStudyModalOpen(true);
     } else if (action === 'complete') {
-      dispatch({ 
-        type: 'UPDATE_REVISION_ITEM', 
-        payload: { 
-          ...revision, 
-          category: 'completed',
-          completedAt: Date.now() // Garante que a data de conclusão seja hoje
-        }
+      await updateRevision({ 
+        ...revision, 
+        category: 'completed',
+        completedAt: Date.now()
       });
     } else if (action === 'postpone') {
       const newDate = new Date();
       newDate.setDate(newDate.getDate() + 1);
       newDate.setHours(0, 0, 0, 0);
       
-      dispatch({ 
-        type: 'UPDATE_REVISION_ITEM', 
-        payload: { 
-          ...revision, 
-          nextRevisionDate: newDate.getTime(),
-          category: 'priority'
-        }
+      await updateRevision({ 
+        ...revision, 
+        nextRevisionDate: newDate.getTime(),
+        category: 'priority'
       });
     }
-  };
-
-  const addSampleTask = () => {
-    const newTask: Task = {
-      id: Date.now().toString(),
-      title: `Nova Tarefa ${tasks.length + 1}`,
-      duration: 60,
-      completed: false,
-      elapsedTime: 0,
-      isRunning: false,
-      createdAt: Date.now(),
-    };
-    dispatch({ type: 'ADD_TASK', payload: newTask });
   };
 
   // Usar tradução para a data atual
