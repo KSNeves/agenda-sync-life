@@ -93,9 +93,22 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
         return;
       }
 
+      // Se não está subscrito no Stripe mas o trial ainda está ativo, manter o trial
+      let finalPlanType = planType;
+      if (stripeData.subscribed) {
+        finalPlanType = 'premium';
+      } else if (planType === 'free_trial') {
+        // Verificar se o trial realmente ainda está ativo
+        const trialEnd = new Date(trialEndDate);
+        const now = new Date();
+        if (now >= trialEnd) {
+          finalPlanType = 'free';
+        }
+      }
+
       setState({
         subscribed: stripeData.subscribed || false,
-        planType: stripeData.subscribed ? 'premium' : planType,
+        planType: finalPlanType,
         subscriptionEnd: stripeData.subscription_end,
         trialEndDate,
         isLoading: false,
@@ -164,6 +177,29 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       }, 2000); // Give Stripe time to process
     }
   }, []);
+
+  // Verificar status da assinatura periodicamente para detectar cancelamentos ou problemas de pagamento
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const interval = setInterval(() => {
+      checkSubscription();
+    }, 30000); // Verificar a cada 30 segundos
+
+    return () => clearInterval(interval);
+  }, [isAuthenticated]);
+
+  // Verificar quando a página ganha foco (usuário volta para a aba)
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const handleFocus = () => {
+      checkSubscription();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [isAuthenticated]);
 
   return (
     <SubscriptionContext.Provider value={{

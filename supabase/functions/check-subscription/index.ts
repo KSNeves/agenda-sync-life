@@ -70,19 +70,21 @@ serve(async (req) => {
     const customerId = customers.data[0].id;
     logStep("Found Stripe customer", { customerId });
 
-    // Check for active subscriptions
-    const subscriptions = await stripe.subscriptions.list({
+    // Check for ALL subscriptions (active, canceled, past_due, etc.)
+    const allSubscriptions = await stripe.subscriptions.list({
       customer: customerId,
-      status: "active",
-      limit: 1,
+      limit: 10, // Check more subscriptions
     });
 
     let planType = "free";
     let subscriptionEnd = null;
     let isActive = false;
 
-    if (subscriptions.data.length > 0) {
-      const subscription = subscriptions.data[0];
+    // Check for active subscriptions first
+    const activeSubscriptions = allSubscriptions.data.filter(sub => sub.status === "active");
+    
+    if (activeSubscriptions.length > 0) {
+      const subscription = activeSubscriptions[0];
       subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
       isActive = true;
       
@@ -95,33 +97,54 @@ serve(async (req) => {
       }
       logStep("Active subscription found", { subscriptionId: subscription.id, planType, endDate: subscriptionEnd });
     } else {
-      // Check for lifetime payments (one-time payments)
-      const payments = await stripe.paymentIntents.list({
-        customer: customerId,
-        limit: 10,
-      });
-      
-      for (const payment of payments.data) {
-        if (payment.status === "succeeded") {
-          const charges = await stripe.charges.list({
-            payment_intent: payment.id,
-            limit: 1,
-          });
-          
-          if (charges.data.length > 0) {
-            const charge = charges.data[0];
-            // Check if this was a lifetime purchase based on metadata or amount
-            if (charge.amount === 29900) { // $299 for lifetime
-              planType = "premium";
-              isActive = true;
-              subscriptionEnd = null; // Lifetime has no end
-              logStep("Lifetime purchase found", { paymentId: payment.id });
-              break;
+      // Check for canceled, past_due, or unpaid subscriptions
+      const problemSubscriptions = allSubscriptions.data.filter(sub => 
+        sub.status === "canceled" || 
+        sub.status === "past_due" || 
+        sub.status === "unpaid" ||
+        sub.status === "incomplete_expired"
+      );
+
+      if (problemSubscriptions.length > 0) {
+        logStep("Found problematic subscriptions", { 
+          count: problemSubscriptions.length, 
+          statuses: problemSubscriptions.map(s => s.status) 
+        });
+        // These users should see the upgrade modal
+        planType = "free";
+        isActive = false;
+      } else {
+        // Check for lifetime payments (one-time payments)
+        const payments = await stripe.paymentIntents.list({
+          customer: customerId,
+          limit: 10,
+        });
+        
+        for (const payment of payments.data) {
+          if (payment.status === "succeeded") {
+            const charges = await stripe.charges.list({
+              payment_intent: payment.id,
+              limit: 1,
+            });
+            
+            if (charges.data.length > 0) {
+              const charge = charges.data[0];
+              // Check if this was a lifetime purchase based on amount
+              if (charge.amount === 49990) { // R$ 499,90 for lifetime
+                planType = "premium";
+                isActive = true;
+                subscriptionEnd = null; // Lifetime has no end
+                logStep("Lifetime purchase found", { paymentId: payment.id });
+                break;
+              }
             }
           }
         }
       }
-      logStep("No active subscription found");
+      
+      if (!isActive) {
+        logStep("No active subscription or lifetime purchase found");
+      }
     }
 
     await supabaseClient.from("subscriptions").upsert({
