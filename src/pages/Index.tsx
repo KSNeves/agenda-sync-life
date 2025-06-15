@@ -4,6 +4,7 @@ import { AppProvider } from '../context/AppContext';
 import { PomodoroProvider } from '../context/PomodoroContext';
 import { FlashcardsProvider } from '../context/FlashcardsContext';
 import { LanguageProvider } from '../context/LanguageContext';
+import { SubscriptionProvider } from '../context/SubscriptionContext';
 import Navigation from '../components/Navigation';
 import Dashboard from '../components/Dashboard';
 import Calendar from '../components/Calendar';
@@ -13,6 +14,7 @@ import Flashcards from '../components/Flashcards';
 import Settings from './Settings';
 import Profile from './Profile';
 import EventModal from '../components/EventModal';
+import TrialBanner from '../components/TrialBanner';
 
 const Index = () => {
   const [currentView, setCurrentView] = useState('dashboard');
@@ -43,15 +45,22 @@ const Index = () => {
       <AppProvider>
         <PomodoroProvider>
           <FlashcardsProvider>
-            <div className="min-h-screen bg-background">
-              {currentView !== 'settings' && currentView !== 'profile' && (
-                <Navigation currentView={currentView} onViewChange={setCurrentView} />
-              )}
-              <main>
-                {renderCurrentView()}
-              </main>
-              <EventModal />
-            </div>
+            <SubscriptionProvider>
+              <div className="min-h-screen bg-background">
+                {currentView !== 'settings' && currentView !== 'profile' && (
+                  <Navigation currentView={currentView} onViewChange={setCurrentView} />
+                )}
+                {currentView !== 'settings' && currentView !== 'profile' && (
+                  <div className="max-w-6xl mx-auto px-4 py-4">
+                    <TrialBanner />
+                  </div>
+                )}
+                <main>
+                  {renderCurrentView()}
+                </main>
+                <EventModal />
+              </div>
+            </SubscriptionProvider>
           </FlashcardsProvider>
         </PomodoroProvider>
       </AppProvider>

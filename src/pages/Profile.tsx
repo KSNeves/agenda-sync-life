@@ -1,14 +1,16 @@
 
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, User, Camera, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, User, Camera, Eye, EyeOff, Crown, Calendar, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { useTranslation } from '../hooks/useTranslation';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '../context/AuthContext';
+import { useSubscription } from '../context/SubscriptionContext';
 import { supabase } from '@/integrations/supabase/client';
 
 interface ProfileProps {
@@ -26,6 +28,16 @@ export default function Profile({ onBack }: ProfileProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const { user } = useAuth();
+  const { 
+    subscribed, 
+    planType, 
+    subscriptionEnd, 
+    trialEndDate, 
+    isLoading,
+    checkSubscription,
+    createCheckout,
+    openCustomerPortal 
+  } = useSubscription();
   
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [firstName, setFirstName] = useState('');
@@ -55,7 +67,7 @@ export default function Profile({ onBack }: ProfileProps) {
           setFirstName(profile.first_name || '');
           setLastName(profile.last_name || '');
           setEmail(profile.email || '');
-          setProfileImage(null); // Implementar storage depois se necessário
+          setProfileImage(null);
         }
       } catch (error) {
         console.error('Erro ao carregar perfil:', error);
@@ -64,6 +76,27 @@ export default function Profile({ onBack }: ProfileProps) {
 
     loadProfile();
   }, [user]);
+
+  // Check for URL parameters and show success message
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('success') === 'true') {
+      toast({
+        title: "Sucesso!",
+        description: "Sua assinatura foi processada com sucesso.",
+      });
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (urlParams.get('canceled') === 'true') {
+      toast({
+        title: "Cancelado",
+        description: "O processo de assinatura foi cancelado.",
+        variant: "destructive",
+      });
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [toast]);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -193,6 +226,65 @@ export default function Profile({ onBack }: ProfileProps) {
     }
   };
 
+  const handleUpgrade = async (priceId: string) => {
+    try {
+      await createCheckout(priceId);
+    } catch (error) {
+      console.error('Error upgrading:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao processar upgrade. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    try {
+      await openCustomerPortal();
+    } catch (error) {
+      console.error('Error opening portal:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao abrir portal de gerenciamento. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getDaysRemaining = () => {
+    if (!trialEndDate) return 0;
+    const today = new Date();
+    const endDate = new Date(trialEndDate);
+    const diffTime = endDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return Math.max(0, diffDays);
+  };
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('pt-BR');
+  };
+
+  const getPlanDisplayName = () => {
+    switch (planType) {
+      case 'free_trial':
+        return 'Período de Teste';
+      case 'free':
+        return 'Gratuito';
+      case 'premium':
+        return 'Premium';
+      default:
+        return 'Desconhecido';
+    }
+  };
+
+  const getPlanBadgeVariant = () => {
+    if (subscribed && planType === 'premium') return 'default';
+    if (planType === 'free_trial') return 'secondary';
+    return 'outline';
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto p-6">
@@ -205,6 +297,155 @@ export default function Profile({ onBack }: ProfileProps) {
         </div>
 
         <div className="space-y-6">
+          {/* Subscription Status */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Crown className="h-5 w-5" />
+                Status da Assinatura
+              </CardTitle>
+              <CardDescription>
+                Gerencie sua assinatura e veja informações do seu plano
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Badge variant={getPlanBadgeVariant()}>
+                    {getPlanDisplayName()}
+                  </Badge>
+                  {subscribed && planType === 'premium' && (
+                    <Badge variant="default" className="bg-green-100 text-green-800">
+                      Ativo
+                    </Badge>
+                  )}
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={checkSubscription}
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Verificando...' : 'Atualizar Status'}
+                </Button>
+              </div>
+
+              {planType === 'free_trial' && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Calendar className="h-4 w-4 text-amber-600" />
+                    <span className="font-medium text-amber-800">Período de Teste</span>
+                  </div>
+                  <p className="text-amber-700">
+                    Restam {getDaysRemaining()} dias no seu período de teste gratuito.
+                  </p>
+                  {trialEndDate && (
+                    <p className="text-sm text-amber-600 mt-1">
+                      Expira em: {formatDate(trialEndDate)}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {subscribed && planType === 'premium' && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Crown className="h-4 w-4 text-green-600" />
+                    <span className="font-medium text-green-800">Plano Premium Ativo</span>
+                  </div>
+                  {subscriptionEnd && (
+                    <p className="text-green-700">
+                      Próxima renovação: {formatDate(subscriptionEnd)}
+                    </p>
+                  )}
+                  {!subscriptionEnd && (
+                    <p className="text-green-700">
+                      Plano vitalício - sem data de expiração
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {planType === 'free' && (
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <User className="h-4 w-4 text-gray-600" />
+                    <span className="font-medium text-gray-800">Plano Gratuito</span>
+                  </div>
+                  <p className="text-gray-700">
+                    Seu período de teste expirou. Faça upgrade para acessar todos os recursos.
+                  </p>
+                </div>
+              )}
+
+              {/* Subscription Actions */}
+              <div className="space-y-3">
+                {!subscribed && (
+                  <>
+                    <h4 className="font-medium">Escolha seu plano:</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <Card className="relative">
+                        <CardContent className="p-4 text-center">
+                          <h3 className="font-semibold mb-2">Mensal</h3>
+                          <p className="text-2xl font-bold mb-2">R$ 7,99</p>
+                          <p className="text-sm text-muted-foreground mb-4">por mês</p>
+                          <Button 
+                            className="w-full" 
+                            onClick={() => handleUpgrade('price_1RaE4jF5hbq3sDLKCtBPcScq')}
+                          >
+                            Assinar
+                          </Button>
+                        </CardContent>
+                      </Card>
+
+                      <Card className="relative border-primary">
+                        <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
+                          <Badge className="bg-primary">Mais Popular</Badge>
+                        </div>
+                        <CardContent className="p-4 text-center">
+                          <h3 className="font-semibold mb-2">Anual</h3>
+                          <p className="text-2xl font-bold mb-2">R$ 79,99</p>
+                          <p className="text-sm text-muted-foreground mb-4">por ano</p>
+                          <Button 
+                            className="w-full" 
+                            onClick={() => handleUpgrade('price_1RaE5CF5hbq3sDLKhAp6negB')}
+                          >
+                            Assinar
+                          </Button>
+                        </CardContent>
+                      </Card>
+
+                      <Card className="relative">
+                        <CardContent className="p-4 text-center">
+                          <h3 className="font-semibold mb-2">Vitalício</h3>
+                          <p className="text-2xl font-bold mb-2">R$ 299</p>
+                          <p className="text-sm text-muted-foreground mb-4">pagamento único</p>
+                          <Button 
+                            className="w-full" 
+                            onClick={() => handleUpgrade('price_1RaE66F5hbq3sDLK5l5uKNFv')}
+                          >
+                            Comprar
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </>
+                )}
+
+                {subscribed && (
+                  <Button 
+                    variant="outline" 
+                    onClick={handleManageSubscription}
+                    className="w-full"
+                  >
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    Gerenciar Assinatura
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Perfil */}
           <Card>
             <CardHeader>
