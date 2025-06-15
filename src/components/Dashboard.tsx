@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Task, RevisionItem } from '../types';
@@ -8,8 +9,8 @@ import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useTranslation } from '../hooks/useTranslation';
 
 export default function Dashboard() {
-  const { state, dispatch } = useApp();
-  const { tasks, events, revisionItems } = state;
+  const { state, dispatch, updateRevisionItem } = useApp();
+  const { tasks, revisionItems } = state;
   const { t } = useTranslation();
   const [isStudyModalOpen, setIsStudyModalOpen] = useState(false);
   const [selectedRevisionTitle, setSelectedRevisionTitle] = useState('');
@@ -68,7 +69,7 @@ export default function Dashboard() {
     }));
   }, [completedRevisionsToday, totalDailyTasks, today, setWeeklyProgressData]);
 
-  // Weekly progress calculation - baseado em revisões
+  // Weekly progress calculation
   const getWeekProgress = () => {
     const weekDays = [];
     const dayNamesShort = [
@@ -86,11 +87,9 @@ export default function Dashboard() {
       date.setDate(today.getDate() - today.getDay() + i);
       const dateKey = date.toDateString();
       
-      // Verificar se temos dados salvos para este dia
       const savedData = weeklyProgressData[dateKey];
       
       if (savedData) {
-        // Usar dados salvos
         weekDays.push({
           day: dayNamesShort[i],
           progress: savedData.total > 0 ? (savedData.completed / savedData.total) * 100 : 0,
@@ -98,7 +97,6 @@ export default function Dashboard() {
           total: savedData.total
         });
       } else if (date.toDateString() === today.toDateString()) {
-        // Para hoje, usar dados em tempo real
         weekDays.push({
           day: dayNamesShort[i],
           progress: totalDailyTasks > 0 ? (completedRevisionsToday / totalDailyTasks) * 100 : 0,
@@ -106,7 +104,6 @@ export default function Dashboard() {
           total: totalDailyTasks
         });
       } else {
-        // Para dias futuros ou dias sem dados, mostrar vazio
         weekDays.push({
           day: dayNamesShort[i],
           progress: 0,
@@ -137,26 +134,20 @@ export default function Dashboard() {
       setSelectedRevisionTitle(revision.title);
       setIsStudyModalOpen(true);
     } else if (action === 'complete') {
-      dispatch({ 
-        type: 'UPDATE_REVISION_ITEM', 
-        payload: { 
-          ...revision, 
-          category: 'completed',
-          completedAt: Date.now() // Garante que a data de conclusão seja hoje
-        }
+      updateRevisionItem({ 
+        ...revision, 
+        category: 'completed',
+        completedAt: Date.now()
       });
     } else if (action === 'postpone') {
       const newDate = new Date();
       newDate.setDate(newDate.getDate() + 1);
       newDate.setHours(0, 0, 0, 0);
       
-      dispatch({ 
-        type: 'UPDATE_REVISION_ITEM', 
-        payload: { 
-          ...revision, 
-          nextRevisionDate: newDate.getTime(),
-          category: 'priority'
-        }
+      updateRevisionItem({ 
+        ...revision, 
+        nextRevisionDate: newDate.getTime(),
+        category: 'priority'
       });
     }
   };
@@ -174,7 +165,6 @@ export default function Dashboard() {
     dispatch({ type: 'ADD_TASK', payload: newTask });
   };
 
-  // Usar tradução para a data atual
   const formatCurrentDate = () => {
     const options: Intl.DateTimeFormatOptions = { 
       weekday: 'long', 
@@ -183,14 +173,12 @@ export default function Dashboard() {
       day: 'numeric' 
     };
     
-    // Usar locale baseado no idioma selecionado com fallback seguro
     const locale = t('common.locale');
     const safeLocale = ['pt-BR', 'en-US', 'es-ES'].includes(locale) ? locale : 'en-US';
     
     try {
       return today.toLocaleDateString(safeLocale, options);
     } catch (error) {
-      // Fallback para inglês se houver erro
       return today.toLocaleDateString('en-US', options);
     }
   };
@@ -208,7 +196,7 @@ export default function Dashboard() {
         </header>
 
         <div className="space-y-6">
-          {/* Today's Tasks - First */}
+          {/* Today's Tasks */}
           <div className="bg-card/80 backdrop-blur-sm p-6 rounded-xl shadow-2xl border border-border/50 hover:shadow-3xl transition-all duration-300">
             <h3 className="text-lg font-semibold mb-4">{t('dashboard.todayTasks')}</h3>
             {todayRevisions.length === 0 ? (
@@ -257,7 +245,7 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Daily Progress - Second */}
+          {/* Daily Progress */}
           <div className="bg-card/80 backdrop-blur-sm p-6 rounded-xl shadow-2xl border border-border/50 hover:shadow-3xl transition-all duration-300">
             <h3 className="text-lg font-semibold mb-4">{t('dashboard.dailyProgress')}</h3>
             <div className="relative mb-4">
@@ -274,7 +262,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Weekly Progress - Third */}
+          {/* Weekly Progress */}
           <div className="bg-card/80 backdrop-blur-sm p-6 rounded-xl shadow-2xl border border-border/50 hover:shadow-3xl transition-all duration-300">
             <h3 className="text-lg font-semibold mb-4">{t('dashboard.weeklyProgress')}</h3>
             <div className="space-y-4">

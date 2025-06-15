@@ -1,6 +1,8 @@
+
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 import { Task, CalendarEvent, RevisionItem, CalendarView } from '../types';
-import { calculateNextRevisionDate, categorizeRevision, adjustDateForNonStudyDays } from '../utils/spacedRepetition';
+import { SupabaseRevisionsProvider, useSupabaseRevisions } from './SupabaseRevisionsContext';
+import { SupabaseEventsProvider, useSupabaseEvents } from './SupabaseEventsContext';
 
 interface AppState {
   tasks: Task[];
@@ -23,31 +25,11 @@ type AppAction =
   | { type: 'COMPLETE_TASK'; payload: string }
   | { type: 'POSTPONE_TASK'; payload: string }
   | { type: 'UPDATE_TASK_TIMER'; payload: { id: string; elapsedTime: number } }
-  | { type: 'ADD_EVENT'; payload: CalendarEvent }
-  | { type: 'UPDATE_EVENT'; payload: CalendarEvent }
-  | { type: 'DELETE_EVENT'; payload: string }
-  | { type: 'DELETE_RECURRING_EVENTS'; payload: string }
-  | { type: 'CLEAR_EVENTS' }
   | { type: 'SET_CALENDAR_VIEW'; payload: CalendarView }
   | { type: 'SET_SELECTED_DATE'; payload: Date }
   | { type: 'SET_CURRENT_DATE'; payload: Date }
   | { type: 'OPEN_EVENT_MODAL'; payload: CalendarEvent | null }
-  | { type: 'CLOSE_EVENT_MODAL' }
-  | { type: 'ADD_REVISION_ITEM'; payload: RevisionItem }
-  | { type: 'UPDATE_REVISION_ITEM'; payload: RevisionItem }
-  | { type: 'DELETE_REVISION_ITEM'; payload: string }
-  | { type: 'CLEAR_REVISIONS' };
-
-const initialState: AppState = {
-  tasks: [],
-  events: [],
-  revisionItems: [],
-  currentDate: new Date(),
-  calendarView: 'week',
-  selectedDate: new Date(),
-  isEventModalOpen: false,
-  selectedEvent: null,
-};
+  | { type: 'CLOSE_EVENT_MODAL' };
 
 function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
@@ -126,36 +108,6 @@ function appReducer(state: AppState, action: AppAction): AppState {
         ),
       };
     
-    case 'ADD_EVENT':
-      return { ...state, events: [...state.events, action.payload] };
-    
-    case 'UPDATE_EVENT':
-      return {
-        ...state,
-        events: state.events.map(event => 
-          event.id === action.payload.id ? action.payload : event
-        ),
-      };
-    
-    case 'DELETE_EVENT':
-      return {
-        ...state,
-        events: state.events.filter(event => event.id !== action.payload),
-      };
-    
-    case 'DELETE_RECURRING_EVENTS':
-      return {
-        ...state,
-        events: state.events.filter(event => {
-          // Remove o evento original e todos os eventos que começam com o baseId
-          const baseId = action.payload;
-          return event.id !== baseId && !event.id.startsWith(`${baseId}_`);
-        }),
-      };
-    
-    case 'CLEAR_EVENTS':
-      return { ...state, events: [] };
-    
     case 'SET_CALENDAR_VIEW':
       return { ...state, calendarView: action.payload };
     
@@ -171,58 +123,6 @@ function appReducer(state: AppState, action: AppAction): AppState {
     case 'CLOSE_EVENT_MODAL':
       return { ...state, isEventModalOpen: false, selectedEvent: null };
     
-    case 'ADD_REVISION_ITEM':
-      // Ajusta a data inicial considerando dias não-úteis
-      const adjustedItem = {
-        ...action.payload,
-        nextRevisionDate: adjustDateForNonStudyDays(action.payload.nextRevisionDate, action.payload.nonStudyDays)
-      };
-      return { ...state, revisionItems: [...state.revisionItems, adjustedItem] };
-    
-    case 'UPDATE_REVISION_ITEM':
-      return {
-        ...state,
-        revisionItems: state.revisionItems.map(item => {
-          if (item.id === action.payload.id) {
-            // Se está sendo marcada como concluída, atualiza o sistema de revisão espaçada
-            if (action.payload.category === 'completed' && item.category !== 'completed') {
-              const newRevisionCount = item.revisionCount + 1;
-              const { nextDate, intervalDays } = calculateNextRevisionDate(newRevisionCount, item.createdAt);
-              
-              // Ajusta a próxima data considerando dias não-úteis
-              const adjustedNextDate = adjustDateForNonStudyDays(nextDate, item.nonStudyDays);
-              
-              return {
-                ...action.payload,
-                revisionCount: newRevisionCount,
-                nextRevisionDate: adjustedNextDate,
-                intervalDays,
-                completedAt: Date.now(),
-                category: 'priority', // Vai direto para "Próximas"
-              };
-            }
-            
-            // Para outros tipos de atualização (como adiar), também ajusta a data
-            const updatedItem = {
-              ...action.payload,
-              nextRevisionDate: adjustDateForNonStudyDays(action.payload.nextRevisionDate, item.nonStudyDays || action.payload.nonStudyDays)
-            };
-            
-            return updatedItem;
-          }
-          return item;
-        }),
-      };
-    
-    case 'DELETE_REVISION_ITEM':
-      return {
-        ...state,
-        revisionItems: state.revisionItems.filter(item => item.id !== action.payload),
-      };
-    
-    case 'CLEAR_REVISIONS':
-      return { ...state, revisionItems: [] };
-    
     default:
       return state;
   }
@@ -231,15 +131,73 @@ function appReducer(state: AppState, action: AppAction): AppState {
 const AppContext = createContext<{
   state: AppState;
   dispatch: React.Dispatch<AppAction>;
+  addRevisionItem: (item: Omit<RevisionItem, 'id'>) => void;
+  updateRevisionItem: (item: RevisionItem) => void;
+  deleteRevisionItem: (id: string) => void;
+  clearRevisions: () => void;
+  addEvent: (event: CalendarEvent) => void;
+  updateEvent: (event: CalendarEvent) => void;
+  deleteEvent: (id: string) => void;
+  deleteRecurringEvents: (baseId: string) => void;
+  clearEvents: () => void;
 } | null>(null);
 
-export function AppProvider({ children }: { children: ReactNode }) {
+function AppProviderInner({ children }: { children: ReactNode }) {
+  const revisionsContext = useSupabaseRevisions();
+  const eventsContext = useSupabaseEvents();
+
+  const initialState: AppState = {
+    tasks: [],
+    events: eventsContext.events,
+    revisionItems: revisionsContext.revisionItems,
+    currentDate: new Date(),
+    calendarView: 'week',
+    selectedDate: new Date(),
+    isEventModalOpen: false,
+    selectedEvent: null,
+  };
+
   const [state, dispatch] = useReducer(appReducer, initialState);
 
+  // Update state when Supabase data changes
+  React.useEffect(() => {
+    dispatch({ type: 'SET_CURRENT_DATE', payload: new Date() });
+  }, [revisionsContext.revisionItems, eventsContext.events]);
+
+  const contextValue = {
+    state: {
+      ...state,
+      events: eventsContext.events,
+      revisionItems: revisionsContext.revisionItems,
+    },
+    dispatch,
+    addRevisionItem: revisionsContext.addRevisionItem,
+    updateRevisionItem: revisionsContext.updateRevisionItem,
+    deleteRevisionItem: revisionsContext.deleteRevisionItem,
+    clearRevisions: revisionsContext.clearRevisions,
+    addEvent: eventsContext.addEvent,
+    updateEvent: eventsContext.updateEvent,
+    deleteEvent: eventsContext.deleteEvent,
+    deleteRecurringEvents: eventsContext.deleteRecurringEvents,
+    clearEvents: eventsContext.clearEvents,
+  };
+
   return (
-    <AppContext.Provider value={{ state, dispatch }}>
+    <AppContext.Provider value={contextValue}>
       {children}
     </AppContext.Provider>
+  );
+}
+
+export function AppProvider({ children }: { children: ReactNode }) {
+  return (
+    <SupabaseRevisionsProvider>
+      <SupabaseEventsProvider>
+        <AppProviderInner>
+          {children}
+        </AppProviderInner>
+      </SupabaseEventsProvider>
+    </SupabaseRevisionsProvider>
   );
 }
 
