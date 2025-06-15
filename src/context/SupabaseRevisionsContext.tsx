@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { RevisionItem } from '../types';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,6 +24,8 @@ export function SupabaseRevisionsProvider({ children }: { children: ReactNode })
   const loadRevisions = async () => {
     if (!user) return;
     
+    console.log('Carregando revisões para usuário:', user.id);
+    
     try {
       const { data, error } = await supabase
         .from('user_revisions')
@@ -30,6 +33,8 @@ export function SupabaseRevisionsProvider({ children }: { children: ReactNode })
         .eq('user_id', user.id);
 
       if (error) throw error;
+
+      console.log('Revisões carregadas do banco:', data?.length || 0);
 
       const transformedRevisions: RevisionItem[] = data.map(revision => ({
         id: revision.id,
@@ -46,6 +51,7 @@ export function SupabaseRevisionsProvider({ children }: { children: ReactNode })
       }));
 
       setRevisionItems(transformedRevisions);
+      console.log('Revisões transformadas:', transformedRevisions.length);
     } catch (error) {
       console.error('Error loading revisions:', error);
     }
@@ -61,60 +67,86 @@ export function SupabaseRevisionsProvider({ children }: { children: ReactNode })
   }, [user]);
 
   const addRevisionItem = (item: Omit<RevisionItem, 'id'>) => {
-    if (!user) return;
+    if (!user) {
+      console.log('Usuário não logado, não pode criar revisão');
+      return;
+    }
 
     // Generate a proper UUID
     const id = generateUUID();
     const newItem: RevisionItem = { ...item, id };
     
+    console.log('Adicionando revisão:', newItem);
+    
     setRevisionItems(prev => [...prev, newItem]);
+
+    const revisionData = {
+      id,
+      user_id: user.id,
+      title: item.title,
+      description: item.description || '',
+      subject: item.subject || '',
+      next_revision_date: new Date(item.nextRevisionDate).toISOString(),
+      revision_count: item.revisionCount || 0,
+      interval_days: item.intervalDays || 1,
+      category: item.category || 'pending',
+      completed_at: item.completedAt ? new Date(item.completedAt).toISOString() : null,
+      non_study_days: item.nonStudyDays?.map(day => day.toString()) || [],
+    };
+
+    console.log('Dados da revisão para salvar:', revisionData);
 
     supabase
       .from('user_revisions')
-      .insert({
-        id,
-        user_id: user.id,
-        title: item.title,
-        description: item.description,
-        subject: item.subject,
-        next_revision_date: new Date(item.nextRevisionDate).toISOString(),
-        revision_count: item.revisionCount,
-        interval_days: item.intervalDays,
-        category: item.category,
-        completed_at: item.completedAt ? new Date(item.completedAt).toISOString() : null,
-        non_study_days: item.nonStudyDays?.map(day => day.toString()) || [],
-      })
+      .insert(revisionData)
       .then(({ error }) => {
         if (error) {
           console.error('Error creating revision:', error);
           setRevisionItems(prev => prev.filter(r => r.id !== id));
+        } else {
+          console.log('Revisão criada com sucesso:', id);
         }
       });
   };
 
   const updateRevisionItem = (item: RevisionItem) => {
+    console.log('Atualizando revisão:', item.id);
+    
     setRevisionItems(prev => prev.map(r => r.id === item.id ? item : r));
 
     if (user) {
+      const updateData = {
+        title: item.title,
+        description: item.description || '',
+        subject: item.subject || '',
+        next_revision_date: new Date(item.nextRevisionDate).toISOString(),
+        revision_count: item.revisionCount || 0,
+        interval_days: item.intervalDays || 1,
+        category: item.category || 'pending',
+        completed_at: item.completedAt ? new Date(item.completedAt).toISOString() : null,
+        non_study_days: item.nonStudyDays?.map(day => day.toString()) || [],
+      };
+
+      console.log('Dados para atualizar revisão:', updateData);
+
       supabase
         .from('user_revisions')
-        .update({
-          title: item.title,
-          description: item.description,
-          subject: item.subject,
-          next_revision_date: new Date(item.nextRevisionDate).toISOString(),
-          revision_count: item.revisionCount,
-          interval_days: item.intervalDays,
-          category: item.category,
-          completed_at: item.completedAt ? new Date(item.completedAt).toISOString() : null,
-          non_study_days: item.nonStudyDays?.map(day => day.toString()) || [],
-        })
+        .update(updateData)
         .eq('id', item.id)
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .then(({ error }) => {
+          if (error) {
+            console.error('Error updating revision:', error);
+          } else {
+            console.log('Revisão atualizada com sucesso:', item.id);
+          }
+        });
     }
   };
 
   const deleteRevisionItem = (id: string) => {
+    console.log('Deletando revisão:', id);
+    
     setRevisionItems(prev => prev.filter(r => r.id !== id));
 
     if (user) {
@@ -122,7 +154,14 @@ export function SupabaseRevisionsProvider({ children }: { children: ReactNode })
         .from('user_revisions')
         .delete()
         .eq('id', id)
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .then(({ error }) => {
+          if (error) {
+            console.error('Error deleting revision:', error);
+          } else {
+            console.log('Revisão deletada com sucesso:', id);
+          }
+        });
     }
   };
 

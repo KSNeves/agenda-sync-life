@@ -163,6 +163,12 @@ export default function EventModal() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Mapear a cor corretamente
+    const eventColor = eventColors.find(c => c.value === formData.customColor)?.preview || '#3B82F6';
+    
+    console.log('Cor selecionada:', formData.customColor);
+    console.log('Cor mapeada:', eventColor);
+    
     const eventData: CalendarEvent = {
       id: selectedEvent?.id || Date.now().toString(),
       title: formData.title,
@@ -172,9 +178,12 @@ export default function EventModal() {
       type: formData.type,
       location: formData.location,
       professor: formData.professor,
-      customColor: formData.customColor,
+      color: eventColor, // Usar color para compatibilidade
+      customColor: formData.customColor, // Manter customColor também
       recurrence: formData.recurrence.type !== 'none' ? formData.recurrence : undefined,
     };
+
+    console.log('Dados do evento para salvar:', eventData);
 
     if (selectedEvent) {
       updateEvent(eventData);
@@ -190,6 +199,8 @@ export default function EventModal() {
     }
 
     if (addToRevision) {
+      console.log('Adicionando evento à revisão...');
+      
       const eventStartDate = new Date(formData.startTime);
       eventStartDate.setHours(0, 0, 0, 0);
 
@@ -210,6 +221,7 @@ export default function EventModal() {
         intervalDays: 1,
       };
 
+      console.log('Item de revisão a ser criado:', revisionItem);
       addRevisionItem(revisionItem);
     }
 

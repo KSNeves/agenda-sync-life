@@ -66,6 +66,11 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
     
     setEvents(prev => [...prev, eventWithUUID]);
 
+    // Mapear customColor para color no banco de dados
+    const colorToSave = event.customColor || event.color || '#3B82F6';
+    
+    console.log('Salvando evento com cor:', colorToSave);
+
     supabase
       .from('user_events')
       .insert({
@@ -75,13 +80,15 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
         description: eventWithUUID.description,
         start_time: new Date(eventWithUUID.startTime).toISOString(),
         end_time: new Date(eventWithUUID.endTime).toISOString(),
-        color: eventWithUUID.color,
+        color: colorToSave,
         is_all_day: eventWithUUID.isAllDay || false,
       })
       .then(({ error }) => {
         if (error) {
           console.error('Error creating event:', error);
           setEvents(prev => prev.filter(e => e.id !== eventWithUUID.id));
+        } else {
+          console.log('Evento criado com sucesso com cor:', colorToSave);
         }
       });
   };
@@ -90,6 +97,11 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
     setEvents(prev => prev.map(e => e.id === event.id ? event : e));
 
     if (user) {
+      // Mapear customColor para color no banco de dados
+      const colorToSave = event.customColor || event.color || '#3B82F6';
+      
+      console.log('Atualizando evento com cor:', colorToSave);
+
       supabase
         .from('user_events')
         .update({
@@ -97,11 +109,18 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
           description: event.description,
           start_time: new Date(event.startTime).toISOString(),
           end_time: new Date(event.endTime).toISOString(),
-          color: event.color,
+          color: colorToSave,
           is_all_day: event.isAllDay || false,
         })
         .eq('id', event.id)
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .then(({ error }) => {
+          if (error) {
+            console.error('Error updating event:', error);
+          } else {
+            console.log('Evento atualizado com sucesso com cor:', colorToSave);
+          }
+        });
     }
   };
 
