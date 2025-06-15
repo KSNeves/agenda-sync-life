@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -54,11 +55,11 @@ export default function CalendarMonth({ dayNamesShort }: CalendarMonthProps) {
 
   return (
     <div className="flex-1 overflow-auto">
-      <div className="min-w-[800px]">
+      <div className="w-full">
         {/* Header dos Dias */}
         <div className="grid grid-cols-7 border-b border-border/50 bg-card/30">
           {dayNamesShort.map((dayName, index) => (
-            <div key={index} className="p-4 text-center border-r border-border/50 last:border-r-0">
+            <div key={index} className="p-2 md:p-4 text-center border-r border-border/50 last:border-r-0">
               <div className="text-xs font-medium text-muted-foreground">
                 {dayName}
               </div>
@@ -78,7 +79,7 @@ export default function CalendarMonth({ dayNamesShort }: CalendarMonthProps) {
               <div
                 key={index}
                 className={`
-                  min-h-[120px] p-2 border-r border-b border-border/20 last:border-r-0 
+                  min-h-[80px] md:min-h-[120px] p-1 md:p-2 border-r border-b border-border/20 last:border-r-0 
                   hover:bg-secondary/20 cursor-pointer transition-colors relative
                   ${isOtherMonth ? 'bg-background text-muted-foreground' : 'bg-card/10'}
                 `}
@@ -88,9 +89,9 @@ export default function CalendarMonth({ dayNamesShort }: CalendarMonthProps) {
                 <div className="flex justify-start mb-1">
                   <span 
                     className={`
-                      text-lg font-medium
+                      text-sm md:text-lg font-medium
                       ${isToday 
-                        ? 'bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center' 
+                        ? 'bg-primary text-primary-foreground w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-base' 
                         : isOtherMonth 
                           ? 'text-muted-foreground' 
                           : 'text-foreground'
@@ -102,8 +103,8 @@ export default function CalendarMonth({ dayNamesShort }: CalendarMonthProps) {
                 </div>
 
                 {/* Eventos do dia */}
-                <div className="space-y-1">
-                  {dayEvents.slice(0, 3).map(event => {
+                <div className="space-y-0.5 md:space-y-1">
+                  {dayEvents.slice(0, 2).map(event => {
                     const startTime = new Date(event.startTime);
                     const colorMap: { [key: string]: string } = {
                       blue: 'bg-blue-500',
@@ -121,7 +122,7 @@ export default function CalendarMonth({ dayNamesShort }: CalendarMonthProps) {
                       <div
                         key={event.id}
                         className={`
-                          ${bgColor} text-white text-xs p-1 rounded truncate
+                          ${bgColor} text-white text-xs p-0.5 md:p-1 rounded truncate
                           hover:opacity-80 cursor-pointer
                         `}
                         onClick={(e) => {
@@ -129,8 +130,8 @@ export default function CalendarMonth({ dayNamesShort }: CalendarMonthProps) {
                           dispatch({ type: 'OPEN_EVENT_MODAL', payload: event });
                         }}
                       >
-                        <div className="font-medium truncate">{event.title}</div>
-                        <div className="text-xs opacity-90">
+                        <div className="font-medium truncate text-xs">{event.title}</div>
+                        <div className="text-xs opacity-90 hidden md:block">
                           {startTime.toLocaleTimeString('pt-BR', { 
                             hour: '2-digit', 
                             minute: '2-digit' 
@@ -140,17 +141,17 @@ export default function CalendarMonth({ dayNamesShort }: CalendarMonthProps) {
                     );
                   })}
 
-                  {dayEvents.length > 3 && (
+                  {dayEvents.length > 2 && (
                     <div className="text-xs text-muted-foreground font-medium">
-                      +{dayEvents.length - 3} mais
+                      +{dayEvents.length - 2}
                     </div>
                   )}
                 </div>
 
                 {/* Indicador de eventos quando não há espaço */}
-                {hasEvents && dayEvents.length <= 3 && (
+                {hasEvents && dayEvents.length <= 2 && (
                   <div className="absolute bottom-1 right-1">
-                    <div className="w-2 h-2 bg-primary rounded-full"></div>
+                    <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-primary rounded-full"></div>
                   </div>
                 )}
               </div>

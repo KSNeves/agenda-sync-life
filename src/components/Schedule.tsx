@@ -363,9 +363,9 @@ export default function Schedule() {
 
         {/* Grade do Calendário */}
         <ScrollArea className="flex-1">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto md:overflow-x-visible">
             {/* Header dos Dias */}
-            <div className="grid grid-cols-8 border-b border-border/50 bg-card/30 min-w-[320px]">
+            <div className="grid grid-cols-8 border-b border-border/50 bg-card/30">
               <div className="w-8 md:w-20"></div>
               {weekDays.map((day, index) => {
                 const isToday = day.toDateString() === new Date().toDateString();
@@ -384,7 +384,7 @@ export default function Schedule() {
             </div>
 
             {/* Grade de Horários */}
-            <div className="relative min-w-[320px]">
+            <div className="relative">
               {/* Linha da hora atual */}
               {currentTimePosition !== null && (
                 <div
