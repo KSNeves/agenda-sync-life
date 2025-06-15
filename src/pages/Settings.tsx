@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ArrowLeft, Bell, Palette, Timer, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -77,18 +78,24 @@ export default function Settings({ onBack }: SettingsProps) {
     try {
       console.log('Iniciando exclusão de todos os dados...');
       
-      // Clear schedule events
+      // Clear schedule events first
       console.log('Limpando eventos da agenda...');
       await calendarData.clearEvents();
       dispatch({ type: 'CLEAR_EVENTS' });
+      
+      // Clear revision items
+      console.log('Limpando itens de revisão...');
+      await revisionsData.clearRevisions();
       
       // Clear flashcards
       console.log('Limpando flashcards...');
       await deleteAllDecks();
       
-      // Clear revision items
-      console.log('Limpando itens de revisão...');
-      await revisionsData.clearRevisions();
+      // Clear any tasks from local state
+      console.log('Limpando tarefas do estado local...');
+      // Since tasks are stored locally, we need to clear them from localStorage if they exist
+      localStorage.removeItem('tasks');
+      localStorage.removeItem('completedTasks');
       
       // Reset pomodoro settings to default
       console.log('Resetando configurações do pomodoro...');
@@ -99,6 +106,13 @@ export default function Settings({ onBack }: SettingsProps) {
         longBreakInterval: 4,
         autoStartBreaks: false
       });
+      
+      // Reset notification settings
+      console.log('Resetando configurações de notificação...');
+      setNotifications(true);
+      setStudyReminders(true);
+      localStorage.removeItem('notifications');
+      localStorage.removeItem('studyReminders');
       
       toast({
         title: t('settings.allDataDeleted'),
