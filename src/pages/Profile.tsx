@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, User, Camera, Eye, EyeOff, Crown, Calendar, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,33 +11,37 @@ import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../context/SubscriptionContext';
 import { supabase } from '@/integrations/supabase/client';
-
 interface ProfileProps {
   onBack: () => void;
 }
-
 interface UserProfile {
   firstName: string;
   lastName: string;
   email: string;
   profileImage: string | null;
 }
-
-export default function Profile({ onBack }: ProfileProps) {
-  const { t } = useTranslation();
-  const { toast } = useToast();
-  const { user } = useAuth();
-  const { 
-    subscribed, 
-    planType, 
-    subscriptionEnd, 
-    trialEndDate, 
+export default function Profile({
+  onBack
+}: ProfileProps) {
+  const {
+    t
+  } = useTranslation();
+  const {
+    toast
+  } = useToast();
+  const {
+    user
+  } = useAuth();
+  const {
+    subscribed,
+    planType,
+    subscriptionEnd,
+    trialEndDate,
     isLoading,
     checkSubscription,
     createCheckout,
-    openCustomerPortal 
+    openCustomerPortal
   } = useSubscription();
-  
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -46,7 +49,6 @@ export default function Profile({ onBack }: ProfileProps) {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -55,14 +57,10 @@ export default function Profile({ onBack }: ProfileProps) {
   useEffect(() => {
     const loadProfile = async () => {
       if (!user) return;
-
       try {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-
+        const {
+          data: profile
+        } = await supabase.from('profiles').select('*').eq('id', user.id).single();
         if (profile) {
           setFirstName(profile.first_name || '');
           setLastName(profile.last_name || '');
@@ -73,7 +71,6 @@ export default function Profile({ onBack }: ProfileProps) {
         console.error('Erro ao carregar perfil:', error);
       }
     };
-
     loadProfile();
   }, [user]);
 
@@ -83,7 +80,7 @@ export default function Profile({ onBack }: ProfileProps) {
     if (urlParams.get('success') === 'true') {
       toast({
         title: "Sucesso!",
-        description: "Sua assinatura foi processada com sucesso.",
+        description: "Sua assinatura foi processada com sucesso."
       });
       // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname);
@@ -91,24 +88,22 @@ export default function Profile({ onBack }: ProfileProps) {
       toast({
         title: "Cancelado",
         description: "O processo de assinatura foi cancelado.",
-        variant: "destructive",
+        variant: "destructive"
       });
       // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, [toast]);
-
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = e => {
         setProfileImage(e.target?.result as string);
       };
       reader.readAsDataURL(file);
     }
   };
-
   const handleSaveProfile = async () => {
     if (!user) return;
 
@@ -117,7 +112,7 @@ export default function Profile({ onBack }: ProfileProps) {
       toast({
         title: "Erro",
         description: "Por favor, preencha todos os campos obrigatórios.",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
@@ -128,7 +123,7 @@ export default function Profile({ onBack }: ProfileProps) {
       toast({
         title: "Erro",
         description: "Por favor, insira um email válido.",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
@@ -139,49 +134,45 @@ export default function Profile({ onBack }: ProfileProps) {
         toast({
           title: "Erro",
           description: "Para alterar a senha, preencha todos os campos de senha.",
-          variant: "destructive",
+          variant: "destructive"
         });
         return;
       }
-
       if (newPassword !== confirmPassword) {
         toast({
-          title: "Erro", 
+          title: "Erro",
           description: "A nova senha e confirmação não coincidem.",
-          variant: "destructive",
+          variant: "destructive"
         });
         return;
       }
-
       if (newPassword.length < 6) {
         toast({
           title: "Erro",
           description: "A nova senha deve ter pelo menos 6 caracteres.",
-          variant: "destructive",
+          variant: "destructive"
         });
         return;
       }
     }
-
     try {
       // Update profile in Supabase
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
-          first_name: firstName.trim(),
-          last_name: lastName.trim(),
-          email: email.trim()
-        })
-        .eq('id', user.id);
-
+      const {
+        error: profileError
+      } = await supabase.from('profiles').update({
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        email: email.trim()
+      }).eq('id', user.id);
       if (profileError) throw profileError;
 
       // Update password if needed
       if (newPassword) {
-        const { error: passwordError } = await supabase.auth.updateUser({
+        const {
+          error: passwordError
+        } = await supabase.auth.updateUser({
           password: newPassword
         });
-
         if (passwordError) throw passwordError;
 
         // Clear password fields after successful change
@@ -192,10 +183,11 @@ export default function Profile({ onBack }: ProfileProps) {
 
       // Update email if changed
       if (email !== user.email) {
-        const { error: emailError } = await supabase.auth.updateUser({
+        const {
+          error: emailError
+        } = await supabase.auth.updateUser({
           email: email.trim()
         });
-
         if (emailError) throw emailError;
       }
 
@@ -204,28 +196,25 @@ export default function Profile({ onBack }: ProfileProps) {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         email: email.trim(),
-        profileImage: profileImage,
+        profileImage: profileImage
       };
-
       localStorage.setItem('userProfile', JSON.stringify(userProfile));
 
       // Dispatch custom event to notify other components
       window.dispatchEvent(new Event('profileUpdated'));
-
       toast({
         title: "Sucesso",
-        description: "Perfil salvo com sucesso!",
+        description: "Perfil salvo com sucesso!"
       });
     } catch (error: any) {
       console.error('Erro ao salvar perfil:', error);
       toast({
         title: "Erro",
         description: error.message || "Erro ao salvar perfil.",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
   const handleUpgrade = async (priceId: string) => {
     try {
       await createCheckout(priceId);
@@ -234,11 +223,10 @@ export default function Profile({ onBack }: ProfileProps) {
       toast({
         title: "Erro",
         description: "Erro ao processar upgrade. Tente novamente.",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
   const handleManageSubscription = async () => {
     try {
       await openCustomerPortal();
@@ -247,11 +235,10 @@ export default function Profile({ onBack }: ProfileProps) {
       toast({
         title: "Erro",
         description: "Erro ao abrir portal de gerenciamento. Tente novamente.",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
   const getDaysRemaining = () => {
     if (!trialEndDate) return 0;
     const today = new Date();
@@ -260,12 +247,10 @@ export default function Profile({ onBack }: ProfileProps) {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return Math.max(0, diffDays);
   };
-
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('pt-BR');
   };
-
   const getPlanDisplayName = () => {
     switch (planType) {
       case 'free_trial':
@@ -278,15 +263,12 @@ export default function Profile({ onBack }: ProfileProps) {
         return 'Desconhecido';
     }
   };
-
   const getPlanBadgeVariant = () => {
     if (subscribed && planType === 'premium') return 'default';
     if (planType === 'free_trial') return 'secondary';
     return 'outline';
   };
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto p-6">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
@@ -314,24 +296,16 @@ export default function Profile({ onBack }: ProfileProps) {
                   <Badge variant={getPlanBadgeVariant()}>
                     {getPlanDisplayName()}
                   </Badge>
-                  {subscribed && planType === 'premium' && (
-                    <Badge variant="default" className="bg-green-100 text-green-800">
+                  {subscribed && planType === 'premium' && <Badge variant="default" className="bg-green-100 text-green-800">
                       Ativo
-                    </Badge>
-                  )}
+                    </Badge>}
                 </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={checkSubscription}
-                  disabled={isLoading}
-                >
+                <Button variant="outline" size="sm" onClick={checkSubscription} disabled={isLoading}>
                   {isLoading ? 'Verificando...' : 'Atualizar Status'}
                 </Button>
               </div>
 
-              {planType === 'free_trial' && (
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+              {planType === 'free_trial' && <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <Calendar className="h-4 w-4 text-amber-600" />
                     <span className="font-medium text-amber-800">Período de Teste</span>
@@ -339,35 +313,25 @@ export default function Profile({ onBack }: ProfileProps) {
                   <p className="text-amber-700">
                     Restam {getDaysRemaining()} dias no seu período de teste gratuito.
                   </p>
-                  {trialEndDate && (
-                    <p className="text-sm text-amber-600 mt-1">
+                  {trialEndDate && <p className="text-sm text-amber-600 mt-1">
                       Expira em: {formatDate(trialEndDate)}
-                    </p>
-                  )}
-                </div>
-              )}
+                    </p>}
+                </div>}
 
-              {subscribed && planType === 'premium' && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              {subscribed && planType === 'premium' && <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <Crown className="h-4 w-4 text-green-600" />
                     <span className="font-medium text-green-800">Plano Premium Ativo</span>
                   </div>
-                  {subscriptionEnd && (
-                    <p className="text-green-700">
+                  {subscriptionEnd && <p className="text-green-700">
                       Próxima renovação: {formatDate(subscriptionEnd)}
-                    </p>
-                  )}
-                  {!subscriptionEnd && (
-                    <p className="text-green-700">
+                    </p>}
+                  {!subscriptionEnd && <p className="text-green-700">
                       Plano vitalício - sem data de expiração
-                    </p>
-                  )}
-                </div>
-              )}
+                    </p>}
+                </div>}
 
-              {planType === 'free' && (
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              {planType === 'free' && <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <User className="h-4 w-4 text-gray-600" />
                     <span className="font-medium text-gray-800">Plano Gratuito</span>
@@ -375,24 +339,19 @@ export default function Profile({ onBack }: ProfileProps) {
                   <p className="text-gray-700">
                     Seu período de teste expirou. Faça upgrade para acessar todos os recursos.
                   </p>
-                </div>
-              )}
+                </div>}
 
               {/* Subscription Actions */}
               <div className="space-y-3">
-                {!subscribed && (
-                  <>
+                {!subscribed && <>
                     <h4 className="font-medium">Escolha seu plano:</h4>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <Card className="relative">
                         <CardContent className="p-4 text-center">
                           <h3 className="font-semibold mb-2">Mensal</h3>
-                          <p className="text-2xl font-bold mb-2">R$ 7,99</p>
+                          <p className="text-2xl font-bold mb-2">R$ 19,90</p>
                           <p className="text-sm text-muted-foreground mb-4">por mês</p>
-                          <Button 
-                            className="w-full" 
-                            onClick={() => handleUpgrade('price_1RaE4jF5hbq3sDLKCtBPcScq')}
-                          >
+                          <Button className="w-full" onClick={() => handleUpgrade('price_1RaE4jF5hbq3sDLKCtBPcScq')}>
                             Assinar
                           </Button>
                         </CardContent>
@@ -406,10 +365,7 @@ export default function Profile({ onBack }: ProfileProps) {
                           <h3 className="font-semibold mb-2">Anual</h3>
                           <p className="text-2xl font-bold mb-2">R$ 79,99</p>
                           <p className="text-sm text-muted-foreground mb-4">por ano</p>
-                          <Button 
-                            className="w-full" 
-                            onClick={() => handleUpgrade('price_1RaE5CF5hbq3sDLKhAp6negB')}
-                          >
+                          <Button className="w-full" onClick={() => handleUpgrade('price_1RaE5CF5hbq3sDLKhAp6negB')}>
                             Assinar
                           </Button>
                         </CardContent>
@@ -420,28 +376,18 @@ export default function Profile({ onBack }: ProfileProps) {
                           <h3 className="font-semibold mb-2">Vitalício</h3>
                           <p className="text-2xl font-bold mb-2">R$ 299</p>
                           <p className="text-sm text-muted-foreground mb-4">pagamento único</p>
-                          <Button 
-                            className="w-full" 
-                            onClick={() => handleUpgrade('price_1RaE66F5hbq3sDLK5l5uKNFv')}
-                          >
+                          <Button className="w-full" onClick={() => handleUpgrade('price_1RaE66F5hbq3sDLK5l5uKNFv')}>
                             Comprar
                           </Button>
                         </CardContent>
                       </Card>
                     </div>
-                  </>
-                )}
+                  </>}
 
-                {subscribed && (
-                  <Button 
-                    variant="outline" 
-                    onClick={handleManageSubscription}
-                    className="w-full"
-                  >
+                {subscribed && <Button variant="outline" onClick={handleManageSubscription} className="w-full">
                     <CreditCard className="h-4 w-4 mr-2" />
                     Gerenciar Assinatura
-                  </Button>
-                )}
+                  </Button>}
               </div>
             </CardContent>
           </Card>
@@ -467,21 +413,10 @@ export default function Profile({ onBack }: ProfileProps) {
                       <User className="h-8 w-8" />
                     </AvatarFallback>
                   </Avatar>
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full"
-                    onClick={() => document.getElementById('profile-upload')?.click()}
-                  >
+                  <Button size="icon" variant="outline" className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full" onClick={() => document.getElementById('profile-upload')?.click()}>
                     <Camera className="h-4 w-4" />
                   </Button>
-                  <input
-                    id="profile-upload"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleImageUpload}
-                  />
+                  <input id="profile-upload" type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
                 </div>
                 <div className="text-center">
                   <p className="text-sm text-muted-foreground">
@@ -494,32 +429,16 @@ export default function Profile({ onBack }: ProfileProps) {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">{t('profile.firstName')}</Label>
-                  <Input 
-                    id="firstName" 
-                    placeholder={`Digite seu ${t('profile.firstName').toLowerCase()}`} 
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                  />
+                  <Input id="firstName" placeholder={`Digite seu ${t('profile.firstName').toLowerCase()}`} value={firstName} onChange={e => setFirstName(e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="lastName">{t('profile.lastName')}</Label>
-                  <Input 
-                    id="lastName" 
-                    placeholder={`Digite seu ${t('profile.lastName').toLowerCase()}`} 
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                  />
+                  <Input id="lastName" placeholder={`Digite seu ${t('profile.lastName').toLowerCase()}`} value={lastName} onChange={e => setLastName(e.target.value)} />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">{t('profile.email')}</Label>
-                <Input 
-                  id="email" 
-                  type="email" 
-                  placeholder={`Digite seu ${t('profile.email').toLowerCase()}`} 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
+                <Input id="email" type="email" placeholder={`Digite seu ${t('profile.email').toLowerCase()}`} value={email} onChange={e => setEmail(e.target.value)} />
               </div>
 
               {/* Password Change Section */}
@@ -529,75 +448,27 @@ export default function Profile({ onBack }: ProfileProps) {
                   <div className="space-y-2">
                     <Label htmlFor="currentPassword">Senha Atual</Label>
                     <div className="relative">
-                      <Input
-                        id="currentPassword"
-                        type={showCurrentPassword ? "text" : "password"}
-                        placeholder="Digite sua senha atual"
-                        value={currentPassword}
-                        onChange={(e) => setCurrentPassword(e.target.value)}
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-0 top-0 h-full px-3"
-                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                      >
-                        {showCurrentPassword ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
+                      <Input id="currentPassword" type={showCurrentPassword ? "text" : "password"} placeholder="Digite sua senha atual" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} />
+                      <Button type="button" variant="ghost" size="icon" className="absolute right-0 top-0 h-full px-3" onClick={() => setShowCurrentPassword(!showCurrentPassword)}>
+                        {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </Button>
                     </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="newPassword">Nova Senha</Label>
                     <div className="relative">
-                      <Input
-                        id="newPassword"
-                        type={showNewPassword ? "text" : "password"}
-                        placeholder="Digite sua nova senha"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-0 top-0 h-full px-3"
-                        onClick={() => setShowNewPassword(!showNewPassword)}
-                      >
-                        {showNewPassword ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
+                      <Input id="newPassword" type={showNewPassword ? "text" : "password"} placeholder="Digite sua nova senha" value={newPassword} onChange={e => setNewPassword(e.target.value)} />
+                      <Button type="button" variant="ghost" size="icon" className="absolute right-0 top-0 h-full px-3" onClick={() => setShowNewPassword(!showNewPassword)}>
+                        {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </Button>
                     </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="confirmPassword">Confirmar Nova Senha</Label>
                     <div className="relative">
-                      <Input
-                        id="confirmPassword"
-                        type={showConfirmPassword ? "text" : "password"}
-                        placeholder="Confirme sua nova senha"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-0 top-0 h-full px-3"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      >
-                        {showConfirmPassword ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
+                      <Input id="confirmPassword" type={showConfirmPassword ? "text" : "password"} placeholder="Confirme sua nova senha" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} />
+                      <Button type="button" variant="ghost" size="icon" className="absolute right-0 top-0 h-full px-3" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </Button>
                     </div>
                   </div>
@@ -617,6 +488,5 @@ export default function Profile({ onBack }: ProfileProps) {
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 }
