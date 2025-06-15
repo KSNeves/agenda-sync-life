@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
@@ -291,7 +290,7 @@ export default function Schedule() {
               )}
 
               {/* Container para eventos */}
-              <div className="absolute inset-0 z-10 ml-1 sm:ml-2 md:ml-20">
+              <div className="absolute inset-0 z-10 ml-8 sm:ml-10 md:ml-20">
                 {getEventsForDay(currentWeek).map(event => {
                   const position = getEventPosition(event);
                   const eventStyle = getEventStyle(event);
@@ -330,8 +329,8 @@ export default function Schedule() {
               {hours.map((hour) => (
                 <div key={hour} className="flex border-b border-border/20 h-8 sm:h-10 md:h-16">
                   {/* Coluna de Horário */}
-                  <div className="w-1 sm:w-6 md:w-20 flex items-start justify-end pr-0.5 md:pr-2 pt-0 text-muted-foreground border-r border-border/50">
-                    <span className="-mt-2 text-[6px] sm:text-[8px] md:text-sm">
+                  <div className="w-8 sm:w-10 md:w-20 flex items-start justify-end pr-1 md:pr-2 pt-0 text-muted-foreground border-r border-border/50">
+                    <span className="-mt-2 text-[8px] sm:text-[10px] md:text-sm">
                       {hour.toString().padStart(2, '0')}:00
                     </span>
                   </div>
@@ -364,8 +363,8 @@ export default function Schedule() {
         <ScrollArea className="flex-1">
           <div className="overflow-x-auto md:overflow-x-visible">
             {/* Header dos Dias */}
-            <div className="grid grid-cols-8 border-b border-border/50 bg-card/30 min-w-[200px] sm:min-w-[280px] md:min-w-[700px]">
-              <div className="w-1 sm:w-6 md:w-20"></div>
+            <div className="grid grid-cols-8 border-b border-border/50 bg-card/30 min-w-[280px] sm:min-w-[320px] md:min-w-[700px]">
+              <div className="w-8 sm:w-10 md:w-20"></div>
               {weekDays.map((day, index) => {
                 const isToday = day.toDateString() === new Date().toDateString();
                 
@@ -383,7 +382,7 @@ export default function Schedule() {
             </div>
 
             {/* Grade de Horários */}
-            <div className="relative min-w-[200px] sm:min-w-[280px] md:min-w-[700px]">
+            <div className="relative min-w-[280px] sm:min-w-[320px] md:min-w-[700px]">
               {/* Linha da hora atual */}
               {currentTimePosition !== null && (
                 <div
@@ -404,7 +403,7 @@ export default function Schedule() {
 
               {/* Container para eventos */}
               <div className="absolute inset-0 z-10 grid grid-cols-8">
-                <div className="w-1 sm:w-6 md:w-20"></div>
+                <div className="w-8 sm:w-10 md:w-20"></div>
                 {weekDays.map((day, dayIndex) => {
                   const dayEvents = getEventsForDay(day);
                   const isToday = day.toDateString() === new Date().toDateString();
@@ -452,8 +451,8 @@ export default function Schedule() {
               {hours.map((hour, hourIndex) => (
                 <div key={hour} className="grid grid-cols-8 border-b border-border/20 h-8 sm:h-10 md:h-16">
                   {/* Coluna de Horário */}
-                  <div className="w-1 sm:w-6 md:w-20 flex items-start justify-end pr-0.5 md:pr-2 pt-0 text-muted-foreground border-r border-border/50">
-                    <span className="-mt-2 text-[6px] sm:text-[8px] md:text-sm">
+                  <div className="w-8 sm:w-10 md:w-20 flex items-start justify-end pr-1 md:pr-2 pt-0 text-muted-foreground border-r border-border/50">
+                    <span className="-mt-2 text-[8px] sm:text-[10px] md:text-sm">
                       {hour.toString().padStart(2, '0')}:00
                     </span>
                   </div>
