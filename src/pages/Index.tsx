@@ -13,8 +13,6 @@ import Flashcards from '../components/Flashcards';
 import Settings from './Settings';
 import Profile from './Profile';
 import EventModal from '../components/EventModal';
-import { useSubscription } from '../hooks/useSubscription';
-import SubscriptionBlocker from '../components/SubscriptionBlocker';
 
 const Index = () => {
   const [currentView, setCurrentView] = useState('dashboard');
@@ -40,25 +38,14 @@ const Index = () => {
     }
   };
 
-  const { isBlocked, upgradeToPremium } = useSubscription();
-
-  if (isBlocked) {
-    return <SubscriptionBlocker onUpgrade={upgradeToPremium} />;
-  }
-
   return (
     <LanguageProvider>
       <AppProvider>
         <PomodoroProvider>
           <FlashcardsProvider>
-            <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+            <div className="min-h-screen bg-background">
               {currentView !== 'settings' && currentView !== 'profile' && (
-                <Navigation 
-                  activeView={currentView} 
-                  onViewChange={setCurrentView}
-                  onSettingsClick={() => setCurrentView('settings')}
-                  onProfileClick={() => setCurrentView('profile')}
-                />
+                <Navigation currentView={currentView} onViewChange={setCurrentView} />
               )}
               <main>
                 {renderCurrentView()}
