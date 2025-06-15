@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Plus, BookOpen, Clock, TrendingUp, Upload, Trash2, Lock } from 'lucide-react';
 import { Button } from '../ui/button';
@@ -11,13 +10,13 @@ import CreateDeckModal from './CreateDeckModal';
 import ImportDeckModal from './ImportDeckModal';
 import DeckView from './DeckView';
 import StudyMode from './StudyMode';
-import { useTranslation } from '../../hooks/useTranslation';
+import { useLanguage } from '../../context/LanguageContext';
 
 export default function FlashcardDashboard() {
   const { decks, deleteDeck, getDecksStats, isLoaded } = useFlashcards();
   const { subscribed, planType, trialEndDate } = useSubscription();
   const { toast } = useToast();
-  const { t } = useTranslation();
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);

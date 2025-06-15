@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { useFlashcards } from '../../context/FlashcardsContext';
 import { useSubscription } from '../../context/SubscriptionContext';
 import { useToast } from '@/components/ui/use-toast';
-import { useTranslation } from '../../hooks/useTranslation';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface CreateDeckModalProps {
   isOpen: boolean;
@@ -21,7 +21,7 @@ export default function CreateDeckModal({ isOpen, onClose }: CreateDeckModalProp
   const { createDeck } = useFlashcards();
   const { subscribed, planType, trialEndDate } = useSubscription();
   const { toast } = useToast();
-  const { t } = useTranslation();
+  const { t } = useLanguage();
 
   // Check if trial has expired
   const isTrialExpired = () => {
