@@ -1,11 +1,18 @@
-import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
-import { Task, CalendarEvent, RevisionItem } from '../types';
+import React, { createContext, useContext, useReducer, ReactNode, useEffect } from 'react';
+import { Task, CalendarEvent, RevisionItem, CalendarView } from '../types';
+import { calculateNextRevisionDate, categorizeRevision, adjustDateForNonStudyDays } from '../utils/spacedRepetition';
 import { useSupabaseCalendarEvents, useSupabaseRevisions } from '../hooks/useSupabaseData';
+import { useAuth } from './AuthContext';
 
 interface AppState {
   tasks: Task[];
   events: CalendarEvent[];
   revisionItems: RevisionItem[];
+  currentDate: Date;
+  calendarView: CalendarView;
+  selectedDate: Date;
+  isEventModalOpen: boolean;
+  selectedEvent: CalendarEvent | null;
 }
 
 type AppAction = 
@@ -14,47 +21,63 @@ type AppAction =
   | { type: 'DELETE_TASK'; payload: string }
   | { type: 'START_TASK'; payload: string }
   | { type: 'PAUSE_TASK'; payload: string }
+  | { type: 'RESUME_TASK'; payload: string }
   | { type: 'COMPLETE_TASK'; payload: string }
+  | { type: 'POSTPONE_TASK'; payload: string }
   | { type: 'UPDATE_TASK_TIMER'; payload: { id: string; elapsedTime: number } }
   | { type: 'ADD_EVENT'; payload: CalendarEvent }
   | { type: 'UPDATE_EVENT'; payload: CalendarEvent }
   | { type: 'DELETE_EVENT'; payload: string }
   | { type: 'DELETE_RECURRING_EVENTS'; payload: string }
   | { type: 'CLEAR_EVENTS' }
-  | { type: 'SET_EVENTS'; payload: CalendarEvent[] }
+  | { type: 'SET_CALENDAR_VIEW'; payload: CalendarView }
+  | { type: 'SET_SELECTED_DATE'; payload: Date }
+  | { type: 'SET_CURRENT_DATE'; payload: Date }
+  | { type: 'OPEN_EVENT_MODAL'; payload: CalendarEvent | null }
+  | { type: 'CLOSE_EVENT_MODAL' }
   | { type: 'ADD_REVISION_ITEM'; payload: RevisionItem }
   | { type: 'UPDATE_REVISION_ITEM'; payload: RevisionItem }
   | { type: 'DELETE_REVISION_ITEM'; payload: string }
-  | { type: 'SET_REVISION_ITEMS'; payload: RevisionItem[] };
+  | { type: 'CLEAR_REVISIONS' }
+  | { type: 'SET_EVENTS'; payload: CalendarEvent[] }
+  | { type: 'SET_REVISIONS'; payload: RevisionItem[] };
 
 const initialState: AppState = {
   tasks: [],
   events: [],
-  revisionItems: []
+  revisionItems: [],
+  currentDate: new Date(),
+  calendarView: 'week',
+  selectedDate: new Date(),
+  isEventModalOpen: false,
+  selectedEvent: null,
 };
 
 function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
+    case 'SET_EVENTS':
+      return { ...state, events: action.payload };
+    
+    case 'SET_REVISIONS':
+      return { ...state, revisionItems: action.payload };
+    
     case 'ADD_TASK':
-      return {
-        ...state,
-        tasks: [...state.tasks, action.payload]
-      };
-
+      return { ...state, tasks: [...state.tasks, action.payload] };
+    
     case 'UPDATE_TASK':
       return {
         ...state,
         tasks: state.tasks.map(task => 
           task.id === action.payload.id ? action.payload : task
-        )
+        ),
       };
-
+    
     case 'DELETE_TASK':
       return {
         ...state,
-        tasks: state.tasks.filter(task => task.id !== action.payload)
+        tasks: state.tasks.filter(task => task.id !== action.payload),
       };
-
+    
     case 'START_TASK':
       return {
         ...state,
@@ -62,29 +85,47 @@ function appReducer(state: AppState, action: AppAction): AppState {
           task.id === action.payload 
             ? { ...task, isRunning: true, startTime: Date.now() }
             : { ...task, isRunning: false }
-        )
+        ),
       };
-
+    
     case 'PAUSE_TASK':
       return {
         ...state,
         tasks: state.tasks.map(task => 
-          task.id === action.payload 
-            ? { ...task, isRunning: false, startTime: undefined }
-            : task
-        )
+          task.id === action.payload ? { ...task, isRunning: false } : task
+        ),
       };
-
+    
+    case 'RESUME_TASK':
+      return {
+        ...state,
+        tasks: state.tasks.map(task => 
+          task.id === action.payload 
+            ? { ...task, isRunning: true, startTime: Date.now() }
+            : { ...task, isRunning: false }
+        ),
+      };
+    
     case 'COMPLETE_TASK':
       return {
         ...state,
         tasks: state.tasks.map(task => 
           task.id === action.payload 
-            ? { ...task, completed: true, isRunning: false, startTime: undefined }
+            ? { ...task, completed: true, isRunning: false }
             : task
-        )
+        ),
       };
-
+    
+    case 'POSTPONE_TASK':
+      return {
+        ...state,
+        tasks: state.tasks.map(task => 
+          task.id === action.payload 
+            ? { ...task, postponed: true, isRunning: false }
+            : task
+        ),
+      };
+    
     case 'UPDATE_TASK_TIMER':
       return {
         ...state,
@@ -92,164 +133,169 @@ function appReducer(state: AppState, action: AppAction): AppState {
           task.id === action.payload.id 
             ? { ...task, elapsedTime: action.payload.elapsedTime }
             : task
-        )
+        ),
       };
-
-    // Event actions
-    case 'SET_EVENTS':
-      return {
-        ...state,
-        events: action.payload
-      };
-
+    
     case 'ADD_EVENT':
-      return {
-        ...state,
-        events: [...state.events, action.payload]
-      };
-
+      return { ...state, events: [...state.events, action.payload] };
+    
     case 'UPDATE_EVENT':
       return {
         ...state,
         events: state.events.map(event => 
           event.id === action.payload.id ? action.payload : event
-        )
+        ),
       };
-
+    
     case 'DELETE_EVENT':
       return {
         ...state,
-        events: state.events.filter(event => event.id !== action.payload)
+        events: state.events.filter(event => event.id !== action.payload),
       };
-
+    
     case 'DELETE_RECURRING_EVENTS':
       return {
         ...state,
-        events: state.events.filter(event => 
-          !event.id.startsWith(action.payload)
-        )
+        events: state.events.filter(event => {
+          const baseId = action.payload;
+          return event.id !== baseId && !event.id.startsWith(`${baseId}_`);
+        }),
       };
-
+    
     case 'CLEAR_EVENTS':
-      return {
-        ...state,
-        events: []
-      };
-
-    // Revision actions
-    case 'SET_REVISION_ITEMS':
-      return {
-        ...state,
-        revisionItems: action.payload
-      };
-
+      return { ...state, events: [] };
+    
+    case 'SET_CALENDAR_VIEW':
+      return { ...state, calendarView: action.payload };
+    
+    case 'SET_SELECTED_DATE':
+      return { ...state, selectedDate: action.payload };
+    
+    case 'SET_CURRENT_DATE':
+      return { ...state, currentDate: action.payload };
+    
+    case 'OPEN_EVENT_MODAL':
+      return { ...state, isEventModalOpen: true, selectedEvent: action.payload };
+    
+    case 'CLOSE_EVENT_MODAL':
+      return { ...state, isEventModalOpen: false, selectedEvent: null };
+    
     case 'ADD_REVISION_ITEM':
-      return {
-        ...state,
-        revisionItems: [...state.revisionItems, action.payload]
+      const adjustedItem = {
+        ...action.payload,
+        nextRevisionDate: adjustDateForNonStudyDays(action.payload.nextRevisionDate, action.payload.nonStudyDays)
       };
-
+      return { ...state, revisionItems: [...state.revisionItems, adjustedItem] };
+    
     case 'UPDATE_REVISION_ITEM':
       return {
         ...state,
-        revisionItems: state.revisionItems.map(item => 
-          item.id === action.payload.id ? action.payload : item
-        )
+        revisionItems: state.revisionItems.map(item => {
+          if (item.id === action.payload.id) {
+            if (action.payload.category === 'completed' && item.category !== 'completed') {
+              const newRevisionCount = item.revisionCount + 1;
+              const { nextDate, intervalDays } = calculateNextRevisionDate(newRevisionCount, item.createdAt);
+              
+              const adjustedNextDate = adjustDateForNonStudyDays(nextDate, item.nonStudyDays);
+              
+              return {
+                ...action.payload,
+                revisionCount: newRevisionCount,
+                nextRevisionDate: adjustedNextDate,
+                intervalDays,
+                completedAt: Date.now(),
+                category: 'priority',
+              };
+            }
+            
+            const updatedItem = {
+              ...action.payload,
+              nextRevisionDate: adjustDateForNonStudyDays(action.payload.nextRevisionDate, item.nonStudyDays || action.payload.nonStudyDays)
+            };
+            
+            return updatedItem;
+          }
+          return item;
+        }),
       };
-
+    
     case 'DELETE_REVISION_ITEM':
       return {
         ...state,
-        revisionItems: state.revisionItems.filter(item => item.id !== action.payload)
+        revisionItems: state.revisionItems.filter(item => item.id !== action.payload),
       };
-
+    
+    case 'CLEAR_REVISIONS':
+      return { ...state, revisionItems: [] };
+    
     default:
       return state;
   }
 }
 
-interface AppContextType {
+const AppContext = createContext<{
   state: AppState;
   dispatch: React.Dispatch<AppAction>;
-}
-
-const AppContext = createContext<AppContextType | undefined>(undefined);
+} | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
-  
-  // Hooks do Supabase
-  const { 
-    events, 
-    isLoaded: eventsLoaded, 
-    addEvent, 
-    updateEvent, 
-    deleteEvent, 
-    deleteRecurringEvents, 
-    clearEvents 
-  } = useSupabaseCalendarEvents();
-  
-  const { 
-    revisionItems, 
-    isLoaded: revisionsLoaded, 
-    addRevision, 
-    updateRevision, 
-    deleteRevision, 
-    clearRevisions 
-  } = useSupabaseRevisions();
+  const { user } = useAuth();
+  const calendarData = useSupabaseCalendarEvents();
+  const revisionsData = useSupabaseRevisions();
 
-  // Sincronizar eventos do Supabase com o estado local
+  // Sincronizar dados do Supabase com o estado local
   useEffect(() => {
-    if (eventsLoaded) {
-      dispatch({ type: 'SET_EVENTS', payload: events });
+    if (calendarData.isLoaded) {
+      dispatch({ type: 'SET_EVENTS', payload: calendarData.events });
     }
-  }, [events, eventsLoaded]);
+  }, [calendarData.events, calendarData.isLoaded]);
 
-  // Sincronizar revisões do Supabase com o estado local
   useEffect(() => {
-    if (revisionsLoaded) {
-      dispatch({ type: 'SET_REVISION_ITEMS', payload: revisionItems });
+    if (revisionsData.isLoaded) {
+      dispatch({ type: 'SET_REVISIONS', payload: revisionsData.revisionItems });
     }
-  }, [revisionItems, revisionsLoaded]);
+  }, [revisionsData.revisionItems, revisionsData.isLoaded]);
 
-  // Enhanced dispatch que sincroniza com Supabase
+  // Interceptar ações para sincronizar com Supabase
   const enhancedDispatch = async (action: AppAction) => {
-    // Primeiro atualiza o estado local
+    if (!user) {
+      dispatch(action);
+      return;
+    }
+
+    // Atualizar estado local primeiro
     dispatch(action);
 
-    // Depois sincroniza com Supabase quando necessário
-    try {
-      switch (action.type) {
-        case 'ADD_EVENT':
-          await addEvent(action.payload);
-          break;
-        case 'UPDATE_EVENT':
-          await updateEvent(action.payload);
-          break;
-        case 'DELETE_EVENT':
-          await deleteEvent(action.payload);
-          break;
-        case 'DELETE_RECURRING_EVENTS':
-          await deleteRecurringEvents(action.payload);
-          break;
-        case 'CLEAR_EVENTS':
-          await clearEvents();
-          break;
-        case 'ADD_REVISION_ITEM':
-          await addRevision(action.payload);
-          break;
-        case 'UPDATE_REVISION_ITEM':
-          await updateRevision(action.payload);
-          break;
-        case 'DELETE_REVISION_ITEM':
-          await deleteRevision(action.payload);
-          break;
-        default:
-          // Para ações que não precisam sincronizar com Supabase (tasks)
-          break;
-      }
-    } catch (error) {
-      console.error('Erro ao sincronizar com Supabase:', error);
+    // Sincronizar com Supabase baseado no tipo de ação
+    switch (action.type) {
+      case 'ADD_EVENT':
+        await calendarData.addEvent(action.payload);
+        break;
+      case 'UPDATE_EVENT':
+        await calendarData.updateEvent(action.payload);
+        break;
+      case 'DELETE_EVENT':
+        await calendarData.deleteEvent(action.payload);
+        break;
+      case 'DELETE_RECURRING_EVENTS':
+        await calendarData.deleteRecurringEvents(action.payload);
+        break;
+      case 'CLEAR_EVENTS':
+        await calendarData.clearEvents();
+        break;
+      case 'ADD_REVISION_ITEM':
+        await revisionsData.addRevision(action.payload);
+        break;
+      case 'UPDATE_REVISION_ITEM':
+        await revisionsData.updateRevision(action.payload);
+        break;
+      case 'DELETE_REVISION_ITEM':
+        await revisionsData.deleteRevision(action.payload);
+        break;
+      case 'CLEAR_REVISIONS':
+        await revisionsData.clearRevisions();
+        break;
     }
   };
 
@@ -262,7 +308,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
 export function useApp() {
   const context = useContext(AppContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useApp must be used within an AppProvider');
   }
   return context;
