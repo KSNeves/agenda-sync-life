@@ -107,10 +107,8 @@ export default function Revision() {
     return revisionItems.filter(item => categorizeRevision(item) === tab).length;
   };
 
-  const formatScheduledDate = (timestamp: number, nonStudyDays?: number[]) => {
-    // Aplicar ajuste de dias não-úteis antes de formatar
-    const adjustedTimestamp = adjustDateForNonStudyDays(timestamp, nonStudyDays);
-    const date = new Date(adjustedTimestamp);
+  const formatScheduledDate = (timestamp: number) => {
+    const date = new Date(timestamp);
     const today = new Date();
     
     if (date.toDateString() === today.toDateString()) {
@@ -134,7 +132,7 @@ export default function Revision() {
     if (item.category === 'completed') {
       return `Próxima em ${item.intervalDays * 2} dias`;
     }
-    return formatScheduledDate(item.nextRevisionDate, item.nonStudyDays);
+    return formatScheduledDate(item.nextRevisionDate);
   };
 
   return (
