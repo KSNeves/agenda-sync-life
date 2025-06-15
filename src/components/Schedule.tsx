@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
@@ -270,7 +271,7 @@ export default function Schedule() {
 
           {/* Visualização do Dia */}
           <ScrollArea className="flex-1">
-            <div className="relative min-w-[240px]">
+            <div className="relative min-w-[200px]">
               {/* Linha da hora atual */}
               {currentTimePosition !== null && (
                 <div
@@ -290,7 +291,7 @@ export default function Schedule() {
               )}
 
               {/* Container para eventos */}
-              <div className="absolute inset-0 z-10 ml-4 md:ml-20">
+              <div className="absolute inset-0 z-10 ml-3 md:ml-20">
                 {getEventsForDay(currentWeek).map(event => {
                   const position = getEventPosition(event);
                   const eventStyle = getEventStyle(event);
@@ -329,8 +330,8 @@ export default function Schedule() {
               {hours.map((hour) => (
                 <div key={hour} className="flex border-b border-border/20 h-10 md:h-16">
                   {/* Coluna de Horário */}
-                  <div className="w-4 md:w-20 flex items-start justify-end pr-0.5 md:pr-2 pt-0 text-muted-foreground border-r border-border/50">
-                    <span className="-mt-2 text-[9px] md:text-sm">
+                  <div className="w-3 md:w-20 flex items-start justify-end pr-0.5 md:pr-2 pt-0 text-muted-foreground border-r border-border/50">
+                    <span className="-mt-2 text-[8px] md:text-sm">
                       {hour.toString().padStart(2, '0')}:00
                     </span>
                   </div>
