@@ -19,13 +19,13 @@ export default function CreateDeckModal({ isOpen, onClose }: CreateDeckModalProp
   const { createDeck } = useFlashcards();
   const { t } = useTranslation();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (name.trim()) {
       console.log('🔥 Creating deck with name:', name.trim());
       
-      const newDeckId = createDeck({
+      const newDeckId = await createDeck({
         name: name.trim(),
         description: description.trim() || undefined,
       });

@@ -9,16 +9,16 @@ interface FlashcardsContextType {
   decks: Deck[];
   flashcards: Flashcard[];
   isLoaded: boolean;
-  createDeck: (deckData: { name: string; description?: string }) => string;
-  deleteDeck: (deckId: string) => void;
-  deleteAllDecks: () => void;
+  createDeck: (deckData: { name: string; description?: string }) => Promise<string>;
+  deleteDeck: (deckId: string) => Promise<void>;
+  deleteAllDecks: () => Promise<void>;
   getDeck: (deckId: string) => Deck | undefined;
-  addCard: (deckId: string, cardData: { front: string; back: string }) => void;
-  deleteCard: (cardId: string) => void;
+  addCard: (deckId: string, cardData: { front: string; back: string }) => Promise<void>;
+  deleteCard: (cardId: string) => Promise<void>;
   getCardsFromDeck: (deckId: string) => Flashcard[];
-  reviewCard: (cardId: string, response: 'again' | 'hard' | 'good' | 'easy') => void;
+  reviewCard: (cardId: string, response: 'again' | 'hard' | 'good' | 'easy') => Promise<void>;
   getDueCards: (deckId: string) => Flashcard[];
-  restartStudies: (deckId: string) => void;
+  restartStudies: (deckId: string) => Promise<void>;
   getDecksStats: () => { totalDecks: number; totalCards: number; cardsToReview: number };
 }
 
