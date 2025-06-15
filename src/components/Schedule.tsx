@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
@@ -124,7 +125,7 @@ export default function Schedule() {
     const startMinutes = startTime.getHours() * 60 + startTime.getMinutes();
     const endMinutes = endTime.getHours() * 60 + endTime.getMinutes();
     const dayStartMinutes = 5 * 60; // 5:00 em minutos
-    const hourHeightPx = 48; // Reduzido de 64 para 48 pixels para mobile
+    const hourHeightPx = 40; // Reduzido para 40 pixels para mobile
     
     // Calcular posição em pixels
     const topPx = ((startMinutes - dayStartMinutes) / 60) * hourHeightPx;
@@ -142,7 +143,7 @@ export default function Schedule() {
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
     const dayStartMinutes = 5 * 60; // 5:00 em minutos
     const dayEndMinutes = 23 * 60; // 23:00 em minutos
-    const hourHeightPx = 48; // Reduzido de 64 para 48 pixels para mobile
+    const hourHeightPx = 40; // Reduzido para 40 pixels para mobile
     
     // Só mostrar a linha se estiver dentro do horário visível
     if (currentMinutes < dayStartMinutes || currentMinutes > dayEndMinutes) {
@@ -290,7 +291,7 @@ export default function Schedule() {
               )}
 
               {/* Container para eventos */}
-              <div className="absolute inset-0 z-10 ml-8 md:ml-20">
+              <div className="absolute inset-0 z-10 ml-6 md:ml-20">
                 {getEventsForDay(currentWeek).map(event => {
                   const position = getEventPosition(event);
                   const eventStyle = getEventStyle(event);
@@ -327,9 +328,9 @@ export default function Schedule() {
 
               {/* Grade de linhas de hora */}
               {hours.map((hour) => (
-                <div key={hour} className="flex border-b border-border/20 h-12 md:h-16">
+                <div key={hour} className="flex border-b border-border/20 h-10 md:h-16">
                   {/* Coluna de Horário */}
-                  <div className="w-8 md:w-20 flex items-start justify-end pr-1 md:pr-2 pt-0 text-xs md:text-sm text-muted-foreground border-r border-border/50">
+                  <div className="w-6 md:w-20 flex items-start justify-end pr-1 md:pr-2 pt-0 text-xs md:text-sm text-muted-foreground border-r border-border/50">
                     <span className="-mt-2 text-xs md:text-sm">
                       {hour.toString().padStart(2, '0')}:00
                     </span>
@@ -364,8 +365,8 @@ export default function Schedule() {
         <ScrollArea className="flex-1">
           <div className="overflow-x-auto md:overflow-x-visible">
             {/* Header dos Dias */}
-            <div className="grid grid-cols-8 border-b border-border/50 bg-card/30 min-w-[700px]">
-              <div className="w-8 md:w-20"></div>
+            <div className="grid grid-cols-8 border-b border-border/50 bg-card/30 min-w-[280px] md:min-w-[700px]">
+              <div className="w-6 md:w-20"></div>
               {weekDays.map((day, index) => {
                 const isToday = day.toDateString() === new Date().toDateString();
                 
@@ -383,7 +384,7 @@ export default function Schedule() {
             </div>
 
             {/* Grade de Horários */}
-            <div className="relative min-w-[700px]">
+            <div className="relative min-w-[280px] md:min-w-[700px]">
               {/* Linha da hora atual */}
               {currentTimePosition !== null && (
                 <div
@@ -404,7 +405,7 @@ export default function Schedule() {
 
               {/* Container para eventos */}
               <div className="absolute inset-0 z-10 grid grid-cols-8">
-                <div className="w-8 md:w-20"></div>
+                <div className="w-6 md:w-20"></div>
                 {weekDays.map((day, dayIndex) => {
                   const dayEvents = getEventsForDay(day);
                   const isToday = day.toDateString() === new Date().toDateString();
@@ -450,9 +451,9 @@ export default function Schedule() {
 
               {/* Grade de linhas de hora */}
               {hours.map((hour, hourIndex) => (
-                <div key={hour} className="grid grid-cols-8 border-b border-border/20 h-12 md:h-16">
+                <div key={hour} className="grid grid-cols-8 border-b border-border/20 h-10 md:h-16">
                   {/* Coluna de Horário */}
-                  <div className="w-8 md:w-20 flex items-start justify-end pr-1 md:pr-2 pt-0 text-xs md:text-sm text-muted-foreground border-r border-border/50">
+                  <div className="w-6 md:w-20 flex items-start justify-end pr-1 md:pr-2 pt-0 text-xs md:text-sm text-muted-foreground border-r border-border/50">
                     <span className="-mt-2 text-xs md:text-sm">
                       {hour.toString().padStart(2, '0')}:00
                     </span>
