@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { CalendarEvent, RevisionItem } from '../types';
@@ -17,7 +18,7 @@ const eventColors = [
 ];
 
 export default function EventModal() {
-  const { state, dispatch } = useApp();
+  const { state, dispatch, addEvent, updateEvent, deleteEvent, addRevisionItem } = useApp();
   const { t } = useTranslation();
   const { isEventModalOpen, selectedEvent } = state;
 
@@ -98,7 +99,7 @@ export default function EventModal() {
   }, [selectedEvent, state.selectedDate]);
 
   // Função para criar eventos recorrentes
-  const createRecurringEvents = (baseEvent: CalendarEvent) => {
+  const createRecurringEvents = async (baseEvent: CalendarEvent) => {
     const events: CalendarEvent[] = [baseEvent];
     const startDate = new Date(baseEvent.startTime);
     const endDate = new Date(baseEvent.endTime);
@@ -187,11 +188,16 @@ export default function EventModal() {
       }
     }
 
-    return events;
+    // Adicionar todos os eventos ao Supabase
+    for (const event of events) {
+      await addEvent(event);
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    const eventColor = eventColors.find(color => color.value === formData.customColor)?.preview || '#3b82f6';
     
     const eventData: CalendarEvent = {
       id: selectedEvent?.id || Date.now().toString(),
@@ -202,21 +208,18 @@ export default function EventModal() {
       type: formData.type,
       location: formData.location,
       professor: formData.professor,
-      customColor: formData.customColor,
+      color: eventColor,
       recurrence: formData.recurrence.type !== 'none' ? formData.recurrence : undefined,
     };
 
     if (selectedEvent) {
-      dispatch({ type: 'UPDATE_EVENT', payload: eventData });
+      await updateEvent(eventData);
     } else {
       if (formData.recurrence.type !== 'none') {
         // Criar eventos recorrentes
-        const recurringEvents = createRecurringEvents(eventData);
-        recurringEvents.forEach(event => {
-          dispatch({ type: 'ADD_EVENT', payload: event });
-        });
+        await createRecurringEvents(eventData);
       } else {
-        dispatch({ type: 'ADD_EVENT', payload: eventData });
+        await addEvent(eventData);
       }
     }
 
@@ -232,8 +235,7 @@ export default function EventModal() {
         formData.professor && `${t('event.professor')}: ${formData.professor}`,
       ].filter(Boolean).join('\n\n');
 
-      const revisionItem: RevisionItem = {
-        id: Date.now().toString(),
+      const revisionItem: Omit<RevisionItem, 'id'> = {
         title: `${t('revision.title')}: ${formData.title}`,
         description: revisionContent,
         category: 'pending',
@@ -243,28 +245,15 @@ export default function EventModal() {
         intervalDays: 1,
       };
 
-      dispatch({ type: 'ADD_REVISION_ITEM', payload: revisionItem });
+      await addRevisionItem(revisionItem);
     }
 
     handleClose();
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (selectedEvent) {
-      // Verificar se é um evento recorrente
-      if (selectedEvent.recurrence && selectedEvent.recurrence.type !== 'none') {
-        // Excluir todos os eventos relacionados
-        const baseId = selectedEvent.id.split('_')[0];
-        dispatch({ type: 'DELETE_RECURRING_EVENTS', payload: baseId });
-      } else {
-        // Verificar se faz parte de uma série recorrente (ID contém underscore)
-        if (selectedEvent.id.includes('_')) {
-          const baseId = selectedEvent.id.split('_')[0];
-          dispatch({ type: 'DELETE_RECURRING_EVENTS', payload: baseId });
-        } else {
-          dispatch({ type: 'DELETE_EVENT', payload: selectedEvent.id });
-        }
-      }
+      await deleteEvent(selectedEvent.id);
       handleClose();
     }
   };
@@ -469,7 +458,7 @@ export default function EventModal() {
                 onClick={handleDelete}
                 className="delete-button"
               >
-                {selectedEvent.recurrence?.type !== 'none' || selectedEvent.id.includes('_') ? t('event.deleteSeries') : t('event.delete')}
+                {t('event.delete')}
               </button>
             )}
             <div className="flex gap-2">

@@ -87,14 +87,14 @@ export default function ImportDeckModal({ isOpen, onClose }: ImportDeckModalProp
       }
 
       // Criar o deck
-      const deckId = createDeck({
+      const deckId = await createDeck({
         name: deckName,
         description: `Importado de ${file.name} - ${cards.length} cards`
       });
 
       // Adicionar todos os cards ao deck
       for (const card of cards) {
-        addCard(deckId, card);
+        await addCard(deckId, card);
       }
 
       toast('Sucesso!', {
