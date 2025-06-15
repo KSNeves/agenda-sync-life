@@ -30,6 +30,12 @@ export default function Settings({ onBack }: SettingsProps) {
   const [notifications, setNotifications] = useState(true);
   const [studyReminders, setStudyReminders] = useState(true);
 
+  const languageOptions = [
+    { value: 'en', label: 'English' },
+    { value: 'es', label: 'Español' },
+    { value: 'pt', label: 'Português' },
+  ];
+
   // Generate time options in 5-minute intervals
   const generateTimeOptions = (min: number, max: number) => {
     const options = [];
