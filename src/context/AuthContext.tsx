@@ -86,7 +86,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (error) {
       console.error('Signin error:', error);
-      toast.error(error.message);
+      
+      // Handle email not confirmed error specifically
+      if (error.message === 'Email not confirmed') {
+        toast.error('Por favor, confirme seu email antes de fazer login. Verifique sua caixa de entrada.');
+      } else {
+        toast.error(error.message);
+      }
+      
       setLoading(false);
       return { error };
     }

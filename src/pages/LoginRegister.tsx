@@ -28,6 +28,7 @@ function LoginRegisterContent() {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
+      console.log('User is authenticated, redirecting to dashboard...');
       navigate('/', { replace: true });
     }
   }, [isAuthenticated, navigate]);
@@ -46,8 +47,10 @@ function LoginRegisterContent() {
     }
 
     if (isLogin) {
+      console.log('Attempting to sign in...');
       const { error } = await signIn(email, password);
       if (!error) {
+        console.log('Sign in successful, navigating to dashboard...');
         navigate('/', { replace: true });
       }
     } else {
@@ -188,6 +191,13 @@ function LoginRegisterContent() {
               >
                 {t('auth.clickHere')}
               </button>
+            </p>
+          </div>
+
+          {/* Email confirmation notice */}
+          <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+            <p className="text-xs text-blue-700 dark:text-blue-300 text-center">
+              💡 Dica: Se você já tem uma conta mas não consegue entrar, verifique seu email para confirmar a conta primeiro.
             </p>
           </div>
         </CardContent>
