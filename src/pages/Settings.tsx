@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ArrowLeft, Bell, Palette, Timer, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -32,12 +31,6 @@ export default function Settings({ onBack }: SettingsProps) {
   const [notifications, setNotifications] = useState(true);
   const [studyReminders, setStudyReminders] = useState(true);
 
-  const languageOptions = [
-    { value: 'en', label: 'English' },
-    { value: 'es', label: 'Español' },
-    { value: 'pt', label: 'Português' },
-  ];
-
   // Generate time options in 5-minute intervals
   const generateTimeOptions = (min: number, max: number) => {
     const options = [];
@@ -51,14 +44,27 @@ export default function Settings({ onBack }: SettingsProps) {
   const shortBreakOptions = generateTimeOptions(5, 30); // 5 to 30 minutes
   const longBreakOptions = generateTimeOptions(5, 60); // 5 to 60 minutes
 
+  const languageOptions = [
+    { value: 'en', label: 'English' },
+    { value: 'es', label: 'Español' },
+    { value: 'pt', label: 'Português' },
+  ];
+
   const handleDeleteSchedule = async () => {
     try {
+      console.log('Iniciando exclusão da agenda...');
       await calendarData.clearEvents();
+      
+      // Também limpar eventos do estado local
+      dispatch({ type: 'CLEAR_EVENTS' });
+      
       toast({
         title: t('settings.scheduleDeleted'),
         description: t('settings.deleteSchedule.desc'),
       });
+      console.log('Agenda excluída com sucesso');
     } catch (error) {
+      console.error('Erro ao deletar agenda:', error);
       toast({
         title: "Erro",
         description: "Erro ao deletar agenda.",
@@ -69,16 +75,23 @@ export default function Settings({ onBack }: SettingsProps) {
 
   const handleDeleteAllData = async () => {
     try {
+      console.log('Iniciando exclusão de todos os dados...');
+      
       // Clear schedule events
+      console.log('Limpando eventos da agenda...');
       await calendarData.clearEvents();
+      dispatch({ type: 'CLEAR_EVENTS' });
       
       // Clear flashcards
+      console.log('Limpando flashcards...');
       await deleteAllDecks();
       
       // Clear revision items
+      console.log('Limpando itens de revisão...');
       await revisionsData.clearRevisions();
       
       // Reset pomodoro settings to default
+      console.log('Resetando configurações do pomodoro...');
       updateSettings({
         focusTime: 25,
         shortBreak: 5,
@@ -92,7 +105,9 @@ export default function Settings({ onBack }: SettingsProps) {
         description: t('settings.deleteAllData.desc'),
         variant: "destructive"
       });
+      console.log('Todos os dados foram excluídos com sucesso');
     } catch (error) {
+      console.error('Erro ao deletar todos os dados:', error);
       toast({
         title: "Erro",
         description: "Erro ao deletar todos os dados.",
