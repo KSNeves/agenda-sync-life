@@ -41,10 +41,16 @@ export function useSubscription() {
       }
 
       if (data) {
+        // Map database plan_type to our interface, handling 'free' as 'expired'
+        let planType: 'free_trial' | 'premium' | 'expired' = data.plan_type;
+        if (data.plan_type === 'free') {
+          planType = 'expired';
+        }
+
         const sub: Subscription = {
           id: data.id,
           userId: data.user_id,
-          planType: data.plan_type,
+          planType: planType,
           trialStartDate: data.trial_start_date,
           trialEndDate: data.trial_end_date,
           isActive: data.is_active,

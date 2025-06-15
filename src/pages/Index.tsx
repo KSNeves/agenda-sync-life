@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { AppProvider } from '../context/AppContext';
 import { PomodoroProvider } from '../context/PomodoroContext';
@@ -52,7 +53,12 @@ const Index = () => {
           <FlashcardsProvider>
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
               {currentView !== 'settings' && currentView !== 'profile' && (
-                <Navigation currentView={currentView} onViewChange={setCurrentView} />
+                <Navigation 
+                  activeView={currentView} 
+                  onViewChange={setCurrentView}
+                  onSettingsClick={() => setCurrentView('settings')}
+                  onProfileClick={() => setCurrentView('profile')}
+                />
               )}
               <main>
                 {renderCurrentView()}

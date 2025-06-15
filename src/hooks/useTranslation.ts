@@ -1,5 +1,4 @@
-import { useContext } from 'react';
-import { LanguageContext } from '../context/LanguageContext';
+import { useState } from 'react';
 
 interface TranslationData {
   [key: string]: string | TranslationData;
@@ -554,7 +553,7 @@ const translations: Translation = {
     flashcards: {
       title: 'Flashcards',
       addDeck: 'Agregar Deck',
-      editDeck: 'Editar Deck',
+      editDeck: 'Eliminar Deck',
       deleteDeck: 'Eliminar Deck',
       deckDetails: 'Detalles del Deck',
       name: 'Nombre',
@@ -718,7 +717,7 @@ const translations: Translation = {
 };
 
 export function useTranslation() {
-  const { language } = useContext(LanguageContext);
+  const [language] = useState('pt'); // Default to Portuguese, can be made dynamic later
 
   function t(key: string): string {
     try {
