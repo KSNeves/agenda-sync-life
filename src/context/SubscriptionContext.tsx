@@ -92,8 +92,8 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       
       let stripeData = null;
       try {
-        const result = await Promise.race([stripeCheckPromise, timeoutPromise]);
-        stripeData = result.data;
+        const result = await Promise.race([stripeCheckPromise, timeoutPromise]) as any;
+        stripeData = result?.data;
       } catch (error) {
         console.error('Error checking Stripe subscription (using fallback):', error);
         // Continue with trial/local data if Stripe check fails
