@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useSupabaseRevisions } from '../context/SupabaseRevisionsContext';
 import { RevisionItem } from '../types';
 import { Plus, Calendar, Clock, Hash } from 'lucide-react';
-import { categorizeRevision } from '../utils/spacedRepetition';
+import { categorizeRevision, calculateNextRevisionDate, adjustDateForNonStudyDays } from '../utils/spacedRepetition';
 import CreateRevisionModal from './CreateRevisionModal';
 import ViewRevisionModal from './ViewRevisionModal';
 import { useTranslation } from '../hooks/useTranslation';
@@ -29,12 +29,36 @@ export default function Revision() {
   const filteredItems = revisionItems.filter(item => item.category === activeTab);
 
   const toggleItemCompletion = (item: RevisionItem) => {
-    const updatedItem: RevisionItem = {
-      ...item,
-      category: item.category === 'completed' ? 'pending' : 'completed',
-    };
+    if (item.category === 'completed') {
+      // Se já está completa, volta para pending
+      const updatedItem: RevisionItem = {
+        ...item,
+        category: 'pending',
+        completedAt: undefined
+      };
+      updateRevisionItem(updatedItem);
+    } else {
+      // Completa a revisão e calcula a próxima data
+      const now = Date.now();
+      const newRevisionCount = item.revisionCount + 1;
+      
+      // Calcula a próxima data de revisão usando o algoritmo de repetição espaçada
+      const { nextDate, intervalDays } = calculateNextRevisionDate(newRevisionCount, now);
+      
+      // Ajusta para dias não-úteis se especificado
+      const adjustedNextDate = adjustDateForNonStudyDays(nextDate, item.nonStudyDays);
+      
+      const updatedItem: RevisionItem = {
+        ...item,
+        category: 'priority',
+        completedAt: now,
+        revisionCount: newRevisionCount,
+        nextRevisionDate: adjustedNextDate,
+        intervalDays: intervalDays
+      };
 
-    updateRevisionItem(updatedItem);
+      updateRevisionItem(updatedItem);
+    }
   };
 
   const postponeItem = (item: RevisionItem) => {

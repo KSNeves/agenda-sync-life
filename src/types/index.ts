@@ -20,6 +20,7 @@ export interface CalendarEvent {
   type: 'class' | 'study' | 'exam' | 'personal' | 'other';
   color?: string;
   customColor?: string;
+  isAllDay?: boolean;
   recurrence?: {
     type: 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly';
     weekdays?: number[];
