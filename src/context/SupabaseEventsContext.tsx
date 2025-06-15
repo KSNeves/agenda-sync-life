@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { CalendarEvent } from '../types';
 import { supabase } from '@/integrations/supabase/client';
@@ -118,57 +119,98 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
   };
 
   const deleteRecurringEvents = async (eventId: string) => {
+    console.log('=== INICIANDO EXCLUSÃO DE SÉRIE ===');
+    console.log('EventId recebido:', eventId);
+    
+    if (!user) {
+      console.log('Usuário não autenticado');
+      return;
+    }
+
     // Identifica o baseId do evento (remove sufixos de recorrência)
     const baseId = eventId.includes('_') ? eventId.split('_')[0] : eventId;
-    
-    console.log('Deleting recurring events for baseId:', baseId);
-    
-    if (!user) return;
+    console.log('BaseId calculado:', baseId);
 
     try {
-      // Primeiro, buscar todos os eventos da série no banco de dados
-      const { data: eventsToDelete, error: fetchError } = await supabase
+      // Primeiro, listar TODOS os eventos do usuário para debug
+      const { data: allUserEvents, error: allEventsError } = await supabase
         .from('user_events')
-        .select('id')
-        .eq('user_id', user.id)
-        .or(`id.eq.${baseId},id.like.${baseId}_%`);
+        .select('id, title')
+        .eq('user_id', user.id);
 
-      if (fetchError) {
-        console.error('Error fetching events to delete:', fetchError);
+      if (allEventsError) {
+        console.error('Erro ao buscar todos os eventos:', allEventsError);
         return;
       }
 
-      console.log('Found events in database to delete:', eventsToDelete?.map(e => e.id) || []);
+      console.log('Todos os eventos do usuário no banco:', allUserEvents?.map(e => ({ id: e.id, title: e.title })) || []);
 
-      // Delete todos os eventos da série no banco de dados
-      const { error: deleteError } = await supabase
+      // Buscar eventos que começam com o baseId ou são exatamente o baseId
+      const eventsToDeleteQuery = supabase
         .from('user_events')
-        .delete()
-        .eq('user_id', user.id)
-        .or(`id.eq.${baseId},id.like.${baseId}_%`);
+        .select('id, title')
+        .eq('user_id', user.id);
 
-      if (deleteError) {
-        console.error('Error deleting recurring events:', deleteError);
+      // Usar filtro manual em JavaScript para garantir compatibilidade
+      const { data: allEvents, error: fetchAllError } = await eventsToDeleteQuery;
+
+      if (fetchAllError) {
+        console.error('Erro ao buscar eventos para filtrar:', fetchAllError);
         return;
       }
 
-      // Remove da lista local todos os eventos que correspondem ao padrão
+      // Filtrar manualmente os eventos que pertencem à série
+      const eventsToDelete = allEvents?.filter(event => 
+        event.id === baseId || event.id.startsWith(`${baseId}_`)
+      ) || [];
+
+      console.log('Eventos encontrados para deletar:', eventsToDelete.map(e => ({ id: e.id, title: e.title })));
+
+      if (eventsToDelete.length === 0) {
+        console.log('Nenhum evento encontrado para deletar');
+        return;
+      }
+
+      // Deletar cada evento individualmente para garantir que todos sejam removidos
+      const deletePromises = eventsToDelete.map(event => 
+        supabase
+          .from('user_events')
+          .delete()
+          .eq('id', event.id)
+          .eq('user_id', user.id)
+      );
+
+      const results = await Promise.all(deletePromises);
+      
+      // Verificar se houve erros
+      const errors = results.filter(result => result.error);
+      if (errors.length > 0) {
+        console.error('Erros ao deletar eventos:', errors);
+        return;
+      }
+
+      console.log('Todos os eventos deletados com sucesso do banco de dados');
+
+      // Remover da lista local todos os eventos que correspondem ao padrão
       setEvents(prev => {
         const eventsToRemove = prev.filter(event => 
           event.id === baseId || event.id.startsWith(`${baseId}_`)
         );
         
-        console.log('Removing from local state:', eventsToRemove.map(e => e.id));
+        console.log('Removendo do estado local:', eventsToRemove.map(e => ({ id: e.id, title: e.title })));
         
-        return prev.filter(event => 
+        const newEvents = prev.filter(event => 
           event.id !== baseId && !event.id.startsWith(`${baseId}_`)
         );
+        
+        console.log('Estado local após remoção - total de eventos:', newEvents.length);
+        return newEvents;
       });
 
-      console.log('Successfully deleted all recurring events for baseId:', baseId);
+      console.log('=== EXCLUSÃO DE SÉRIE CONCLUÍDA COM SUCESSO ===');
 
     } catch (error) {
-      console.error('Unexpected error deleting recurring events:', error);
+      console.error('Erro inesperado ao deletar eventos recorrentes:', error);
     }
   };
 
