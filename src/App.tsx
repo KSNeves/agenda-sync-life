@@ -7,6 +7,9 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "./context/ThemeContext";
 import { LanguageProvider } from "./context/LanguageContext";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { SupabaseEventsProvider } from "./context/SupabaseEventsContext";
+import { SupabaseRevisionsProvider } from "./context/SupabaseRevisionsContext";
+import { SupabaseFlashcardsProvider } from "./context/SupabaseFlashcardsContext";
 import Index from "./pages/Index";
 import LoginRegister from "./pages/LoginRegister";
 import NotFound from "./pages/NotFound";
@@ -49,26 +52,39 @@ function AppContent() {
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <Routes>
-              <Route path="/login" element={<LoginRegister />} />
-              <Route 
-                path="/" 
-                element={
-                  <ProtectedRoute>
-                    <Index />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/dashboard" 
-                element={
-                  <ProtectedRoute>
-                    <Index />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            {isAuthenticated ? (
+              <SupabaseEventsProvider>
+                <SupabaseRevisionsProvider>
+                  <SupabaseFlashcardsProvider>
+                    <Routes>
+                      <Route path="/login" element={<Navigate to="/" replace />} />
+                      <Route 
+                        path="/" 
+                        element={
+                          <ProtectedRoute>
+                            <Index />
+                          </ProtectedRoute>
+                        } 
+                      />
+                      <Route 
+                        path="/dashboard" 
+                        element={
+                          <ProtectedRoute>
+                            <Index />
+                          </ProtectedRoute>
+                        } 
+                      />
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </SupabaseFlashcardsProvider>
+                </SupabaseRevisionsProvider>
+              </SupabaseEventsProvider>
+            ) : (
+              <Routes>
+                <Route path="/login" element={<LoginRegister />} />
+                <Route path="*" element={<Navigate to="/login" replace />} />
+              </Routes>
+            )}
           </BrowserRouter>
         </TooltipProvider>
       </ThemeProvider>
