@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { CalendarEvent } from '../types';
 import { supabase } from '@/integrations/supabase/client';
@@ -118,47 +117,58 @@ export function SupabaseEventsProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const deleteRecurringEvents = (eventId: string) => {
+  const deleteRecurringEvents = async (eventId: string) => {
     // Identifica o baseId do evento (remove sufixos de recorrência)
     const baseId = eventId.includes('_') ? eventId.split('_')[0] : eventId;
     
     console.log('Deleting recurring events for baseId:', baseId);
     
-    // Remove todos os eventos que começam com o baseId (incluindo o próprio evento base)
-    setEvents(prev => {
-      const eventsToDelete = prev.filter(event => 
-        event.id === baseId || event.id.startsWith(`${baseId}_`)
-      );
-      
-      console.log('Events to delete:', eventsToDelete.map(e => e.id));
-      
-      return prev.filter(event => 
-        event.id !== baseId && !event.id.startsWith(`${baseId}_`)
-      );
-    });
+    if (!user) return;
 
-    if (user) {
-      // Delete no Supabase usando LIKE para pegar todos os eventos da série
-      Promise.all([
-        // Delete o evento base
-        supabase
-          .from('user_events')
-          .delete()
-          .eq('id', baseId)
-          .eq('user_id', user.id),
-        // Delete todos os eventos recorrentes
-        supabase
-          .from('user_events')
-          .delete()
-          .like('id', `${baseId}_%`)
-          .eq('user_id', user.id)
-      ]).then(results => {
-        results.forEach(({ error }, index) => {
-          if (error) {
-            console.error(`Error deleting ${index === 0 ? 'base' : 'recurring'} events:`, error);
-          }
-        });
+    try {
+      // Primeiro, buscar todos os eventos da série no banco de dados
+      const { data: eventsToDelete, error: fetchError } = await supabase
+        .from('user_events')
+        .select('id')
+        .eq('user_id', user.id)
+        .or(`id.eq.${baseId},id.like.${baseId}_%`);
+
+      if (fetchError) {
+        console.error('Error fetching events to delete:', fetchError);
+        return;
+      }
+
+      console.log('Found events in database to delete:', eventsToDelete?.map(e => e.id) || []);
+
+      // Delete todos os eventos da série no banco de dados
+      const { error: deleteError } = await supabase
+        .from('user_events')
+        .delete()
+        .eq('user_id', user.id)
+        .or(`id.eq.${baseId},id.like.${baseId}_%`);
+
+      if (deleteError) {
+        console.error('Error deleting recurring events:', deleteError);
+        return;
+      }
+
+      // Remove da lista local todos os eventos que correspondem ao padrão
+      setEvents(prev => {
+        const eventsToRemove = prev.filter(event => 
+          event.id === baseId || event.id.startsWith(`${baseId}_`)
+        );
+        
+        console.log('Removing from local state:', eventsToRemove.map(e => e.id));
+        
+        return prev.filter(event => 
+          event.id !== baseId && !event.id.startsWith(`${baseId}_`)
+        );
       });
+
+      console.log('Successfully deleted all recurring events for baseId:', baseId);
+
+    } catch (error) {
+      console.error('Unexpected error deleting recurring events:', error);
     }
   };
 
