@@ -25,7 +25,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Verificar se há uma sessão ativa
     const getSession = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -41,13 +40,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     getSession();
 
-    // Escutar mudanças na autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
         await loadUserProfile(session.user);
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
-        // Limpar dados locais antigos
         localStorage.removeItem('user');
         localStorage.removeItem('userProfile');
         window.dispatchEvent(new Event('profileUpdated'));
@@ -76,7 +73,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         setUser(userData);
         
-        // Manter compatibilidade com código existente
         localStorage.setItem('user', JSON.stringify(userData));
         localStorage.setItem('userProfile', JSON.stringify({
           firstName: userData.firstName,
@@ -96,8 +92,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true);
       
-      // Se firstName e lastName são fornecidos, é um registro
+      // Input validation
+      if (!email || !password) {
+        throw new Error('Email e senha são obrigatórios');
+      }
+      
       if (firstName && lastName) {
+        // Registration with secure redirect
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -105,7 +106,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             data: {
               first_name: firstName,
               last_name: lastName
-            }
+            },
+            emailRedirectTo: `${window.location.origin}/`
           }
         });
 
@@ -115,7 +117,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         if (data.user) {
-          // Para desenvolvimento, confirmar automaticamente o email
           return true;
         }
       } else {

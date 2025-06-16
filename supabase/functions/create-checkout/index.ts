@@ -8,10 +8,19 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Helper logging function for enhanced debugging
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
+};
+
+// Input validation
+const validatePriceId = (priceId: string): boolean => {
+  const validPriceIds = [
+    "price_1RaE4jF5hbq3sDLKCtBPcScq", // Monthly
+    "price_1RaE5CF5hbq3sDLKhAp6negB", // Annual
+    "price_1RaE66F5hbq3sDLK5l5uKNFv"  // Lifetime
+  ];
+  return validPriceIds.includes(priceId);
 };
 
 serve(async (req) => {
@@ -27,16 +36,39 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const authHeader = req.headers.get("Authorization")!;
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Authentication required" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
+    }
+
     const token = authHeader.replace("Bearer ", "");
     const { data } = await supabaseClient.auth.getUser(token);
     const user = data.user;
-    if (!user?.email) throw new Error("User not authenticated or email not available");
+    
+    if (!user?.email) {
+      return new Response(JSON.stringify({ error: "User not authenticated" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
+    }
+    
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const { priceId } = await req.json();
-    if (!priceId) throw new Error("Price ID is required");
-    logStep("Price ID received", { priceId });
+    const body = await req.json();
+    const { priceId } = body;
+    
+    // Input validation
+    if (!priceId || typeof priceId !== 'string' || !validatePriceId(priceId)) {
+      return new Response(JSON.stringify({ error: "Invalid price ID" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
+    
+    logStep("Price ID validated", { priceId });
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2023-10-16",
@@ -52,10 +84,11 @@ serve(async (req) => {
       logStep("Creating new customer");
     }
 
-    // Determine mode based on price ID
     const isLifetime = priceId === "price_1RaE66F5hbq3sDLK5l5uKNFv";
     const mode = isLifetime ? "payment" : "subscription";
     logStep("Payment mode determined", { mode, isLifetime });
+
+    const origin = req.headers.get("origin") || "https://id-preview--dbd6ed56-55cb-4c60-9222-254fd7a0549f.lovable.app";
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -67,8 +100,8 @@ serve(async (req) => {
         },
       ],
       mode: mode,
-      success_url: `${req.headers.get("origin")}/profile?success=true`,
-      cancel_url: `${req.headers.get("origin")}/profile?canceled=true`,
+      success_url: `${origin}/profile?success=true`,
+      cancel_url: `${origin}/profile?canceled=true`,
     });
 
     logStep("Checkout session created", { sessionId: session.id, url: session.url });
@@ -80,7 +113,9 @@ serve(async (req) => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR in create-checkout", { message: errorMessage });
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    
+    // Generic error message for security
+    return new Response(JSON.stringify({ error: "An error occurred processing your request" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });

@@ -25,32 +25,28 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     planType: 'free_trial',
     subscriptionEnd: null,
     trialEndDate: null,
-    isLoading: false, // Start with false to prevent initial loading
+    isLoading: false,
   });
 
   const { user, isAuthenticated } = useAuth();
-  
-  // Simple flag to prevent multiple calls
   const [checking, setChecking] = useState(false);
 
-  // Simple debug log
   const log = (message: string) => {
     console.log(`[SUBSCRIPTION] ${message}`);
   };
 
-  // Force stop loading after maximum time
+  // Force stop loading after timeout
   useEffect(() => {
     if (state.isLoading) {
       const timeout = setTimeout(() => {
         log('Force stopping loading state after timeout');
         setState(prev => ({ ...prev, isLoading: false }));
-      }, 10000); // 10 seconds max
+      }, 15000);
       
       return () => clearTimeout(timeout);
     }
   }, [state.isLoading]);
 
-  // Simplified check subscription
   const checkSubscription = async () => {
     if (!isAuthenticated || !user || checking) {
       log('Skipping check - not authenticated or already checking');
@@ -62,7 +58,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       setChecking(true);
       setState(prev => ({ ...prev, isLoading: true }));
 
-      // Get trial info from Supabase only
+      // Get trial info from Supabase
       const { data: subscription } = await supabase
         .from('subscriptions')
         .select('*')
@@ -101,7 +97,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
           });
       }
 
-      // Try Stripe check with very short timeout
+      // Try Stripe check with timeout
       let isSubscribed = false;
       let subscriptionEnd = null;
       let finalPlanType = planType;
@@ -109,7 +105,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       try {
         log('Checking Stripe subscription');
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout')), 3000) // 3 seconds only
+          setTimeout(() => reject(new Error('Timeout')), 5000)
         );
 
         const stripeCheckPromise = supabase.functions.invoke('check-subscription');
@@ -123,7 +119,6 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
         }
       } catch (error) {
         log('Stripe check failed, using local data');
-        // Continue with local data only
       }
 
       setState({
@@ -134,7 +129,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
         isLoading: false,
       });
 
-      log('Subscription check completed successfully');
+      log('Subscription check completed');
 
     } catch (error: any) {
       log(`Error in checkSubscription: ${error.message}`);
@@ -144,8 +139,12 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Create checkout session
   const createCheckout = async (priceId: string) => {
+    // Input validation
+    if (!priceId || typeof priceId !== 'string') {
+      throw new Error('Invalid price ID');
+    }
+
     try {
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { priceId }
@@ -162,7 +161,6 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Open customer portal
   const openCustomerPortal = async () => {
     try {
       const { data, error } = await supabase.functions.invoke('customer-portal');
@@ -178,7 +176,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Only check on initial auth change
+  // Check subscription on auth change
   useEffect(() => {
     if (isAuthenticated && user && !checking) {
       log('Auth state changed - checking subscription');
@@ -194,24 +192,22 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       });
       setChecking(false);
     }
-  }, [isAuthenticated, user?.id]); // Only depend on essential auth changes
+  }, [isAuthenticated, user?.id]);
 
-  // Check for checkout success URL parameter only once
+  // Handle checkout success
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('success') === 'true') {
       log('Checkout success detected');
-      // Clean URL immediately
       window.history.replaceState({}, document.title, window.location.pathname);
       
-      // Wait a bit then check subscription
       setTimeout(() => {
         if (isAuthenticated && user && !checking) {
           checkSubscription();
         }
       }, 2000);
     }
-  }, []); // Run only once
+  }, []);
 
   return (
     <SubscriptionContext.Provider value={{

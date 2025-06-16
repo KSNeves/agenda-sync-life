@@ -8,7 +8,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Helper logging function for enhanced debugging
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
@@ -19,7 +18,6 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Use service role key to bypass RLS for updates
   const supabaseClient = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
@@ -30,20 +28,32 @@ serve(async (req) => {
     logStep("Function started");
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
-    logStep("Stripe key verified");
+    if (!stripeKey) {
+      return new Response(JSON.stringify({ error: "Service temporarily unavailable" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 503,
+      });
+    }
 
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("No authorization header provided");
-    logStep("Authorization header found");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Authentication required" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
+    }
 
     const token = authHeader.replace("Bearer ", "");
-    logStep("Authenticating user with token");
-    
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError) throw new Error(`Authentication error: ${userError.message}`);
+    
+    if (userError || !userData.user?.email) {
+      return new Response(JSON.stringify({ error: "Invalid authentication" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
+    }
+    
     const user = userData.user;
-    if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
@@ -57,6 +67,7 @@ serve(async (req) => {
         plan_type: "free",
         updated_at: new Date().toISOString(),
       }, { onConflict: 'user_id' });
+      
       return new Response(JSON.stringify({ 
         subscribed: false, 
         plan_type: "free",
@@ -70,17 +81,16 @@ serve(async (req) => {
     const customerId = customers.data[0].id;
     logStep("Found Stripe customer", { customerId });
 
-    // Check for ALL subscriptions (active, canceled, past_due, etc.)
+    // Check for subscriptions with rate limiting
     const allSubscriptions = await stripe.subscriptions.list({
       customer: customerId,
-      limit: 10, // Check more subscriptions
+      limit: 10,
     });
 
     let planType = "free";
     let subscriptionEnd = null;
     let isActive = false;
 
-    // Check for active subscriptions first
     const activeSubscriptions = allSubscriptions.data.filter(sub => sub.status === "active");
     
     if (activeSubscriptions.length > 0) {
@@ -88,73 +98,38 @@ serve(async (req) => {
       subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
       isActive = true;
       
-      // Determine plan type from price
       const priceId = subscription.items.data[0].price.id;
-      if (priceId === "price_1RaE4jF5hbq3sDLKCtBPcScq") {
-        planType = "premium"; // Monthly
-      } else if (priceId === "price_1RaE5CF5hbq3sDLKhAp6negB") {
-        planType = "premium"; // Annual
+      if (priceId === "price_1RaE4jF5hbq3sDLKCtBPcScq" || priceId === "price_1RaE5CF5hbq3sDLKhAp6negB") {
+        planType = "premium";
       }
       logStep("Active subscription found", { subscriptionId: subscription.id, planType, endDate: subscriptionEnd });
     } else {
-      // Check for canceled, past_due, or unpaid subscriptions
-      const problemSubscriptions = allSubscriptions.data.filter(sub => 
-        sub.status === "canceled" || 
-        sub.status === "past_due" || 
-        sub.status === "unpaid" ||
-        sub.status === "incomplete_expired"
-      );
-
-      if (problemSubscriptions.length > 0) {
-        logStep("Found problematic subscriptions", { 
-          count: problemSubscriptions.length, 
-          statuses: problemSubscriptions.map(s => s.status) 
-        });
-        // These users should see the upgrade modal
-        planType = "free";
-        isActive = false;
-      } else {
-        // Check for lifetime payments (one-time payments)
-        const payments = await stripe.paymentIntents.list({
-          customer: customerId,
-          limit: 10,
-        });
-        
-        for (const payment of payments.data) {
-          if (payment.status === "succeeded") {
-            const charges = await stripe.charges.list({
-              payment_intent: payment.id,
-              limit: 1,
-            });
-            
-            if (charges.data.length > 0) {
-              const charge = charges.data[0];
-              // Check if this was a lifetime purchase based on amount
-              if (charge.amount === 49990) { // R$ 499,90 for lifetime
-                planType = "premium";
-                isActive = true;
-                subscriptionEnd = null; // Lifetime has no end
-                logStep("Lifetime purchase found", { paymentId: payment.id });
-                break;
-              }
-            }
-          }
-        }
-      }
+      // Check for lifetime payments
+      const payments = await stripe.paymentIntents.list({
+        customer: customerId,
+        limit: 10,
+      });
       
-      if (!isActive) {
-        logStep("No active subscription or lifetime purchase found");
+      for (const payment of payments.data) {
+        if (payment.status === "succeeded" && payment.amount === 49990) {
+          planType = "premium";
+          isActive = true;
+          subscriptionEnd = null;
+          logStep("Lifetime purchase found", { paymentId: payment.id });
+          break;
+        }
       }
     }
 
     await supabaseClient.from("subscriptions").upsert({
       user_id: user.id,
       is_active: isActive,
-      plan_type: planType,
+      plan_type: planType as any,
       updated_at: new Date().toISOString(),
     }, { onConflict: 'user_id' });
 
     logStep("Updated database with subscription info", { isActive, planType });
+    
     return new Response(JSON.stringify({
       subscribed: isActive,
       plan_type: planType,
@@ -166,7 +141,9 @@ serve(async (req) => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR in check-subscription", { message: errorMessage });
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    
+    // Generic error response for security
+    return new Response(JSON.stringify({ error: "An error occurred processing your request" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });
