@@ -99,7 +99,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       // Try Stripe check with timeout
       let isSubscribed = false;
       let subscriptionEnd = null;
-      let finalPlanType = planType;
+      let finalPlanType: 'free_trial' | 'free' | 'premium' = planType;
 
       try {
         log('Checking Stripe subscription');
