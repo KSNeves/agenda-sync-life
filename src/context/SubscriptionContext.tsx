@@ -25,71 +25,51 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     planType: 'free_trial',
     subscriptionEnd: null,
     trialEndDate: null,
-    isLoading: true,
+    isLoading: false, // Start with false to prevent initial loading
   });
 
   const { user, isAuthenticated } = useAuth();
   
-  // Controle mais rigoroso para prevenir múltiplas execuções
-  const [isCheckingInProgress, setIsCheckingInProgress] = useState(false);
-  const [lastCheckTime, setLastCheckTime] = useState(0);
+  // Simple flag to prevent multiple calls
+  const [checking, setChecking] = useState(false);
 
-  // Função de log para debug
-  const debugLog = (message: string, data?: any) => {
-    console.log(`[SUBSCRIPTION-CONTEXT] ${message}`, data ? JSON.stringify(data) : '');
+  // Simple debug log
+  const log = (message: string) => {
+    console.log(`[SUBSCRIPTION] ${message}`);
   };
 
-  // Timeout para forçar saída do loading se demorar muito
-  const forceStopLoading = () => {
-    setTimeout(() => {
-      setState(prev => {
-        if (prev.isLoading) {
-          debugLog('FORCE STOP: Loading timeout reached, stopping loading state');
-          return { ...prev, isLoading: false };
-        }
-        return prev;
-      });
-    }, 15000); // 15 segundos máximo
-  };
+  // Force stop loading after maximum time
+  useEffect(() => {
+    if (state.isLoading) {
+      const timeout = setTimeout(() => {
+        log('Force stopping loading state after timeout');
+        setState(prev => ({ ...prev, isLoading: false }));
+      }, 10000); // 10 seconds max
+      
+      return () => clearTimeout(timeout);
+    }
+  }, [state.isLoading]);
 
-  // Check subscription status com controle rigoroso
+  // Simplified check subscription
   const checkSubscription = async () => {
-    const now = Date.now();
-    
-    // Prevenir múltiplas execuções muito próximas (mínimo 3 segundos entre chamadas)
-    if (now - lastCheckTime < 3000) {
-      debugLog('BLOCKED: Check too soon after last check', { timeSince: now - lastCheckTime });
-      return;
-    }
-
-    if (!isAuthenticated || !user) {
-      debugLog('BLOCKED: User not authenticated');
-      setState(prev => ({ ...prev, isLoading: false }));
-      return;
-    }
-
-    if (isCheckingInProgress) {
-      debugLog('BLOCKED: Check already in progress');
+    if (!isAuthenticated || !user || checking) {
+      log('Skipping check - not authenticated or already checking');
       return;
     }
 
     try {
-      debugLog('STARTING subscription check', { userId: user.id });
-      setIsCheckingInProgress(true);
-      setLastCheckTime(now);
+      log('Starting subscription check');
+      setChecking(true);
       setState(prev => ({ ...prev, isLoading: true }));
 
-      // Iniciar timeout para forçar parada do loading
-      forceStopLoading();
-
-      // Get trial info from Supabase
+      // Get trial info from Supabase only
       const { data: subscription } = await supabase
         .from('subscriptions')
         .select('*')
         .eq('user_id', user.id)
         .single();
 
-      debugLog('Got subscription data from Supabase', subscription);
+      log('Got subscription data');
 
       let trialEndDate = null;
       let planType: 'free_trial' | 'free' | 'premium' = 'free_trial';
@@ -104,14 +84,12 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
         } else {
           planType = 'free';
         }
-        debugLog('Trial status determined', { planType, trialEnd: trialEnd.toISOString() });
       } else {
-        // Criar novo período de teste
+        // Create new trial period
         const newTrialEnd = new Date();
         newTrialEnd.setDate(newTrialEnd.getDate() + 7);
         trialEndDate = newTrialEnd.toISOString();
         planType = 'free_trial';
-        debugLog('Creating new trial period', { trialEndDate });
 
         await supabase
           .from('subscriptions')
@@ -123,51 +101,30 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
           });
       }
 
-      // Check Stripe subscription status com timeout reduzido
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Stripe check timeout')), 8000) // 8 segundos
-      );
-
-      const stripeCheckPromise = supabase.functions.invoke('check-subscription');
-      
-      let stripeData = null;
-      try {
-        debugLog('Calling Stripe check-subscription');
-        const result = await Promise.race([stripeCheckPromise, timeoutPromise]) as any;
-        stripeData = result?.data;
-        debugLog('Stripe check completed', stripeData);
-      } catch (error: any) {
-        debugLog('Stripe check failed (using fallback)', { error: error.message });
-        // Continue com dados locais se Stripe falhar
-      }
-
-      // Determinar estado final
-      let finalPlanType: 'free_trial' | 'free' | 'premium' = planType;
-      let subscriptionEnd = null;
+      // Try Stripe check with very short timeout
       let isSubscribed = false;
+      let subscriptionEnd = null;
+      let finalPlanType = planType;
 
-      if (stripeData?.subscribed) {
-        finalPlanType = 'premium';
-        subscriptionEnd = stripeData.subscription_end;
-        isSubscribed = true;
-        debugLog('User has active Stripe subscription');
-      } else if (planType === 'free_trial') {
-        const trialEnd = new Date(trialEndDate);
-        const currentTime = new Date();
-        if (currentTime >= trialEnd) {
-          finalPlanType = 'free';
-          debugLog('Trial period expired');
-        } else {
-          debugLog('Trial period still active');
+      try {
+        log('Checking Stripe subscription');
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout')), 3000) // 3 seconds only
+        );
+
+        const stripeCheckPromise = supabase.functions.invoke('check-subscription');
+        const result = await Promise.race([stripeCheckPromise, timeoutPromise]) as any;
+        
+        if (result?.data?.subscribed) {
+          isSubscribed = true;
+          finalPlanType = 'premium';
+          subscriptionEnd = result.data.subscription_end;
+          log('Found active Stripe subscription');
         }
+      } catch (error) {
+        log('Stripe check failed, using local data');
+        // Continue with local data only
       }
-
-      debugLog('Final subscription state', { 
-        isSubscribed, 
-        finalPlanType, 
-        subscriptionEnd, 
-        trialEndDate 
-      });
 
       setState({
         subscribed: isSubscribed,
@@ -177,12 +134,13 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
         isLoading: false,
       });
 
+      log('Subscription check completed successfully');
+
     } catch (error: any) {
-      debugLog('ERROR in checkSubscription', { error: error.message });
+      log(`Error in checkSubscription: ${error.message}`);
       setState(prev => ({ ...prev, isLoading: false }));
     } finally {
-      setIsCheckingInProgress(false);
-      debugLog('Subscription check completed');
+      setChecking(false);
     }
   };
 
@@ -220,15 +178,13 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Check subscription on auth state change - só quando necessário
+  // Only check on initial auth change
   useEffect(() => {
-    debugLog('Auth state changed', { isAuthenticated, hasUser: !!user });
-    
-    if (isAuthenticated && user && !isCheckingInProgress) {
-      debugLog('Triggering subscription check due to auth change');
+    if (isAuthenticated && user && !checking) {
+      log('Auth state changed - checking subscription');
       checkSubscription();
     } else if (!isAuthenticated) {
-      debugLog('User logged out, resetting subscription state');
+      log('User logged out - resetting state');
       setState({
         subscribed: false,
         planType: 'free_trial',
@@ -236,70 +192,26 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
         trialEndDate: null,
         isLoading: false,
       });
-      setIsCheckingInProgress(false);
-      setLastCheckTime(0);
+      setChecking(false);
     }
-  }, [isAuthenticated, user?.id]);
+  }, [isAuthenticated, user?.id]); // Only depend on essential auth changes
 
-  // Check for URL parameters (success/cancel) - apenas uma vez
+  // Check for checkout success URL parameter only once
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('success') === 'true') {
-      debugLog('Checkout success detected, cleaning URL and scheduling check');
-      
-      // Limpar parâmetros da URL imediatamente
+      log('Checkout success detected');
+      // Clean URL immediately
       window.history.replaceState({}, document.title, window.location.pathname);
       
-      // Aguardar processamento do Stripe antes de verificar (reduzido para 2 segundos)
+      // Wait a bit then check subscription
       setTimeout(() => {
-        if (isAuthenticated && user && !isCheckingInProgress) {
-          debugLog('Triggering subscription check after checkout success');
+        if (isAuthenticated && user && !checking) {
           checkSubscription();
         }
       }, 2000);
     }
-  }, []);
-
-  // Verificação periódica mais controlada - só se não estiver em loading infinito
-  useEffect(() => {
-    if (!isAuthenticated || isCheckingInProgress) return;
-
-    debugLog('Setting up periodic subscription check');
-    const interval = setInterval(() => {
-      if (!isCheckingInProgress && Date.now() - lastCheckTime > 300000 && !state.isLoading) { // 5 minutos e não em loading
-        debugLog('Periodic subscription check triggered');
-        checkSubscription();
-      }
-    }, 300000); // 5 minutos
-
-    return () => {
-      debugLog('Clearing periodic check interval');
-      clearInterval(interval);
-    };
-  }, [isAuthenticated, isCheckingInProgress, lastCheckTime, state.isLoading]);
-
-  // Verificação no foco da página - com debounce maior e controle de loading
-  useEffect(() => {
-    if (!isAuthenticated) return;
-
-    let focusTimeout: NodeJS.Timeout;
-    
-    const handleFocus = () => {
-      clearTimeout(focusTimeout);
-      focusTimeout = setTimeout(() => {
-        if (!isCheckingInProgress && Date.now() - lastCheckTime > 60000 && !state.isLoading) { // 1 minuto e não em loading
-          debugLog('Page focus check triggered');
-          checkSubscription();
-        }
-      }, 3000); // Debounce de 3 segundos
-    };
-
-    window.addEventListener('focus', handleFocus);
-    return () => {
-      window.removeEventListener('focus', handleFocus);
-      clearTimeout(focusTimeout);
-    };
-  }, [isAuthenticated, isCheckingInProgress, lastCheckTime, state.isLoading]);
+  }, []); // Run only once
 
   return (
     <SubscriptionContext.Provider value={{
