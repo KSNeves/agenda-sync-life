@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (initRef.current) return;
     initRef.current = true;
 
-    const getSession = async () => {
+    const initAuth = async () => {
       if (!mountedRef.current) return;
       
       try {
@@ -54,25 +54,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    getSession();
+    initAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mountedRef.current) return;
+      
+      console.log('Auth state change:', event, session?.user?.email);
       
       if (event === 'SIGNED_IN' && session?.user) {
         await loadUserProfile(session.user);
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
-        // Clear all storage immediately
+        // Clear storage mais agressivamente
         try {
-          localStorage.clear();
+          const keys = Object.keys(localStorage);
+          keys.forEach(key => {
+            if (key.startsWith('sb-') || key.includes('supabase') || key === 'user' || key === 'userProfile') {
+              localStorage.removeItem(key);
+            }
+          });
           sessionStorage.clear();
         } catch (error) {
           console.error('Error clearing storage:', error);
         }
-        // Dispatch events
         window.dispatchEvent(new Event('profileUpdated'));
-        window.dispatchEvent(new Event('storage'));
       }
       
       if (mountedRef.current) {
@@ -80,7 +85,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const loadUserProfile = async (supabaseUser: SupabaseUser) => {
@@ -170,66 +177,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
+      console.log('Iniciando logout...');
       setLoading(true);
       
       // Clear state immediately
       setUser(null);
       
-      // Sign out from Supabase
-      await supabase.auth.signOut();
-      
-      // Force clear all storage multiple times to ensure cleanup
+      // Clear storage first
       try {
-        localStorage.clear();
-        sessionStorage.clear();
-        
-        // Clear specific keys if localStorage.clear() doesn't work
         const keys = Object.keys(localStorage);
         keys.forEach(key => {
-          try {
+          if (key.startsWith('sb-') || key.includes('supabase') || key === 'user' || key === 'userProfile') {
             localStorage.removeItem(key);
-          } catch (e) {
-            console.warn('Failed to remove key:', key);
           }
         });
-        
-        // Clear session storage keys too
-        const sessionKeys = Object.keys(sessionStorage);
-        sessionKeys.forEach(key => {
-          try {
-            sessionStorage.removeItem(key);
-          } catch (e) {
-            console.warn('Failed to remove session key:', key);
-          }
-        });
+        sessionStorage.clear();
       } catch (error) {
         console.error('Error clearing storage:', error);
       }
       
-      // Dispatch cleanup events
+      // Sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Erro no logout:', error);
+      }
+      
+      // Dispatch events
       window.dispatchEvent(new Event('profileUpdated'));
       window.dispatchEvent(new Event('storage'));
       
-      // Force reload after a short delay to ensure clean state
-      setTimeout(() => {
-        if (mountedRef.current) {
-          window.location.href = window.location.origin;
-        }
-      }, 100);
+      console.log('Logout concluído, redirecionando...');
+      
+      // Force navigation to home and reload
+      window.location.href = window.location.origin;
       
     } catch (error) {
       console.error('Erro no logout:', error);
-      // Even if logout fails, clear local state and reload
-      setUser(null);
-      localStorage.clear();
-      sessionStorage.clear();
-      setTimeout(() => {
-        window.location.href = window.location.origin;
-      }, 100);
-    } finally {
-      if (mountedRef.current) {
-        setLoading(false);
-      }
+      // Force reload even if logout fails
+      window.location.href = window.location.origin;
     }
   };
 

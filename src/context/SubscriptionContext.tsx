@@ -31,7 +31,6 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
   const { user, isAuthenticated } = useAuth();
   const checkingRef = useRef(false);
   const mountedRef = useRef(true);
-  const initRef = useRef(false);
 
   const log = (message: string) => {
     console.log(`[SUBSCRIPTION] ${message}`);
@@ -44,11 +43,10 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  // Clear URL parameters immediately on mount to prevent issues after checkout
+  // Clear URL parameters immediately on mount
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('success') || urlParams.has('canceled')) {
-      // Clear URL parameters immediately
       const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
       window.history.replaceState({}, document.title, newUrl);
       log('Cleared checkout URL parameters');
@@ -68,18 +66,12 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
         setState(prev => ({ ...prev, isLoading: true }));
       }
 
-      // Get trial info from Supabase with shorter timeout
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Timeout')), 3000)
-      );
-
-      const subscriptionPromise = supabase
+      // Get trial info from Supabase
+      const { data: subscription } = await supabase
         .from('subscriptions')
         .select('*')
         .eq('user_id', user.id)
         .single();
-
-      const { data: subscription } = await Promise.race([subscriptionPromise, timeoutPromise]) as any;
 
       if (!mountedRef.current) return;
 
@@ -113,18 +105,18 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
           });
       }
 
-      // Try Stripe check with shorter timeout
+      // Check Stripe subscription with timeout
       let isSubscribed = false;
       let subscriptionEnd = null;
       let finalPlanType: 'free_trial' | 'free' | 'premium' = planType;
 
       try {
-        const stripeTimeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Stripe timeout')), 1500)
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Stripe timeout')), 3000)
         );
 
         const stripeCheckPromise = supabase.functions.invoke('check-subscription');
-        const result = await Promise.race([stripeCheckPromise, stripeTimeoutPromise]) as any;
+        const result = await Promise.race([stripeCheckPromise, timeoutPromise]) as any;
         
         if (result?.data?.subscribed) {
           isSubscribed = true;
@@ -132,7 +124,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
           subscriptionEnd = result.data.subscription_end;
         }
       } catch (error) {
-        log('Stripe check failed, using local data');
+        log('Stripe check failed, using local data only');
       }
 
       if (mountedRef.current) {
@@ -168,7 +160,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
 
       if (data?.url) {
-        // Open in new tab to avoid navigation issues
+        // Open in new tab
         window.open(data.url, '_blank');
       }
     } catch (error) {
@@ -192,18 +184,18 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Check subscription on auth change - only once
+  // Check subscription on auth change - only once per session
   useEffect(() => {
-    if (!initRef.current && isAuthenticated && user && !checkingRef.current && mountedRef.current) {
-      initRef.current = true;
-      // Add small delay to prevent race conditions
-      setTimeout(() => {
-        if (mountedRef.current) {
+    if (isAuthenticated && user && !checkingRef.current && mountedRef.current) {
+      // Small delay to prevent race conditions
+      const timer = setTimeout(() => {
+        if (mountedRef.current && !checkingRef.current) {
           checkSubscription();
         }
       }, 100);
+      
+      return () => clearTimeout(timer);
     } else if (!isAuthenticated && mountedRef.current) {
-      initRef.current = false;
       setState({
         subscribed: false,
         planType: 'free_trial',
