@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
@@ -23,24 +23,38 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     const getSession = async () => {
+      if (!mountedRef.current) return;
+      
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
+        if (session?.user && mountedRef.current) {
           await loadUserProfile(session.user);
         }
       } catch (error) {
         console.error('Erro ao carregar sessão:', error);
       } finally {
-        setLoading(false);
+        if (mountedRef.current) {
+          setLoading(false);
+        }
       }
     };
 
     getSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mountedRef.current) return;
+      
       if (event === 'SIGNED_IN' && session?.user) {
         await loadUserProfile(session.user);
       } else if (event === 'SIGNED_OUT') {
@@ -49,13 +63,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem('userProfile');
         window.dispatchEvent(new Event('profileUpdated'));
       }
-      setLoading(false);
+      
+      if (mountedRef.current) {
+        setLoading(false);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
   const loadUserProfile = async (supabaseUser: SupabaseUser) => {
+    if (!mountedRef.current) return;
+    
     try {
       const { data: profile } = await supabase
         .from('profiles')
@@ -63,7 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .eq('id', supabaseUser.id)
         .single();
 
-      if (profile) {
+      if (profile && mountedRef.current) {
         const userData: User = {
           id: profile.id,
           firstName: profile.first_name || 'Usuário',
@@ -139,7 +158,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error('Erro na autenticação:', error);
       return false;
     } finally {
-      setLoading(false);
+      if (mountedRef.current) {
+        setLoading(false);
+      }
     }
   };
 

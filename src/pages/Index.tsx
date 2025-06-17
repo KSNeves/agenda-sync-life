@@ -3,8 +3,6 @@ import React, { useState } from 'react';
 import { AppProvider } from '../context/AppContext';
 import { PomodoroProvider } from '../context/PomodoroContext';
 import { FlashcardsProvider } from '../context/FlashcardsContext';
-import { LanguageProvider } from '../context/LanguageContext';
-import { SubscriptionProvider } from '../context/SubscriptionContext';
 import Navigation from '../components/Navigation';
 import Dashboard from '../components/Dashboard';
 import Calendar from '../components/Calendar';
@@ -41,30 +39,26 @@ const Index = () => {
   };
 
   return (
-    <LanguageProvider>
-      <AppProvider>
-        <PomodoroProvider>
-          <FlashcardsProvider>
-            <SubscriptionProvider>
-              <div className="min-h-screen bg-background">
-                {currentView !== 'settings' && currentView !== 'profile' && (
-                  <Navigation currentView={currentView} onViewChange={setCurrentView} />
-                )}
-                {currentView !== 'settings' && currentView !== 'profile' && (
-                  <div className="max-w-6xl mx-auto px-4 py-4">
-                    <TrialBanner />
-                  </div>
-                )}
-                <main>
-                  {renderCurrentView()}
-                </main>
-                <EventModal />
+    <AppProvider>
+      <PomodoroProvider>
+        <FlashcardsProvider>
+          <div className="min-h-screen bg-background">
+            {currentView !== 'settings' && currentView !== 'profile' && (
+              <Navigation currentView={currentView} onViewChange={setCurrentView} />
+            )}
+            {currentView !== 'settings' && currentView !== 'profile' && (
+              <div className="max-w-6xl mx-auto px-4 py-4">
+                <TrialBanner />
               </div>
-            </SubscriptionProvider>
-          </FlashcardsProvider>
-        </PomodoroProvider>
-      </AppProvider>
-    </LanguageProvider>
+            )}
+            <main>
+              {renderCurrentView()}
+            </main>
+            <EventModal />
+          </div>
+        </FlashcardsProvider>
+      </PomodoroProvider>
+    </AppProvider>
   );
 };
 

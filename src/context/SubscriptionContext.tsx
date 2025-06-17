@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -28,34 +29,48 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
   });
 
   const { user, isAuthenticated } = useAuth();
-  const [checking, setChecking] = useState(false);
+  const checkingRef = useRef(false);
+  const mountedRef = useRef(true);
 
   const log = (message: string) => {
     console.log(`[SUBSCRIPTION] ${message}`);
   };
 
+  // Cleanup on unmount
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
   // Force stop loading after timeout
   useEffect(() => {
     if (state.isLoading) {
       const timeout = setTimeout(() => {
-        log('Force stopping loading state after timeout');
-        setState(prev => ({ ...prev, isLoading: false }));
-      }, 15000);
+        if (mountedRef.current) {
+          log('Force stopping loading state after timeout');
+          setState(prev => ({ ...prev, isLoading: false }));
+        }
+      }, 10000); // Reduced from 15s to 10s
       
       return () => clearTimeout(timeout);
     }
   }, [state.isLoading]);
 
-  const checkSubscription = async () => {
-    if (!isAuthenticated || !user || checking) {
-      log('Skipping check - not authenticated or already checking');
+  const checkSubscription = useCallback(async () => {
+    if (!isAuthenticated || !user || checkingRef.current || !mountedRef.current) {
+      log('Skipping check - not authenticated, already checking, or unmounted');
       return;
     }
 
     try {
       log('Starting subscription check');
-      setChecking(true);
-      setState(prev => ({ ...prev, isLoading: true }));
+      checkingRef.current = true;
+      
+      if (mountedRef.current) {
+        setState(prev => ({ ...prev, isLoading: true }));
+      }
 
       // Get trial info from Supabase
       const { data: subscription } = await supabase
@@ -63,6 +78,8 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
         .select('*')
         .eq('user_id', user.id)
         .single();
+
+      if (!mountedRef.current) return;
 
       log('Got subscription data');
 
@@ -96,7 +113,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
           });
       }
 
-      // Try Stripe check with timeout
+      // Try Stripe check with shorter timeout
       let isSubscribed = false;
       let subscriptionEnd = null;
       let finalPlanType: 'free_trial' | 'free' | 'premium' = planType;
@@ -104,7 +121,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       try {
         log('Checking Stripe subscription');
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout')), 5000)
+          setTimeout(() => reject(new Error('Timeout')), 3000) // Reduced from 5s to 3s
         );
 
         const stripeCheckPromise = supabase.functions.invoke('check-subscription');
@@ -120,23 +137,27 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
         log('Stripe check failed, using local data');
       }
 
-      setState({
-        subscribed: isSubscribed,
-        planType: finalPlanType,
-        subscriptionEnd,
-        trialEndDate,
-        isLoading: false,
-      });
+      if (mountedRef.current) {
+        setState({
+          subscribed: isSubscribed,
+          planType: finalPlanType,
+          subscriptionEnd,
+          trialEndDate,
+          isLoading: false,
+        });
+      }
 
       log('Subscription check completed');
 
     } catch (error: any) {
       log(`Error in checkSubscription: ${error.message}`);
-      setState(prev => ({ ...prev, isLoading: false }));
+      if (mountedRef.current) {
+        setState(prev => ({ ...prev, isLoading: false }));
+      }
     } finally {
-      setChecking(false);
+      checkingRef.current = false;
     }
-  };
+  }, [isAuthenticated, user?.id]);
 
   const createCheckout = async (priceId: string) => {
     // Input validation
@@ -175,12 +196,12 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Check subscription on auth change
+  // Check subscription on auth change - only once per auth state change
   useEffect(() => {
-    if (isAuthenticated && user && !checking) {
+    if (isAuthenticated && user && !checkingRef.current && mountedRef.current) {
       log('Auth state changed - checking subscription');
       checkSubscription();
-    } else if (!isAuthenticated) {
+    } else if (!isAuthenticated && mountedRef.current) {
       log('User logged out - resetting state');
       setState({
         subscribed: false,
@@ -189,24 +210,26 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
         trialEndDate: null,
         isLoading: false,
       });
-      setChecking(false);
+      checkingRef.current = false;
     }
-  }, [isAuthenticated, user?.id]);
+  }, [isAuthenticated, user?.id, checkSubscription]);
 
-  // Handle checkout success
+  // Handle checkout success - only check once
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('success') === 'true') {
+    if (urlParams.get('success') === 'true' && mountedRef.current) {
       log('Checkout success detected');
       window.history.replaceState({}, document.title, window.location.pathname);
       
-      setTimeout(() => {
-        if (isAuthenticated && user && !checking) {
+      const timeoutId = setTimeout(() => {
+        if (isAuthenticated && user && !checkingRef.current && mountedRef.current) {
           checkSubscription();
         }
       }, 2000);
+
+      return () => clearTimeout(timeoutId);
     }
-  }, []);
+  }, []); // Empty dependency array to run only once
 
   return (
     <SubscriptionContext.Provider value={{
