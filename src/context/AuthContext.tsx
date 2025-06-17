@@ -63,10 +63,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await loadUserProfile(session.user);
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
-        // Clear all local storage
-        localStorage.clear();
-        // Clear session storage
-        sessionStorage.clear();
+        // Clear all storage immediately
+        try {
+          localStorage.clear();
+          sessionStorage.clear();
+        } catch (error) {
+          console.error('Error clearing storage:', error);
+        }
         // Dispatch events
         window.dispatchEvent(new Event('profileUpdated'));
         window.dispatchEvent(new Event('storage'));
@@ -169,23 +172,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true);
       
-      // Sign out from Supabase
-      await supabase.auth.signOut();
-      
       // Clear state immediately
       setUser(null);
       
-      // Force clear all storage
-      localStorage.clear();
-      sessionStorage.clear();
+      // Sign out from Supabase
+      await supabase.auth.signOut();
       
-      // Clear any remaining auth tokens
-      const keys = Object.keys(localStorage);
-      keys.forEach(key => {
-        if (key.includes('supabase') || key.includes('auth') || key.includes('user')) {
-          localStorage.removeItem(key);
-        }
-      });
+      // Force clear all storage multiple times to ensure cleanup
+      try {
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // Clear specific keys if localStorage.clear() doesn't work
+        const keys = Object.keys(localStorage);
+        keys.forEach(key => {
+          try {
+            localStorage.removeItem(key);
+          } catch (e) {
+            console.warn('Failed to remove key:', key);
+          }
+        });
+        
+        // Clear session storage keys too
+        const sessionKeys = Object.keys(sessionStorage);
+        sessionKeys.forEach(key => {
+          try {
+            sessionStorage.removeItem(key);
+          } catch (e) {
+            console.warn('Failed to remove session key:', key);
+          }
+        });
+      } catch (error) {
+        console.error('Error clearing storage:', error);
+      }
       
       // Dispatch cleanup events
       window.dispatchEvent(new Event('profileUpdated'));
@@ -193,11 +212,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       // Force reload after a short delay to ensure clean state
       setTimeout(() => {
-        window.location.reload();
+        if (mountedRef.current) {
+          window.location.href = window.location.origin;
+        }
       }, 100);
       
     } catch (error) {
       console.error('Erro no logout:', error);
+      // Even if logout fails, clear local state and reload
+      setUser(null);
+      localStorage.clear();
+      sessionStorage.clear();
+      setTimeout(() => {
+        window.location.href = window.location.origin;
+      }, 100);
     } finally {
       if (mountedRef.current) {
         setLoading(false);

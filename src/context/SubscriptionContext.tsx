@@ -44,11 +44,14 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  // Clear URL parameters immediately on mount
+  // Clear URL parameters immediately on mount to prevent issues after checkout
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('success') === 'true' || urlParams.get('canceled') === 'true') {
-      window.history.replaceState({}, document.title, window.location.pathname);
+    if (urlParams.has('success') || urlParams.has('canceled')) {
+      // Clear URL parameters immediately
+      const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+      log('Cleared checkout URL parameters');
     }
   }, []);
 
@@ -65,9 +68,9 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
         setState(prev => ({ ...prev, isLoading: true }));
       }
 
-      // Get trial info from Supabase with timeout
+      // Get trial info from Supabase with shorter timeout
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Timeout')), 5000)
+        setTimeout(() => reject(new Error('Timeout')), 3000)
       );
 
       const subscriptionPromise = supabase
@@ -117,7 +120,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
 
       try {
         const stripeTimeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Stripe timeout')), 2000)
+          setTimeout(() => reject(new Error('Stripe timeout')), 1500)
         );
 
         const stripeCheckPromise = supabase.functions.invoke('check-subscription');
@@ -165,6 +168,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
 
       if (data?.url) {
+        // Open in new tab to avoid navigation issues
         window.open(data.url, '_blank');
       }
     } catch (error) {
@@ -192,7 +196,12 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!initRef.current && isAuthenticated && user && !checkingRef.current && mountedRef.current) {
       initRef.current = true;
-      checkSubscription();
+      // Add small delay to prevent race conditions
+      setTimeout(() => {
+        if (mountedRef.current) {
+          checkSubscription();
+        }
+      }, 100);
     } else if (!isAuthenticated && mountedRef.current) {
       initRef.current = false;
       setState({
