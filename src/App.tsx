@@ -16,11 +16,11 @@ import UpgradeModal from "./components/UpgradeModal";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: false,
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      retry: 1,
+      staleTime: 1 * 60 * 1000, // 1 minute
       refetchOnWindowFocus: false,
-      refetchOnMount: false,
-      refetchOnReconnect: false,
+      refetchOnMount: true,
+      refetchOnReconnect: true,
     },
   },
 });
@@ -28,7 +28,18 @@ const queryClient = new QueryClient({
 function AppWithSubscription() {
   const { subscribed, planType, isLoading } = useSubscription();
   
-  const shouldShowUpgradeModal = !isLoading && !subscribed && planType === 'free';
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Carregando assinatura...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const shouldShowUpgradeModal = !subscribed && planType === 'free';
 
   return (
     <>
@@ -58,25 +69,27 @@ function AppContent() {
     );
   }
 
+  if (!isAuthenticated) {
+    return (
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<LoginRegister />} />
+          <Route path="/login" element={<LoginRegister />} />
+          <Route path="*" element={<LoginRegister />} />
+        </Routes>
+      </BrowserRouter>
+    );
+  }
+
   return (
     <LanguageProvider>
       <ThemeProvider>
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          {isAuthenticated ? (
-            <SubscriptionProvider>
-              <AppWithSubscription />
-            </SubscriptionProvider>
-          ) : (
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<LoginRegister />} />
-                <Route path="/login" element={<LoginRegister />} />
-                <Route path="*" element={<LoginRegister />} />
-              </Routes>
-            </BrowserRouter>
-          )}
+          <SubscriptionProvider>
+            <AppWithSubscription />
+          </SubscriptionProvider>
         </TooltipProvider>
       </ThemeProvider>
     </LanguageProvider>

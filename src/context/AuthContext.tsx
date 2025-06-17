@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
@@ -23,41 +23,37 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const mountedRef = useRef(true);
-  const initRef = useRef(false);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    mountedRef.current = true;
-    return () => {
-      mountedRef.current = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (initRef.current) return;
-    initRef.current = true;
+    let isMounted = true;
 
     const initAuth = async () => {
-      if (!mountedRef.current) return;
+      if (!isMounted) return;
       
       try {
+        console.log('Iniciando verificação de autenticação...');
+        
         const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user && mountedRef.current) {
+        
+        if (session?.user && isMounted) {
+          console.log('Sessão encontrada, carregando perfil...');
           await loadUserProfile(session.user);
+        } else {
+          console.log('Nenhuma sessão encontrada');
         }
       } catch (error) {
         console.error('Erro ao carregar sessão:', error);
       } finally {
-        if (mountedRef.current) {
+        if (isMounted) {
           setLoading(false);
+          setInitialized(true);
         }
       }
     };
 
-    initAuth();
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!mountedRef.current) return;
+      if (!isMounted) return;
       
       console.log('Auth state change:', event, session?.user?.email);
       
@@ -65,42 +61,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await loadUserProfile(session.user);
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
-        // Clear storage mais agressivamente
-        try {
-          const keys = Object.keys(localStorage);
-          keys.forEach(key => {
-            if (key.startsWith('sb-') || key.includes('supabase') || key === 'user' || key === 'userProfile') {
-              localStorage.removeItem(key);
-            }
-          });
-          sessionStorage.clear();
-        } catch (error) {
-          console.error('Error clearing storage:', error);
-        }
-        window.dispatchEvent(new Event('profileUpdated'));
+        clearUserData();
       }
       
-      if (mountedRef.current) {
+      if (isMounted && initialized) {
         setLoading(false);
       }
     });
 
+    // Só inicializa se ainda não foi inicializado
+    if (!initialized) {
+      initAuth();
+    }
+
     return () => {
+      isMounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [initialized]);
 
   const loadUserProfile = async (supabaseUser: SupabaseUser) => {
-    if (!mountedRef.current) return;
-    
     try {
+      console.log('Carregando perfil do usuário:', supabaseUser.id);
+      
       const { data: profile } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', supabaseUser.id)
         .single();
 
-      if (profile && mountedRef.current) {
+      if (profile) {
         const userData: User = {
           id: profile.id,
           firstName: profile.first_name || 'Usuário',
@@ -110,6 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         setUser(userData);
         
+        // Armazenar dados do usuário
         localStorage.setItem('user', JSON.stringify(userData));
         localStorage.setItem('userProfile', JSON.stringify({
           firstName: userData.firstName,
@@ -119,9 +110,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }));
 
         window.dispatchEvent(new Event('profileUpdated'));
+        console.log('Perfil carregado com sucesso');
       }
     } catch (error) {
       console.error('Erro ao carregar perfil:', error);
+    }
+  };
+
+  const clearUserData = () => {
+    try {
+      // Limpar dados específicos do usuário
+      const keysToRemove = ['user', 'userProfile'];
+      keysToRemove.forEach(key => {
+        localStorage.removeItem(key);
+      });
+      
+      // Limpar dados do Supabase
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('sb-')) {
+          localStorage.removeItem(key);
+        }
+      });
+      
+      sessionStorage.clear();
+      
+      window.dispatchEvent(new Event('profileUpdated'));
+      console.log('Dados do usuário limpos');
+    } catch (error) {
+      console.error('Erro ao limpar dados:', error);
     }
   };
 
@@ -134,6 +150,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       
       if (firstName && lastName) {
+        // Registro
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -151,8 +168,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return false;
         }
 
+        console.log('Registro realizado com sucesso');
         return !!data.user;
       } else {
+        // Login
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password
@@ -163,15 +182,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return false;
         }
 
+        console.log('Login realizado com sucesso');
         return true;
       }
     } catch (error) {
       console.error('Erro na autenticação:', error);
       return false;
     } finally {
-      if (mountedRef.current) {
-        setLoading(false);
-      }
+      setLoading(false);
     }
   };
 
@@ -180,41 +198,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log('Iniciando logout...');
       setLoading(true);
       
-      // Clear state immediately
+      // Limpar estado local primeiro
       setUser(null);
+      clearUserData();
       
-      // Clear storage first
-      try {
-        const keys = Object.keys(localStorage);
-        keys.forEach(key => {
-          if (key.startsWith('sb-') || key.includes('supabase') || key === 'user' || key === 'userProfile') {
-            localStorage.removeItem(key);
-          }
-        });
-        sessionStorage.clear();
-      } catch (error) {
-        console.error('Error clearing storage:', error);
-      }
-      
-      // Sign out from Supabase
+      // Fazer logout no Supabase
       const { error } = await supabase.auth.signOut();
       if (error) {
-        console.error('Erro no logout:', error);
+        console.error('Erro no logout do Supabase:', error);
       }
-      
-      // Dispatch events
-      window.dispatchEvent(new Event('profileUpdated'));
-      window.dispatchEvent(new Event('storage'));
       
       console.log('Logout concluído, redirecionando...');
       
-      // Force navigation to home and reload
-      window.location.href = window.location.origin;
+      // Forçar recarregamento da página para garantir estado limpo
+      setTimeout(() => {
+        window.location.href = window.location.origin;
+      }, 100);
       
     } catch (error) {
       console.error('Erro no logout:', error);
-      // Force reload even if logout fails
-      window.location.href = window.location.origin;
+      // Mesmo em caso de erro, forçar redirecionamento
+      setTimeout(() => {
+        window.location.href = window.location.origin;
+      }, 100);
     }
   };
 
