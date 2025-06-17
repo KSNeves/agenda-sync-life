@@ -31,12 +31,12 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
   const { user, isAuthenticated } = useAuth();
   const checkingRef = useRef(false);
   const mountedRef = useRef(true);
+  const initRef = useRef(false);
 
   const log = (message: string) => {
     console.log(`[SUBSCRIPTION] ${message}`);
   };
 
-  // Cleanup on unmount
   useEffect(() => {
     mountedRef.current = true;
     return () => {
@@ -44,23 +44,16 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  // Force stop loading after timeout
+  // Clear URL parameters immediately on mount
   useEffect(() => {
-    if (state.isLoading) {
-      const timeout = setTimeout(() => {
-        if (mountedRef.current) {
-          log('Force stopping loading state after timeout');
-          setState(prev => ({ ...prev, isLoading: false }));
-        }
-      }, 10000); // Reduced from 15s to 10s
-      
-      return () => clearTimeout(timeout);
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('success') === 'true' || urlParams.get('canceled') === 'true') {
+      window.history.replaceState({}, document.title, window.location.pathname);
     }
-  }, [state.isLoading]);
+  }, []);
 
   const checkSubscription = useCallback(async () => {
     if (!isAuthenticated || !user || checkingRef.current || !mountedRef.current) {
-      log('Skipping check - not authenticated, already checking, or unmounted');
       return;
     }
 
@@ -72,16 +65,20 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
         setState(prev => ({ ...prev, isLoading: true }));
       }
 
-      // Get trial info from Supabase
-      const { data: subscription } = await supabase
+      // Get trial info from Supabase with timeout
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout')), 5000)
+      );
+
+      const subscriptionPromise = supabase
         .from('subscriptions')
         .select('*')
         .eq('user_id', user.id)
         .single();
 
-      if (!mountedRef.current) return;
+      const { data: subscription } = await Promise.race([subscriptionPromise, timeoutPromise]) as any;
 
-      log('Got subscription data');
+      if (!mountedRef.current) return;
 
       let trialEndDate = null;
       let planType: 'free_trial' | 'free' | 'premium' = 'free_trial';
@@ -119,19 +116,17 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       let finalPlanType: 'free_trial' | 'free' | 'premium' = planType;
 
       try {
-        log('Checking Stripe subscription');
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout')), 3000) // Reduced from 5s to 3s
+        const stripeTimeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Stripe timeout')), 2000)
         );
 
         const stripeCheckPromise = supabase.functions.invoke('check-subscription');
-        const result = await Promise.race([stripeCheckPromise, timeoutPromise]) as any;
+        const result = await Promise.race([stripeCheckPromise, stripeTimeoutPromise]) as any;
         
         if (result?.data?.subscribed) {
           isSubscribed = true;
           finalPlanType = 'premium';
           subscriptionEnd = result.data.subscription_end;
-          log('Found active Stripe subscription');
         }
       } catch (error) {
         log('Stripe check failed, using local data');
@@ -147,8 +142,6 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
         });
       }
 
-      log('Subscription check completed');
-
     } catch (error: any) {
       log(`Error in checkSubscription: ${error.message}`);
       if (mountedRef.current) {
@@ -160,7 +153,6 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
   }, [isAuthenticated, user?.id]);
 
   const createCheckout = async (priceId: string) => {
-    // Input validation
     if (!priceId || typeof priceId !== 'string') {
       throw new Error('Invalid price ID');
     }
@@ -196,13 +188,13 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Check subscription on auth change - only once per auth state change
+  // Check subscription on auth change - only once
   useEffect(() => {
-    if (isAuthenticated && user && !checkingRef.current && mountedRef.current) {
-      log('Auth state changed - checking subscription');
+    if (!initRef.current && isAuthenticated && user && !checkingRef.current && mountedRef.current) {
+      initRef.current = true;
       checkSubscription();
     } else if (!isAuthenticated && mountedRef.current) {
-      log('User logged out - resetting state');
+      initRef.current = false;
       setState({
         subscribed: false,
         planType: 'free_trial',
@@ -213,23 +205,6 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       checkingRef.current = false;
     }
   }, [isAuthenticated, user?.id, checkSubscription]);
-
-  // Handle checkout success - only check once
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('success') === 'true' && mountedRef.current) {
-      log('Checkout success detected');
-      window.history.replaceState({}, document.title, window.location.pathname);
-      
-      const timeoutId = setTimeout(() => {
-        if (isAuthenticated && user && !checkingRef.current && mountedRef.current) {
-          checkSubscription();
-        }
-      }, 2000);
-
-      return () => clearTimeout(timeoutId);
-    }
-  }, []); // Empty dependency array to run only once
 
   return (
     <SubscriptionContext.Provider value={{

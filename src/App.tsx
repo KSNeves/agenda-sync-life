@@ -13,12 +13,19 @@ import LoginRegister from "./pages/LoginRegister";
 import NotFound from "./pages/NotFound";
 import UpgradeModal from "./components/UpgradeModal";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 2,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 function AppWithSubscription() {
   const { subscribed, planType, isLoading } = useSubscription();
   
-  // Mostrar modal obrigatório se o período de teste expirou
   const shouldShowUpgradeModal = !isLoading && !subscribed && planType === 'free';
 
   return (
@@ -74,12 +81,14 @@ function AppContent() {
   );
 }
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+}
 
 export default App;

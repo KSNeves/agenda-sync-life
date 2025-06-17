@@ -24,6 +24,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const mountedRef = useRef(true);
+  const initRef = useRef(false);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -33,6 +34,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    if (initRef.current) return;
+    initRef.current = true;
+
     const getSession = async () => {
       if (!mountedRef.current) return;
       
@@ -59,9 +63,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await loadUserProfile(session.user);
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
-        localStorage.removeItem('user');
-        localStorage.removeItem('userProfile');
+        // Clear all local storage
+        localStorage.clear();
+        // Clear session storage
+        sessionStorage.clear();
+        // Dispatch events
         window.dispatchEvent(new Event('profileUpdated'));
+        window.dispatchEvent(new Event('storage'));
       }
       
       if (mountedRef.current) {
@@ -111,13 +119,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true);
       
-      // Input validation
       if (!email || !password) {
         throw new Error('Email e senha são obrigatórios');
       }
       
       if (firstName && lastName) {
-        // Registration with secure redirect
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -135,11 +141,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return false;
         }
 
-        if (data.user) {
-          return true;
-        }
+        return !!data.user;
       } else {
-        // Login
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password
@@ -152,8 +155,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         return true;
       }
-      
-      return false;
     } catch (error) {
       console.error('Erro na autenticação:', error);
       return false;
@@ -166,9 +167,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
+      setLoading(true);
+      
+      // Sign out from Supabase
       await supabase.auth.signOut();
+      
+      // Clear state immediately
+      setUser(null);
+      
+      // Force clear all storage
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Clear any remaining auth tokens
+      const keys = Object.keys(localStorage);
+      keys.forEach(key => {
+        if (key.includes('supabase') || key.includes('auth') || key.includes('user')) {
+          localStorage.removeItem(key);
+        }
+      });
+      
+      // Dispatch cleanup events
+      window.dispatchEvent(new Event('profileUpdated'));
+      window.dispatchEvent(new Event('storage'));
+      
+      // Force reload after a short delay to ensure clean state
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
+      
     } catch (error) {
       console.error('Erro no logout:', error);
+    } finally {
+      if (mountedRef.current) {
+        setLoading(false);
+      }
     }
   };
 
