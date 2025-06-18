@@ -32,18 +32,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!isMounted) return;
       
       try {
-        console.log('Iniciando verificação de autenticação...');
+        console.log('Starting auth initialization...');
         
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user && isMounted) {
-          console.log('Sessão encontrada, carregando perfil...');
+          console.log('Session found, loading profile...');
           await loadUserProfile(session.user);
         } else {
-          console.log('Nenhuma sessão encontrada');
+          console.log('No session found');
         }
       } catch (error) {
-        console.error('Erro ao carregar sessão:', error);
+        console.error('Error loading session:', error);
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -59,17 +59,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (event === 'SIGNED_IN' && session?.user) {
         await loadUserProfile(session.user);
+        setLoading(false);
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
         clearUserData();
-      }
-      
-      if (isMounted && initialized) {
         setLoading(false);
       }
     });
 
-    // Só inicializa se ainda não foi inicializado
     if (!initialized) {
       initAuth();
     }
@@ -82,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loadUserProfile = async (supabaseUser: SupabaseUser) => {
     try {
-      console.log('Carregando perfil do usuário:', supabaseUser.id);
+      console.log('Loading user profile:', supabaseUser.id);
       
       const { data: profile } = await supabase
         .from('profiles')
@@ -100,7 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         setUser(userData);
         
-        // Armazenar dados do usuário
+        // Store user data
         localStorage.setItem('user', JSON.stringify(userData));
         localStorage.setItem('userProfile', JSON.stringify({
           firstName: userData.firstName,
@@ -110,22 +107,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }));
 
         window.dispatchEvent(new Event('profileUpdated'));
-        console.log('Perfil carregado com sucesso');
+        console.log('Profile loaded successfully');
       }
     } catch (error) {
-      console.error('Erro ao carregar perfil:', error);
+      console.error('Error loading profile:', error);
     }
   };
 
   const clearUserData = () => {
     try {
-      // Limpar dados específicos do usuário
+      // Clear specific user data
       const keysToRemove = ['user', 'userProfile'];
       keysToRemove.forEach(key => {
         localStorage.removeItem(key);
       });
       
-      // Limpar dados do Supabase
+      // Clear Supabase data
       Object.keys(localStorage).forEach(key => {
         if (key.startsWith('sb-')) {
           localStorage.removeItem(key);
@@ -135,9 +132,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       sessionStorage.clear();
       
       window.dispatchEvent(new Event('profileUpdated'));
-      console.log('Dados do usuário limpos');
+      console.log('User data cleared');
     } catch (error) {
-      console.error('Erro ao limpar dados:', error);
+      console.error('Error clearing data:', error);
     }
   };
 
@@ -146,11 +143,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(true);
       
       if (!email || !password) {
-        throw new Error('Email e senha são obrigatórios');
+        throw new Error('Email and password are required');
       }
       
       if (firstName && lastName) {
-        // Registro
+        // Registration
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -164,11 +161,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
 
         if (error) {
-          console.error('Erro no registro:', error);
+          console.error('Registration error:', error);
           return false;
         }
 
-        console.log('Registro realizado com sucesso');
+        console.log('Registration successful');
         return !!data.user;
       } else {
         // Login
@@ -178,15 +175,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
 
         if (error) {
-          console.error('Erro no login:', error);
+          console.error('Login error:', error);
           return false;
         }
 
-        console.log('Login realizado com sucesso');
+        console.log('Login successful');
         return true;
       }
     } catch (error) {
-      console.error('Erro na autenticação:', error);
+      console.error('Authentication error:', error);
       return false;
     } finally {
       setLoading(false);
@@ -195,32 +192,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      console.log('Iniciando logout...');
+      console.log('Starting logout...');
       setLoading(true);
       
-      // Limpar estado local primeiro
+      // Clear local state first
       setUser(null);
       clearUserData();
       
-      // Fazer logout no Supabase
+      // Sign out from Supabase
       const { error } = await supabase.auth.signOut();
       if (error) {
-        console.error('Erro no logout do Supabase:', error);
+        console.error('Supabase logout error:', error);
       }
       
-      console.log('Logout concluído, redirecionando...');
+      console.log('Logout completed');
       
-      // Forçar recarregamento da página para garantir estado limpo
-      setTimeout(() => {
-        window.location.href = window.location.origin;
-      }, 100);
+      // Navigate to home without full page reload
+      if (window.location.pathname !== '/') {
+        window.history.pushState({}, '', '/');
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      }
       
     } catch (error) {
-      console.error('Erro no logout:', error);
-      // Mesmo em caso de erro, forçar redirecionamento
-      setTimeout(() => {
-        window.location.href = window.location.origin;
-      }, 100);
+      console.error('Logout error:', error);
+    } finally {
+      setLoading(false);
     }
   };
 

@@ -25,36 +25,49 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     planType: 'free_trial',
     subscriptionEnd: null,
     trialEndDate: null,
-    isLoading: true,
+    isLoading: false,
   });
 
   const { user, isAuthenticated } = useAuth();
-  const [hasChecked, setHasChecked] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   const log = (message: string) => {
     console.log(`[SUBSCRIPTION] ${message}`);
   };
 
-  // Limpar parâmetros da URL de checkout no início
-  useEffect(() => {
+  // Handle URL parameters from Stripe checkout
+  const handleCheckoutReturn = useCallback(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.has('success') || urlParams.has('canceled')) {
-      const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-      window.history.replaceState({}, document.title, newUrl);
-      log('Parâmetros de checkout removidos da URL');
+    const hasCheckoutParams = urlParams.has('success') || urlParams.has('canceled');
+    
+    if (hasCheckoutParams) {
+      log('Checkout return detected, cleaning URL');
+      // Clean URL without page reload
+      const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+      window.history.replaceState({}, document.title, cleanUrl);
+      
+      // If success, trigger subscription check
+      if (urlParams.get('success') === 'true') {
+        log('Checkout successful, will verify subscription');
+        // Small delay to ensure Stripe has processed
+        setTimeout(() => {
+          checkSubscription();
+        }, 2000);
+      }
     }
   }, []);
 
   const checkSubscription = useCallback(async () => {
-    if (!isAuthenticated || !user || hasChecked) {
+    if (!isAuthenticated || !user) {
+      setState(prev => ({ ...prev, isLoading: false }));
       return;
     }
 
     try {
-      log('Iniciando verificação de assinatura');
+      log('Starting subscription check');
       setState(prev => ({ ...prev, isLoading: true }));
 
-      // Buscar informações de trial do Supabase
+      // Get trial info from Supabase
       const { data: subscription } = await supabase
         .from('subscriptions')
         .select('*')
@@ -71,13 +84,13 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
         
         if (currentTime < trialEnd) {
           planType = 'free_trial';
-          log('Usuário em período de trial');
+          log('User in trial period');
         } else {
           planType = 'free';
-          log('Trial expirado, plano gratuito');
+          log('Trial expired, free plan');
         }
       } else {
-        // Criar novo período de trial
+        // Create new trial
         const newTrialEnd = new Date();
         newTrialEnd.setDate(newTrialEnd.getDate() + 7);
         trialEndDate = newTrialEnd.toISOString();
@@ -92,17 +105,17 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
             updated_at: new Date().toISOString()
           });
         
-        log('Novo trial criado');
+        log('New trial created');
       }
 
-      // Verificar assinatura Stripe com timeout reduzido
+      // Check Stripe subscription with timeout
       let isSubscribed = false;
       let subscriptionEnd = null;
       let finalPlanType: 'free_trial' | 'free' | 'premium' = planType;
 
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 segundos
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
 
         const { data: stripeData } = await supabase.functions.invoke('check-subscription', {
           headers: { 'Content-Type': 'application/json' },
@@ -114,10 +127,10 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
           isSubscribed = true;
           finalPlanType = 'premium';
           subscriptionEnd = stripeData.subscription_end;
-          log('Assinatura ativa encontrada');
+          log('Active subscription found');
         }
       } catch (error) {
-        log('Verificação Stripe falhou, usando dados locais');
+        log('Stripe check failed, using local data');
       }
 
       setState({
@@ -128,22 +141,21 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
         isLoading: false,
       });
 
-      setHasChecked(true);
-      log('Verificação de assinatura concluída');
+      log('Subscription check completed');
 
     } catch (error: any) {
-      log(`Erro na verificação: ${error.message}`);
+      log(`Error checking subscription: ${error.message}`);
       setState(prev => ({ ...prev, isLoading: false }));
     }
-  }, [isAuthenticated, user?.id, hasChecked]);
+  }, [isAuthenticated, user?.id]);
 
   const createCheckout = async (priceId: string) => {
     if (!priceId || typeof priceId !== 'string') {
-      throw new Error('ID do preço inválido');
+      throw new Error('Invalid price ID');
     }
 
     try {
-      log('Criando checkout para: ' + priceId);
+      log('Creating checkout for: ' + priceId);
       
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { priceId }
@@ -152,11 +164,11 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
 
       if (data?.url) {
-        log('Abrindo checkout em nova aba');
+        log('Opening checkout in new tab');
         window.open(data.url, '_blank');
       }
     } catch (error) {
-      console.error('Erro ao criar checkout:', error);
+      console.error('Error creating checkout:', error);
       throw error;
     }
   };
@@ -171,22 +183,28 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
         window.open(data.url, '_blank');
       }
     } catch (error) {
-      console.error('Erro ao abrir portal do cliente:', error);
+      console.error('Error opening customer portal:', error);
       throw error;
     }
   };
 
-  // Verificar assinatura quando usuário estiver autenticado
+  // Initialize subscription check
   useEffect(() => {
-    if (isAuthenticated && user && !hasChecked) {
-      // Pequeno delay para evitar condições de corrida
+    if (isAuthenticated && user && !hasInitialized) {
+      log('Initializing subscription context');
+      setHasInitialized(true);
+      
+      // Handle checkout return first
+      handleCheckoutReturn();
+      
+      // Then check subscription
       const timer = setTimeout(() => {
         checkSubscription();
       }, 500);
       
       return () => clearTimeout(timer);
     } else if (!isAuthenticated) {
-      // Resetar estado quando usuário sair
+      // Reset state when user logs out
       setState({
         subscribed: false,
         planType: 'free_trial',
@@ -194,10 +212,23 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
         trialEndDate: null,
         isLoading: false,
       });
-      setHasChecked(false);
-      log('Estado resetado - usuário não autenticado');
+      setHasInitialized(false);
+      log('State reset - user not authenticated');
     }
-  }, [isAuthenticated, user?.id, hasChecked, checkSubscription]);
+  }, [isAuthenticated, user?.id, hasInitialized, checkSubscription, handleCheckoutReturn]);
+
+  // Listen for page visibility changes to refresh subscription when user returns
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && isAuthenticated && user && hasInitialized) {
+        log('Page became visible, checking for subscription updates');
+        checkSubscription();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [isAuthenticated, user, hasInitialized, checkSubscription]);
 
   return (
     <SubscriptionContext.Provider value={{
